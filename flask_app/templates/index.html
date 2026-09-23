@@ -238,7 +238,7 @@
             <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
               <i class="fa-solid fa-sliders text-indigo-600"></i> Paramètres & Spécifications Matériel
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Configurez les listes normalisées des processeurs, capacités mémoires, disques et systèmes d'exploitation.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Configurez les marques, modèles, processeurs, capacités mémoires, disques et systèmes d'exploitation utilisés dans le parc.</p>
           </div>
           <button onclick="openNewParamModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
             <i class="fa-solid fa-plus"></i> Nouveau Paramètre
@@ -253,6 +253,7 @@
           <button onclick="filterParamCategory('ram')" id="btn-param-ram" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Mémoire (RAM)</button>
           <button onclick="filterParamCategory('disk')" id="btn-param-disk" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Stockage (Disque)</button>
           <button onclick="filterParamCategory('se')" id="btn-param-se" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Systèmes (SE)</button>
+          <button onclick="filterParamCategory('modele')" id="btn-param-modele" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Modèles</button>
           <button onclick="filterParamCategory('structures')" id="btn-param-structures" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
             <i class="fa-solid fa-sitemap mr-1"></i> Structures
           </button>
@@ -623,6 +624,7 @@
             <option value="ram">Mémoire Vive (RAM en Go)</option>
             <option value="disk">Capacité Disque (SSD/HDD en Go)</option>
             <option value="se">Système d'Exploitation (SE)</option>
+            <option value="modele">Modèle d'équipement</option>
           </select>
         </div>
         <div>
@@ -1040,7 +1042,7 @@
         document.getElementById('mat-cpu').value = mat.cpu || '';
         document.getElementById('mat-ram').value = mat.ram ?? '';
         document.getElementById('mat-disk').value = mat.disk ?? '';
-        document.getElementById('mat-image').value = mat.image_url || '';
+
         document.getElementById('modal-materiel').classList.remove('hidden');
       } catch (err) {
         showToast("Impossible de charger l'équipement", true);
@@ -1048,7 +1050,7 @@
     }
 
     function resetMaterielForm() {
-      ['mat-num-inv','mat-num-ser','mat-marque','mat-type','mat-model','mat-str','mat-user','mat-cpu','mat-ram','mat-disk','mat-image'].forEach(id => {
+      ['mat-num-inv','mat-num-ser','mat-marque','mat-type','mat-model','mat-str','mat-user','mat-cpu','mat-ram','mat-disk'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -1103,9 +1105,17 @@
       const models = (references.modeles || []).filter(m =>
         m.marque_mat === brand && (!typeId || !m.id_typ_mat || String(m.id_typ_mat) === String(typeId))
       );
+      const parameterModels = (references.parametres || [])
+        .filter(p => p.categorie === 'modele' && p.archiv !== 'O' && (p.valeur || '').trim())
+        .map(p => ({ id_param: p.id_param, model_mat: p.valeur.trim() }));
+
+      const existingNames = new Set(models.map(m => (m.model_mat || '').trim().toLowerCase()));
+      const extraModels = parameterModels.filter(p => !existingNames.has(p.model_mat.toLowerCase()));
+
       modelSel.disabled = false;
       modelSel.innerHTML = '<option value="">Sélectionner un modèle...</option>' +
-        models.map(m => `<option value="${m.id_model_mat}">${escapeHtml(m.model_mat || '')}</option>`).join('');
+        models.map(m => `<option value="${m.id_model_mat}">${escapeHtml(m.model_mat || '')}</option>`).join('') +
+        extraModels.map(p => `<option value="param:${p.id_param}" data-model-name="${escapeHtml(p.model_mat)}">${escapeHtml(p.model_mat)} (Paramètre)</option>`).join('');
     }
 
     function filterMaterielUsers() {
@@ -1156,7 +1166,11 @@
         num_inv: document.getElementById('mat-num-inv').value.trim(),
         num_ser: document.getElementById('mat-num-ser').value.trim(),
         marque_mat: document.getElementById('mat-marque').value.trim(),
-        id_model_mat: parseInt(document.getElementById('mat-model').value) || null,
+        id_model_mat: /^\d+$/.test(document.getElementById('mat-model').value) ? parseInt(document.getElementById('mat-model').value) : null,
+        model_mat_name: (() => {
+          const opt = document.getElementById('mat-model').selectedOptions[0];
+          return opt?.dataset.modelName || '';
+        })(),
         id_typ_mat: parseInt(document.getElementById('mat-type').value) || null,
         id_str: parseInt(document.getElementById('mat-str').value) || null,
         id_uti: parseInt(document.getElementById('mat-user').value) || null,
@@ -1319,6 +1333,7 @@
         if (p.categorie === 'ram') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">RAM</span>';
         if (p.categorie === 'disk') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">Disque</span>';
         if (p.categorie === 'se') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-800">Système (SE)</span>';
+        if (p.categorie === 'modele') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">Modèle</span>';
 
         return `
           <tr class="hover:bg-slate-50 transition">
@@ -1410,7 +1425,9 @@
           document.getElementById('param-desc').value = '';
           const updated = await fetch('/api/parametres').then(r => r.json());
           allParametres = updated;
+          references.parametres = updated;
           renderParametres();
+          populateMaterielForm();
         } else {
           showToast('Erreur lors de l\'enregistrement', true);
         }
