@@ -696,7 +696,7 @@
       <form onsubmit="handleSaveParametre(event)" class="mt-4 space-y-4">
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Catégorie de paramètre *</label>
-          <select id="param-cat" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+          <select id="param-cat" required onchange="toggleParamMarqueLiee()" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
             <option value="marque">Marque</option>
             <option value="cpu">Processeur (CPU)</option>
             <option value="ram">Mémoire Vive (RAM en Go)</option>
@@ -704,6 +704,13 @@
             <option value="se">Système d'Exploitation (SE)</option>
             <option value="modele">Modèle d'équipement</option>
           </select>
+        </div>
+        <div id="param-marque-liee-wrap" class="hidden">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Marque associée *</label>
+          <select id="param-marque-liee" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+            <option value="">Sélectionner une marque...</option>
+          </select>
+          <p class="text-[11px] text-slate-400 mt-1">Le modèle n'apparaîtra dans le formulaire d'ajout d'équipement que pour cette marque.</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Valeur / Dénomination *</label>
@@ -1187,26 +1194,35 @@
       const typeId = document.getElementById('mat-type')?.value || '';
       const modelSel = document.getElementById('mat-model');
       if (!modelSel) return;
+    function filterMaterielModels() {
+      const brand = document.getElementById('mat-marque')?.value || '';
+      const typeId = document.getElementById('mat-type')?.value || '';
+      const modelSel = document.getElementById('mat-model');
+      if (!modelSel) return;
 
-      // Les modèles définis dans Paramètres sont disponibles dès l'ajout.
-      // Les modèles du référentiel restent filtrés par marque/type.
+      // Les modèles du référentiel restent filtrés par marque/type ; rien n'est proposé tant
+      // qu'aucune marque n'est sélectionnée.
       const models = brand
         ? (references.modeles || []).filter(m =>
-            m.marque_mat === brand && (!typeId || !m.id_typ_mat || String(m.id_typ_mat) === String(typeId))
+            (m.marque_mat || '').trim().toLowerCase() === brand.toLowerCase() && (!typeId || !m.id_typ_mat || String(m.id_typ_mat) === String(typeId))
           )
         : [];
 
-      const parameterModels = (references.parametres || [])
-        .filter(p => p.categorie === 'modele' && p.archiv !== 'O' && (p.valeur || '').trim())
-        .map(p => ({ id_param: p.id_param, model_mat: p.valeur.trim() }));
+      // Un paramètre "Modèle" n'est proposé que s'il est explicitement lié à la marque sélectionnée.
+      const parameterModels = brand
+        ? (references.parametres || [])
+            .filter(p => p.categorie === 'modele' && p.archiv !== 'O' && (p.valeur || '').trim()
+              && (p.marque_liee || '').trim().toLowerCase() === brand.toLowerCase())
+            .map(p => ({ id_param: p.id_param, model_mat: p.valeur.trim() }))
+        : [];
 
       const existingNames = new Set(models.map(m => (m.model_mat || '').trim().toLowerCase()));
       const extraModels = parameterModels.filter(p => !existingNames.has(p.model_mat.toLowerCase()));
 
-      modelSel.disabled = models.length === 0 && extraModels.length === 0;
+      modelSel.disabled = !brand || (models.length === 0 && extraModels.length === 0);
       modelSel.innerHTML =
         '<option value="">' +
-        (extraModels.length || models.length ? 'Sélectionner un modèle...' : 'Aucun modèle configuré...') +
+        (!brand ? "Choisir d'abord une marque..." : (extraModels.length || models.length ? 'Sélectionner un modèle...' : 'Aucun modèle configuré...')) +
         '</option>' +
         models.map(m => `<option value="${m.id_model_mat}">${escapeHtml(m.model_mat || '')}</option>`).join('') +
         extraModels.map(p => `<option value="param:${p.id_param}" data-model-name="${escapeHtml(p.model_mat)}">${escapeHtml(p.model_mat)} (Paramètre)</option>`).join('');
@@ -1491,7 +1507,7 @@
         return `
           <tr class="hover:bg-slate-50 transition">
             <td class="p-3">${catBadge}</td>
-            <td class="p-3 font-semibold text-slate-800">${escapeHtml(p.valeur || '')}</td>
+            <td class="p-3 font-semibold text-slate-800">${escapeHtml(p.valeur || '')}${p.categorie === 'modele' && p.marque_liee ? ` <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">${escapeHtml(p.marque_liee)}</span>` : ''}</td>
             <td class="p-3 text-slate-500">${escapeHtml(p.description || '-')}</td>
             <td class="p-3 text-center font-mono text-slate-500">${p.ordre || 1}</td>
             <td class="p-3 text-right">
@@ -1636,17 +1652,47 @@
     }
 
     function openNewParamModal() {
+      const catSel = document.getElementById('param-cat');
+      if (catSel) catSel.value = 'marque';
+      toggleParamMarqueLiee();
       document.getElementById('modal-parametre').classList.remove('hidden');
+    }
+
+    function toggleParamMarqueLiee() {
+      const cat = document.getElementById('param-cat')?.value || '';
+      const wrap = document.getElementById('param-marque-liee-wrap');
+      const marqueSel = document.getElementById('param-marque-liee');
+      if (!wrap || !marqueSel) return;
+      if (cat === 'modele') {
+        const brands = [...new Set((references.parametres || [])
+          .filter(p => p.categorie === 'marque')
+          .map(p => p.valeur)
+          .filter(Boolean))].sort();
+        marqueSel.innerHTML = '<option value="">Sélectionner une marque...</option>' +
+          brands.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+        marqueSel.required = true;
+        wrap.classList.remove('hidden');
+      } else {
+        marqueSel.required = false;
+        wrap.classList.add('hidden');
+      }
     }
 
     async function handleSaveParametre(e) {
       e.preventDefault();
+      const categorie = document.getElementById('param-cat').value;
       const payload = {
-        categorie: document.getElementById('param-cat').value,
+        categorie,
         valeur: document.getElementById('param-val').value.trim(),
         description: document.getElementById('param-desc').value.trim(),
-        ordre: parseInt(document.getElementById('param-ordre').value) || 1
+        ordre: parseInt(document.getElementById('param-ordre').value) || 1,
+        marque_liee: categorie === 'modele' ? (document.getElementById('param-marque-liee')?.value || '') : ''
       };
+
+      if (categorie === 'modele' && !payload.marque_liee) {
+        showToast('Veuillez sélectionner la marque associée au modèle.', true);
+        return;
+      }
 
       try {
         const res = await fetch('/api/parametres', {
@@ -1660,6 +1706,8 @@
           closeModal('modal-parametre');
           document.getElementById('param-val').value = '';
           document.getElementById('param-desc').value = '';
+          const marqueLieeSel = document.getElementById('param-marque-liee');
+          if (marqueLieeSel) marqueLieeSel.value = '';
           const updated = await fetch('/api/parametres').then(r => r.json());
           allParametres = updated;
           references.parametres = updated;

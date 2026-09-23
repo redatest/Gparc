@@ -174,7 +174,8 @@ def init_db():
         valeur TEXT NOT NULL,
         description TEXT,
         ordre INTEGER DEFAULT 0,
-        archiv TEXT DEFAULT 'N'
+        archiv TEXT DEFAULT 'N',
+        marque_liee TEXT
     );
 
     CREATE TABLE IF NOT EXISTS parametre_type_mat (
@@ -230,6 +231,10 @@ def init_db():
         cur.execute("ALTER TABLE affect_mat ADD COLUMN ancien_id_str INTEGER")
     if 'ancien_id_uti' not in affect_columns:
         cur.execute("ALTER TABLE affect_mat ADD COLUMN ancien_id_uti INTEGER")
+
+    param_columns = {row[1] for row in cur.execute("PRAGMA table_info(parametres_materiel)").fetchall()}
+    if 'marque_liee' not in param_columns:
+        cur.execute("ALTER TABLE parametres_materiel ADD COLUMN marque_liee TEXT")
 
     # Amorçage des paramètres CPU, RAM, SE, Disque si vides
     count_params = cur.execute("SELECT COUNT(*) FROM parametres_materiel").fetchone()[0]
@@ -368,19 +373,26 @@ def init_db():
         WHERE (marque_mat IS NULL OR TRIM(marque_mat) = '') AND id_model_mat IS NOT NULL
     """)
 
-    # Synchroniser le référentiel des modèles avec les paramètres.
+    # Synchroniser le référentiel des modèles avec les paramètres, en conservant le lien avec la marque.
     model_rows = cur.execute(
-        "SELECT DISTINCT TRIM(model_mat) AS model_name FROM model_mat WHERE archiv = 'N' AND TRIM(model_mat) <> ''"
+        "SELECT DISTINCT TRIM(marque_mat) AS brand_name, TRIM(model_mat) AS model_name FROM model_mat "
+        "WHERE archiv = 'N' AND TRIM(model_mat) <> ''"
     ).fetchall()
     for row in model_rows:
         exists = cur.execute(
-            "SELECT 1 FROM parametres_materiel WHERE categorie = 'modele' AND LOWER(TRIM(valeur)) = LOWER(?) AND archiv = 'N'",
+            "SELECT id_param, marque_liee FROM parametres_materiel WHERE categorie = 'modele' AND LOWER(TRIM(valeur)) = LOWER(?) AND archiv = 'N'",
             (row['model_name'],)
         ).fetchone()
         if not exists:
             cur.execute(
-                "INSERT INTO parametres_materiel (categorie, valeur, description, ordre) VALUES ('modele', ?, 'Modèle issu du référentiel des équipements', 0)",
-                (row['model_name'],)
+                "INSERT INTO parametres_materiel (categorie, valeur, description, ordre, marque_liee) VALUES ('modele', ?, 'Modèle issu du référentiel des équipements', 0, ?)",
+                (row['model_name'], row['brand_name'] or None)
+            )
+        elif not (exists['marque_liee'] or '').strip() and row['brand_name']:
+            # Complète le lien marque manquant sur un paramètre déjà existant (migration douce).
+            cur.execute(
+                "UPDATE parametres_materiel SET marque_liee = ? WHERE id_param = ?",
+                (row['brand_name'], exists['id_param'])
             )
 
     conn.commit()
@@ -1884,14 +1896,19 @@ def create_parametre():
     valeur = data.get('valeur', '').strip()
     description = data.get('description', '').strip() or None
     ordre = int(data.get('ordre', 0))
+    marque_liee = (data.get('marque_liee') or '').strip() or None
+    if categorie != 'modele':
+        marque_liee = None
 
     if not categorie or not valeur:
         return jsonify({"error": "Catégorie et valeur requises"}), 400
+    if categorie == 'modele' and not marque_liee:
+        return jsonify({"error": "La marque associée est requise pour un modèle"}), 400
 
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("INSERT INTO parametres_materiel (categorie, valeur, description, ordre) VALUES (?, ?, ?, ?)",
-                (categorie, valeur, description, ordre))
+    cur.execute("INSERT INTO parametres_materiel (categorie, valeur, description, ordre, marque_liee) VALUES (?, ?, ?, ?, ?)",
+                (categorie, valeur, description, ordre, marque_liee))
     conn.commit()
     pid = cur.lastrowid
     conn.close()
@@ -1903,11 +1920,16 @@ def update_parametre(id_param):
     valeur = data.get('valeur', '').strip()
     description = data.get('description', '').strip() or None
     ordre = int(data.get('ordre', 0))
+    marque_liee = (data.get('marque_liee') or '').strip() or None
 
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("UPDATE parametres_materiel SET valeur = ?, description = ?, ordre = ? WHERE id_param = ?",
-                (valeur, description, ordre, id_param))
+    if marque_liee is not None or 'marque_liee' in data:
+        cur.execute("UPDATE parametres_materiel SET valeur = ?, description = ?, ordre = ?, marque_liee = ? WHERE id_param = ?",
+                    (valeur, description, ordre, marque_liee, id_param))
+    else:
+        cur.execute("UPDATE parametres_materiel SET valeur = ?, description = ?, ordre = ? WHERE id_param = ?",
+                    (valeur, description, ordre, id_param))
     conn.commit()
     conn.close()
     return jsonify({"message": "Paramètre mis à jour"})
