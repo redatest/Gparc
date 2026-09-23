@@ -1485,6 +1485,20 @@ def handle_single_materiel(mat_id):
 
         id_typ = data.get('id_typ_mat') if 'id_typ_mat' in data else existing['id_typ_mat']
         id_model = data.get('id_model_mat') if 'id_model_mat' in data else existing['id_model_mat']
+        model_name = (data.get('model_mat_name') or '').strip()
+        if model_name and marque:
+            model_row = cur.execute(
+                "SELECT id_model_mat FROM model_mat WHERE archiv = 'N' AND LOWER(TRIM(model_mat)) = LOWER(?) AND LOWER(TRIM(marque_mat)) = LOWER(?) AND (id_typ_mat = ? OR id_typ_mat IS NULL)",
+                (model_name, marque, id_typ)
+            ).fetchone()
+            if model_row:
+                id_model = model_row['id_model_mat']
+            else:
+                cur.execute(
+                    "INSERT INTO model_mat (marque_mat, model_mat, id_typ_mat) VALUES (?, ?, ?)",
+                    (marque, model_name, id_typ)
+                )
+                id_model = cur.lastrowid
         id_str = data.get('id_str') if 'id_str' in data else existing['id_str']
         id_uti = data.get('id_uti') if 'id_uti' in data else existing['id_uti']
 
