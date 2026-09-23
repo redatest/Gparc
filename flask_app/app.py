@@ -1396,12 +1396,30 @@ def handle_materiels():
 
     if request.method == 'POST':
         data = request.json or {}
-        # Générer id_model_mat si besoin
+        # Vérifier la marque et résoudre/créer le modèle sélectionné.
         marque = (data.get('marque_mat') or '').strip()
         if marque:
             brand_ref = cur.execute("SELECT id_param FROM parametres_materiel WHERE categorie = 'marque' AND archiv = 'N' AND LOWER(TRIM(valeur)) = LOWER(?)", (marque,)).fetchone()
             if not brand_ref:
                 return jsonify({"error": "La marque sélectionnée n’existe pas dans le référentiel des marques."}), 400
+
+        id_model = data.get('id_model_mat') or None
+        model_name = (data.get('model_mat_name') or '').strip()
+        id_typ = data.get('id_typ_mat') or None
+
+        if model_name and marque:
+            model_row = cur.execute(
+                "SELECT id_model_mat FROM model_mat WHERE archiv = 'N' AND LOWER(TRIM(model_mat)) = LOWER(?) AND LOWER(TRIM(marque_mat)) = LOWER(?) AND (id_typ_mat = ? OR id_typ_mat IS NULL)",
+                (model_name, marque, id_typ)
+            ).fetchone()
+            if model_row:
+                id_model = model_row['id_model_mat']
+            else:
+                cur.execute(
+                    "INSERT INTO model_mat (marque_mat, model_mat, id_typ_mat) VALUES (?, ?, ?)",
+                    (marque, model_name, id_typ)
+                )
+                id_model = cur.lastrowid
 
         cur.execute("""
             INSERT INTO materiel (
@@ -1409,7 +1427,7 @@ def handle_materiels():
                 ram, disk, cpu, se, ordi, ip, id_uti, image_url
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            data.get('id_str') or None, data.get('id_typ_mat') or None, data.get('id_model_mat') or None,
+            data.get('id_str') or None, id_typ, id_model,
             marque or None,
             data.get('num_inv', f"INV-{datetime.now().strftime('%y%m%d%H%M')}"),
             data.get('num_ser', f"SN-{datetime.now().strftime('%y%m%d%H%M')}"),
@@ -1417,7 +1435,7 @@ def handle_materiels():
             data.get('ram', 16), data.get('disk', 512),
             data.get('cpu', 'Intel Core i5/i7'), data.get('se', 'Windows 11 Pro'),
             data.get('ordi', ''), data.get('ip', ''), data.get('id_uti') or None,
-            data.get('image_url', 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80')
+            data.get('image_url', '')
         ))
         conn.commit()
         last_id = cur.lastrowid
