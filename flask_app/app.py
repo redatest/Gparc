@@ -328,6 +328,22 @@ def init_db():
         SET marque_mat = (SELECT mm.marque_mat FROM model_mat mm WHERE mm.id_model_mat = materiel.id_model_mat)
         WHERE (marque_mat IS NULL OR TRIM(marque_mat) = '') AND id_model_mat IS NOT NULL
     """)
+
+    # Synchroniser le référentiel des modèles avec les paramètres.
+    model_rows = cur.execute(
+        "SELECT DISTINCT TRIM(model_mat) AS model_name FROM model_mat WHERE archiv = 'N' AND TRIM(model_mat) <> ''"
+    ).fetchall()
+    for row in model_rows:
+        exists = cur.execute(
+            "SELECT 1 FROM parametres_materiel WHERE categorie = 'modele' AND LOWER(TRIM(valeur)) = LOWER(?) AND archiv = 'N'",
+            (row['model_name'],)
+        ).fetchone()
+        if not exists:
+            cur.execute(
+                "INSERT INTO parametres_materiel (categorie, valeur, description, ordre) VALUES ('modele', ?, 'Modèle issu du référentiel des équipements', 0)",
+                (row['model_name'],)
+            )
+
     conn.commit()
     conn.close()
 
