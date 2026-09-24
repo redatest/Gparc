@@ -1012,8 +1012,12 @@
       const submit = document.getElementById('mat-submit-btn');
       if (title) title.innerText = "Ajouter un équipement au parc";
       if (submit) submit.innerText = "Enregistrer l'équipement";
-      populateMaterielForm();
+
+      // Réinitialiser d'abord le formulaire, puis charger les listes.
+      // L'ancien ordre effaçait la liste des modèles juste après son alimentation.
       resetMaterielForm();
+      populateMaterielForm();
+
       document.getElementById('modal-materiel').classList.remove('hidden');
     }
 
@@ -1097,14 +1101,15 @@
       const typeId = document.getElementById('mat-type')?.value || '';
       const modelSel = document.getElementById('mat-model');
       if (!modelSel) return;
-      if (!brand) {
-        modelSel.innerHTML = "<option value=''>Choisir d'abord une marque...</option>";
-        modelSel.disabled = true;
-        return;
-      }
-      const models = (references.modeles || []).filter(m =>
-        m.marque_mat === brand && (!typeId || !m.id_typ_mat || String(m.id_typ_mat) === String(typeId))
-      );
+
+      // Les modèles définis dans Paramètres sont disponibles dès l'ajout.
+      // Les modèles du référentiel restent filtrés par marque/type.
+      const models = brand
+        ? (references.modeles || []).filter(m =>
+            m.marque_mat === brand && (!typeId || !m.id_typ_mat || String(m.id_typ_mat) === String(typeId))
+          )
+        : [];
+
       const parameterModels = (references.parametres || [])
         .filter(p => p.categorie === 'modele' && p.archiv !== 'O' && (p.valeur || '').trim())
         .map(p => ({ id_param: p.id_param, model_mat: p.valeur.trim() }));
@@ -1112,8 +1117,11 @@
       const existingNames = new Set(models.map(m => (m.model_mat || '').trim().toLowerCase()));
       const extraModels = parameterModels.filter(p => !existingNames.has(p.model_mat.toLowerCase()));
 
-      modelSel.disabled = false;
-      modelSel.innerHTML = '<option value="">Sélectionner un modèle...</option>' +
+      modelSel.disabled = models.length === 0 && extraModels.length === 0;
+      modelSel.innerHTML =
+        '<option value="">' +
+        (extraModels.length || models.length ? 'Sélectionner un modèle...' : 'Aucun modèle configuré...') +
+        '</option>' +
         models.map(m => `<option value="${m.id_model_mat}">${escapeHtml(m.model_mat || '')}</option>`).join('') +
         extraModels.map(p => `<option value="param:${p.id_param}" data-model-name="${escapeHtml(p.model_mat)}">${escapeHtml(p.model_mat)} (Paramètre)</option>`).join('');
     }
