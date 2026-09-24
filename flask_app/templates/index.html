@@ -463,6 +463,31 @@
     </div>
   </div>
 
+  <!-- MODAL : HISTORIQUE DES AFFECTATIONS -->
+  <div id="modal-affectation-history" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+            Historique des affectations
+          </h3>
+          <p id="affect-history-equipment" class="text-xs text-slate-500 mt-0.5">Équipement</p>
+        </div>
+        <button onclick="closeModal('modal-affectation-history')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="affect-history-content" class="mt-5 max-h-[60vh] overflow-y-auto pr-1">
+        <div class="text-center py-8 text-slate-400 text-xs">
+          <i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i>
+          <p>Chargement de l'historique...</p>
+        </div>
+      </div>
+      <div class="flex justify-end pt-4 mt-4 border-t border-slate-100">
+        <button type="button" onclick="closeModal('modal-affectation-history')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL : SIGNALER UNE PANNE -->
   <div id="modal-panne" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 my-8">
@@ -882,6 +907,9 @@
                     <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Modifier l'équipement">
                       <i class="fa-solid fa-pen-to-square"></i> Modifier
                     </button>
+                    <button onclick="openAffectationHistory(${m.id_mat})" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Historique des affectations">
+                      <i class="fa-solid fa-clock-rotate-left"></i> Historique
+                    </button>
                     <button onclick="quickPanneFor(${m.id_mat})" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une panne">
                       <i class="fa-solid fa-triangle-exclamation"></i> Panne
                     </button>
@@ -1137,6 +1165,58 @@
 
     function escapeHtml(value) {
       return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;',"\"":'&quot;'}[c]));
+    }
+
+    async function openAffectationHistory(matId) {
+      const content = document.getElementById('affect-history-content');
+      const title = document.getElementById('affect-history-equipment');
+      if (!content) return;
+
+      const mat = allMateriels.find(m => String(m.id_mat) === String(matId));
+      if (title && mat) {
+        title.innerText = (mat.num_inv || 'Équipement') + ' — ' + (mat.marque_mat || '') + ' ' + (mat.model_mat || '');
+      }
+
+      content.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i><p>Chargement de l\'historique...</p></div>';
+      document.getElementById('modal-affectation-history').classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/materiels/' + matId + '/historique');
+        const history = await res.json().catch(() => []);
+        if (!res.ok) throw new Error(history.error || 'Erreur de chargement');
+
+        if (!history.length) {
+          content.innerHTML = '<div class="text-center py-10 text-slate-400 text-xs"><i class="fa-solid fa-clock-rotate-left text-3xl mb-2"></i><p>Aucun historique d\'affectation enregistré pour cet équipement.</p><p class="mt-1">Les prochaines affectations et changements seront automatiquement tracés.</p></div>';
+          return;
+        }
+
+        content.innerHTML = history.map((h, index) => {
+          let icon = 'fa-user-check';
+          let iconClass = 'bg-emerald-100 text-emerald-700';
+          if (h.action_aff === 'CHANGEMENT_STRUCTURE') {
+            icon = 'fa-sitemap';
+            iconClass = 'bg-blue-100 text-blue-700';
+          } else if (h.action_aff === 'CHANGEMENT_UTILISATEUR') {
+            icon = 'fa-user-pen';
+            iconClass = 'bg-amber-100 text-amber-700';
+          }
+
+          const date = h.dat_aff
+            ? new Date(h.dat_aff.replace(' ', 'T')).toLocaleString('fr-FR')
+            : '-';
+
+          return '<div class="relative flex gap-3 pb-5 ' + (index < history.length - 1 ? 'border-l-2 border-slate-200 ml-4 pl-5' : 'ml-4 pl-5') + '">' +
+            '<div class="absolute -left-[13px] top-0 w-6 h-6 rounded-full ' + iconClass + ' flex items-center justify-center border-2 border-white shadow-sm"><i class="fa-solid ' + icon + ' text-[10px]"></i></div>' +
+            '<div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3">' +
+              '<div class="text-xs font-bold text-slate-800">' + escapeHtml(h.libelle_action || 'Affectation') + '</div>' +
+              '<div class="text-[11px] text-slate-400 mt-0.5">' + escapeHtml(date) + '</div>' +
+              '<div class="mt-2 text-xs text-slate-700">' + escapeHtml(h.detail_action || '') + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } catch (err) {
+        content.innerHTML = '<div class="text-center py-8 text-rose-500 text-xs"><i class="fa-solid fa-circle-exclamation text-xl mb-2"></i><p>Impossible de charger l\'historique.</p><p class="mt-1 text-slate-400">' + escapeHtml(err.message || '') + '</p></div>';
+      }
     }
 
     function openNewPanneModal() {
