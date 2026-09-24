@@ -123,6 +123,28 @@ def init_db():
         dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS affect_mat (
+        id_aff_mat INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_mat INTEGER NOT NULL,
+        id_str INTEGER,
+        id_model_mat INTEGER,
+        id_typ_mat INTEGER,
+        num_inv TEXT,
+        num_ser TEXT,
+        dat_aff DATETIME DEFAULT CURRENT_TIMESTAMP,
+        obs_aff TEXT,
+        id_uti INTEGER,
+        action_aff TEXT DEFAULT 'NOUVELLE_AFFECTATION',
+        ancien_id_str INTEGER,
+        ancien_id_uti INTEGER,
+        archiv TEXT DEFAULT 'N',
+        dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
+        dat_mod DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_mat) REFERENCES materiel (id_mat),
+        FOREIGN KEY (id_str) REFERENCES structures (id_str),
+        FOREIGN KEY (id_uti) REFERENCES utilisateurs (id_uti)
+    );
+
     CREATE TABLE IF NOT EXISTS panne (
         id_pan INTEGER PRIMARY KEY AUTOINCREMENT,
         id_mat INTEGER NOT NULL,
@@ -191,6 +213,15 @@ def init_db():
     mat_columns = {row[1] for row in cur.execute("PRAGMA table_info(materiel)").fetchall()}
     if 'marque_mat' not in mat_columns:
         cur.execute("ALTER TABLE materiel ADD COLUMN marque_mat TEXT")
+
+    # Migration légère de l'historique d'affectation.
+    affect_columns = {row[1] for row in cur.execute("PRAGMA table_info(affect_mat)").fetchall()}
+    if 'action_aff' not in affect_columns:
+        cur.execute("ALTER TABLE affect_mat ADD COLUMN action_aff TEXT DEFAULT 'NOUVELLE_AFFECTATION'")
+    if 'ancien_id_str' not in affect_columns:
+        cur.execute("ALTER TABLE affect_mat ADD COLUMN ancien_id_str INTEGER")
+    if 'ancien_id_uti' not in affect_columns:
+        cur.execute("ALTER TABLE affect_mat ADD COLUMN ancien_id_uti INTEGER")
 
     # Amorçage des paramètres CPU, RAM, SE, Disque si vides
     count_params = cur.execute("SELECT COUNT(*) FROM parametres_materiel").fetchone()[0]
@@ -346,6 +377,27 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+def log_affectation(cur, id_mat, action, id_str, id_uti, ancien_id_str=None, ancien_id_uti=None, obs=''):
+    """Enregistre un événement dans l'historique d'affectation."""
+    mat = cur.execute(
+        "SELECT id_model_mat, id_typ_mat, num_inv, num_ser FROM materiel WHERE id_mat = ?",
+        (id_mat,)
+    ).fetchone()
+    if not mat:
+        return
+
+    cur.execute("""
+        INSERT INTO affect_mat (
+            id_mat, id_str, id_model_mat, id_typ_mat, num_inv, num_ser,
+            dat_aff, obs_aff, id_uti, action_aff, ancien_id_str, ancien_id_uti
+        ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
+    """, (
+        id_mat, id_str, mat['id_model_mat'], mat['id_typ_mat'],
+        mat['num_inv'], mat['num_ser'], obs, id_uti, action,
+        ancien_id_str, ancien_id_uti
+    ))
+
 
 # Initialiser la base dès le chargement du module
 init_db()
@@ -1453,8 +1505,16 @@ def handle_materiels():
             data.get('ordi', ''), data.get('ip', ''), data.get('id_uti') or None,
             data.get('image_url', '')
         ))
-        conn.commit()
         last_id = cur.lastrowid
+
+        if data.get('id_str') or data.get('id_uti'):
+            log_affectation(
+                cur, last_id, 'NOUVELLE_AFFECTATION',
+                data.get('id_str') or None, data.get('id_uti') or None,
+                obs='Nouvelle affectation lors de la création de l’équipement'
+            )
+
+        conn.commit()
         conn.close()
         return jsonify({"id": last_id, "message": "Matériel créé avec succès"}), 201
 
@@ -1556,6 +1616,29 @@ def handle_single_materiel(mat_id):
             id_model, id_typ, id_str, id_uti, data.get('etat_mat'), data.get('obs_mat'),
             data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'), mat_id
         ))
+        old_str = existing['id_str']
+        old_uti = existing['id_uti']
+
+        if (old_str is None and old_uti is None) and (id_str is not None or id_uti is not None):
+            log_affectation(
+                cur, mat_id, 'NOUVELLE_AFFECTATION', id_str, id_uti,
+                ancien_id_str=old_str, ancien_id_uti=old_uti,
+                obs='Nouvelle affectation de l’équipement'
+            )
+        else:
+            if old_str != id_str:
+                log_affectation(
+                    cur, mat_id, 'CHANGEMENT_STRUCTURE', id_str, id_uti,
+                    ancien_id_str=old_str, ancien_id_uti=old_uti,
+                    obs='Changement de structure / direction'
+                )
+            if old_uti != id_uti:
+                log_affectation(
+                    cur, mat_id, 'CHANGEMENT_UTILISATEUR', id_str, id_uti,
+                    ancien_id_str=old_str, ancien_id_uti=old_uti,
+                    obs='Changement d’utilisateur assigné'
+                )
+
         conn.commit()
         conn.close()
         return jsonify({"message": "Matériel mis à jour avec succès"})
@@ -1571,6 +1654,57 @@ def handle_single_materiel(mat_id):
     if not row:
         return jsonify({"error": "Matériel non trouvé"}), 404
     return jsonify(dict(row))
+
+@app.route('/api/materiels/<int:mat_id>/historique', methods=['GET'])
+def get_materiel_historique(mat_id):
+    conn = get_db()
+    cur = conn.cursor()
+    exists = cur.execute(
+        "SELECT id_mat FROM materiel WHERE id_mat = ? AND archiv = 'N'",
+        (mat_id,)
+    ).fetchone()
+    if not exists:
+        conn.close()
+        return jsonify({"error": "Matériel non trouvé"}), 404
+
+    rows = cur.execute("""
+        SELECT a.id_aff_mat, a.id_mat, a.dat_aff, a.action_aff, a.obs_aff,
+               a.id_str, a.ancien_id_str, a.id_uti, a.ancien_id_uti,
+               s.lib_str AS structure_nom, os.lib_str AS ancienne_structure_nom,
+               u.nom_uti, u.pnom_uti, ou.nom_uti AS ancien_nom_uti,
+               ou.pnom_uti AS ancien_pnom_uti
+        FROM affect_mat a
+        LEFT JOIN structures s ON a.id_str = s.id_str
+        LEFT JOIN structures os ON a.ancien_id_str = os.id_str
+        LEFT JOIN utilisateurs u ON a.id_uti = u.id_uti
+        LEFT JOIN utilisateurs ou ON a.ancien_id_uti = ou.id_uti
+        WHERE a.id_mat = ? AND a.archiv = 'N'
+        ORDER BY a.dat_aff DESC, a.id_aff_mat DESC
+    """, (mat_id,)).fetchall()
+
+    result = []
+    for r in rows:
+        d = dict(r)
+        if d['action_aff'] == 'NOUVELLE_AFFECTATION':
+            libelle = 'Nouvelle affectation'
+            detail = d['structure_nom'] or 'Structure non précisée'
+            if d['nom_uti']:
+                detail += ' — ' + ((d['pnom_uti'] or '') + ' ' + (d['nom_uti'] or '')).strip()
+        elif d['action_aff'] == 'CHANGEMENT_STRUCTURE':
+            libelle = 'Changement de structure'
+            detail = f"{d['ancienne_structure_nom'] or 'Aucune structure'} → {d['structure_nom'] or 'Aucune structure'}"
+        else:
+            libelle = 'Changement d’utilisateur'
+            old_name = ((d['ancien_pnom_uti'] or '') + ' ' + (d['ancien_nom_uti'] or '')).strip() or 'Aucun utilisateur'
+            new_name = ((d['pnom_uti'] or '') + ' ' + (d['nom_uti'] or '')).strip() or 'Aucun utilisateur'
+            detail = f"{old_name} → {new_name}"
+        d['libelle_action'] = libelle
+        d['detail_action'] = detail
+        result.append(d)
+
+    conn.close()
+    return jsonify(result)
+
 
 @app.route('/api/pannes', methods=['GET', 'POST'])
 def handle_pannes():
