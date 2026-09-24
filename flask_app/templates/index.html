@@ -1447,9 +1447,12 @@
     function renderParametres() {
       const tbody = document.getElementById('parametres-table-body');
       const structurePanel = document.getElementById('structures-param-panel');
+      const utilisateurPanel = document.getElementById('utilisateurs-param-panel');
       const isStructures = currentParamCat === 'structures';
+      const isUtilisateurs = currentParamCat === 'utilisateurs';
 
       if (structurePanel) structurePanel.classList.toggle('hidden', !isStructures);
+      if (utilisateurPanel) utilisateurPanel.classList.toggle('hidden', !isUtilisateurs);
       if (tbody) {
         const paramTable = tbody.closest('table');
         const paramContainer = paramTable ? paramTable.parentElement : null;
@@ -1458,6 +1461,10 @@
 
       if (isStructures) {
         renderStructures();
+        return;
+      }
+      if (isUtilisateurs) {
+        renderUtilisateurs();
         return;
       }
 
