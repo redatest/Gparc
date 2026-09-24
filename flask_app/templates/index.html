@@ -1456,7 +1456,7 @@
       if (tbody) {
         const paramTable = tbody.closest('table');
         const paramContainer = paramTable ? paramTable.parentElement : null;
-        if (paramContainer) paramContainer.classList.toggle('hidden', isStructures);
+        if (paramContainer) paramContainer.classList.toggle('hidden', isStructures || isUtilisateurs);
       }
 
       if (isStructures) {
