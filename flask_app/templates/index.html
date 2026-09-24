@@ -840,13 +840,50 @@
                   </div>
 
                   <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <button onclick="quickPanneFor(${m.id_mat})" class="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer">
-                      <i class="fa-solid fa-triangle-exclamation"></i> Signaler Panne
+                    <button onclick="openAffectationHistory(${m.id_mat})" class="text-xs font-semibold text-indigo-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer">
+                      <i class="fa-solid fa-clock-rotate-left"></i> Historique</button>
+                     <button onclick="quickPanneFor(${m.id_mat})" class="text-xs font-semibold text-rose-600
                     </button>
                     <div class="text-[11px] font-mono text-slate-400">${m.ip ? 'IP: ' + m.ip : ''}</div>
                   </div>
                 </div>
               </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Rendu du tableau d'inventaire complet (Parc Équipements)
+      if (tableBody) {
+        if (filtered.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Aucun équipement trouvé correspondant aux critères.</td></tr>`;
+        } else {
+          tableBody.innerHTML = filtered.map(m => {
+            let badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>En service</span>';
+            if (m.etat_mat === 'PA') badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 flex items-center gap-1 w-max animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>En panne</span>';
+            if (m.etat_mat === 'RE') badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>En réparation</span>';
+
+            const typeLabel = (m.type_nom || '').toLowerCase();
+            let equipmentIcon = 'fa-desktop';
+            if (typeLabel.includes('imprim')) equipmentIcon = 'fa-print';
+            else if (typeLabel.includes('serveur')) equipmentIcon = 'fa-server';
+            else if (typeLabel.includes('réseau') || typeLabel.includes('switch') || typeLabel.includes('routeur')) equipmentIcon = 'fa-network-wired';
+            else if (typeLabel.includes('téléphone')) equipmentIcon = 'fa-phone';
+            else if (typeLabel.includes('écran') || typeLabel.includes('moniteur')) equipmentIcon = 'fa-display';
+            else if (typeLabel.includes('portable')) equipmentIcon = 'fa-laptop';
+
+            return `
+              <tr class="hover:bg-slate-50 transition text-xs">
+                <td class="p-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                      <i class="fa-solid ${equipmentIcon} text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900">${m.marque_mat || ''} ${m.model_mat || 'Équipement'}</div>
+                      <div class="text-[11px] text-slate-500">${m.type_nom || 'Matériel'} ${m.ordi ? `&bull; <span class="font-mono text-indigo-600">${m.ordi}</span>` : ''}</div>
+                    </div>
+                  </div>
                 </td>
                 <td class="p-3">
                   <div class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded w-max">${m.num_inv || '-'}</div>
@@ -872,9 +909,9 @@
                       <i class="fa-solid fa-pen-to-square"></i> Modifier
                     </button>
                     <button onclick="openAffectationHistory(${m.id_mat})" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Historique des affectations">
-                      <i class="fa-solid fa-clock-rotate-left"></i> Historique
-                    </button>
-                    <button onclick="quickPanneFor(${m.id_mat})" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une panne">
+                       <i class="fa-solid fa-clock-rotate-left"></i> Historique
+                     </button>
+                     <button onclick="quickPanneFor(${m.id_mat})" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une panne">
                       <i class="fa-solid fa-triangle-exclamation"></i> Panne
                     </button>
                     <button onclick="deleteMateriel(${m.id_mat})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded transition" title="Supprimer du parc">
