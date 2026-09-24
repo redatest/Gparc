@@ -209,10 +209,18 @@ def init_db():
     );
     """)
 
-    # Migration légère pour les bases GPARC déjà existantes.
+    # Migrations légères pour les bases GPARC déjà existantes.
+    # CREATE TABLE IF NOT EXISTS ne modifie pas une table déjà présente :
+    # on complète donc explicitement les colonnes ajoutées dans les versions
+    # récentes de l'application.
     mat_columns = {row[1] for row in cur.execute("PRAGMA table_info(materiel)").fetchall()}
     if 'marque_mat' not in mat_columns:
         cur.execute("ALTER TABLE materiel ADD COLUMN marque_mat TEXT")
+    if 'dat_mod' not in mat_columns:
+        # Nullable volontairement : SQLite n'autorise pas toujours
+        # l'ajout d'un DEFAULT CURRENT_TIMESTAMP via ALTER TABLE.
+        cur.execute("ALTER TABLE materiel ADD COLUMN dat_mod DATETIME")
+        cur.execute("UPDATE materiel SET dat_mod = COALESCE(dat_cre, CURRENT_TIMESTAMP) WHERE dat_mod IS NULL")
 
     # Migration légère de l'historique d'affectation.
     affect_columns = {row[1] for row in cur.execute("PRAGMA table_info(affect_mat)").fetchall()}
