@@ -57,7 +57,9 @@ def init_db():
         lib_str TEXT NOT NULL,
         id_str_mere INTEGER,
         archiv TEXT DEFAULT 'N',
-        dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP
+        dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
+        etat_reforme TEXT DEFAULT 'AUCUNE',
+        motif_reforme TEXT
     );
 
     CREATE TABLE IF NOT EXISTS type_mat (
@@ -221,6 +223,11 @@ def init_db():
         # l'ajout d'un DEFAULT CURRENT_TIMESTAMP via ALTER TABLE.
         cur.execute("ALTER TABLE materiel ADD COLUMN dat_mod DATETIME")
         cur.execute("UPDATE materiel SET dat_mod = COALESCE(dat_cre, CURRENT_TIMESTAMP) WHERE dat_mod IS NULL")
+    if 'etat_reforme' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN etat_reforme TEXT DEFAULT 'AUCUNE'")
+        cur.execute("UPDATE materiel SET etat_reforme = 'AUCUNE' WHERE etat_reforme IS NULL")
+    if 'motif_reforme' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN motif_reforme TEXT")
 
     # Migration légère de l'historique d'affectation.
     affect_columns = {row[1] for row in cur.execute("PRAGMA table_info(affect_mat)").fetchall()}
@@ -1500,8 +1507,8 @@ def handle_materiels():
         cur.execute("""
             INSERT INTO materiel (
                 id_str, id_typ_mat, id_model_mat, marque_mat, num_inv, num_ser, etat_mat, obs_mat,
-                ram, disk, cpu, se, ordi, ip, id_uti, image_url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ram, disk, cpu, se, ordi, ip, id_uti, image_url, etat_reforme, motif_reforme
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data.get('id_str') or None, id_typ, id_model,
             marque or None,
@@ -1511,7 +1518,9 @@ def handle_materiels():
             data.get('ram', 16), data.get('disk', 512),
             data.get('cpu', 'Intel Core i5/i7'), data.get('se', 'Windows 11 Pro'),
             data.get('ordi', ''), data.get('ip', ''), data.get('id_uti') or None,
-            data.get('image_url', '')
+            data.get('image_url', ''),
+            data.get('etat_reforme') if data.get('etat_reforme') in ('PROPOSEE', 'REFORME') else 'AUCUNE',
+            data.get('motif_reforme') if data.get('etat_reforme') == 'REFORME' else None
         ))
         last_id = cur.lastrowid
 
@@ -1592,6 +1601,17 @@ def handle_single_materiel(mat_id):
             conn.close(); return jsonify({"error": "Structure invalide."}), 400
         if id_uti is not None and not cur.execute("SELECT 1 FROM utilisateurs WHERE id_uti = ? AND archiv = 'N'", (id_uti,)).fetchone():
             conn.close(); return jsonify({"error": "Utilisateur assigné invalide."}), 400
+        etat_reforme = data.get('etat_reforme') if 'etat_reforme' in data else (existing['etat_reforme'] or 'AUCUNE')
+        motif_reforme = data.get('motif_reforme') if 'motif_reforme' in data else existing['motif_reforme']
+        if etat_reforme not in ('AUCUNE', 'PROPOSEE', 'REFORME'):
+            conn.close()
+            return jsonify({"error": "État de réforme invalide."}), 400
+        if etat_reforme == 'REFORME' and motif_reforme not in ('OBSOLETE', 'IRREPARABLE'):
+            conn.close()
+            return jsonify({"error": "Le motif de réforme doit être « Obsolète » ou « Irréparable »."}), 400
+        if etat_reforme != 'REFORME':
+            motif_reforme = None
+
         if id_model is not None:
             model = cur.execute("SELECT marque_mat, id_typ_mat FROM model_mat WHERE id_model_mat = ? AND archiv = 'N'", (id_model,)).fetchone()
             if not model:
@@ -1617,12 +1637,15 @@ def handle_single_materiel(mat_id):
                 disk = COALESCE(?, disk),
                 ip = COALESCE(?, ip),
                 image_url = COALESCE(?, image_url),
+                etat_reforme = ?,
+                motif_reforme = ?,
                 dat_mod = CURRENT_TIMESTAMP
             WHERE id_mat = ?
         """, (
             data.get('num_inv'), data.get('num_ser'), marque or None,
             id_model, id_typ, id_str, id_uti, data.get('etat_mat'), data.get('obs_mat'),
-            data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'), mat_id
+            data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'),
+            etat_reforme, motif_reforme, mat_id
         ))
         old_str = existing['id_str']
         old_uti = existing['id_uti']
