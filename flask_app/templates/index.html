@@ -203,6 +203,7 @@
             <select id="reforme-filter" onchange="renderReformes()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">
               <option value="ALL">Tous</option>
               <option value="PROPOSEE">Proposé à la réforme</option>
+              <option value="VALIDEE">Validé</option>
               <option value="REFORME">Réformé</option>
             </select>
           </div>
@@ -1257,7 +1258,7 @@
       const filter = document.getElementById('reforme-filter')?.value || currentReformeFilter || 'ALL';
       currentReformeFilter = filter;
       const rows = allMateriels.filter(m =>
-        (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'REFORME') &&
+        (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'VALIDEE' || m.etat_reforme === 'REFORME') &&
         (filter === 'ALL' || m.etat_reforme === filter)
       );
 
