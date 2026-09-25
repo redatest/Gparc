@@ -97,6 +97,8 @@ CREATE TABLE IF NOT EXISTS materiel (
   archiv TEXT DEFAULT 'N',
   dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
   dat_mod DATETIME DEFAULT CURRENT_TIMESTAMP,
+  etat_reforme TEXT DEFAULT 'AUCUNE',
+  motif_reforme TEXT,
   FOREIGN KEY (id_str) REFERENCES structures (id_str),
   FOREIGN KEY (id_typ_mat) REFERENCES type_mat (id_typ_mat),
   FOREIGN KEY (id_model_mat) REFERENCES model_mat (id_model_mat),
