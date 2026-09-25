@@ -1302,6 +1302,8 @@
             <td class="p-3">
               <div>${escapeHtml(motif)}</div>
               <div class="text-[10px] text-slate-400 mt-1">${escapeHtml(workflowDates || '—')}</div>
+              ${m.decision_reforme ? '<div class="text-[10px] text-slate-500 mt-1">Décision : ' + escapeHtml(m.decision_reforme) + '</div>' : ''}
+              ${m.pv_reforme ? '<div class="text-[10px] text-slate-500">PV : ' + escapeHtml(m.pv_reforme) + '</div>' : ''}
             </td>
             <td class="p-3 text-right">
               <div class="flex justify-end gap-1.5 flex-wrap">
