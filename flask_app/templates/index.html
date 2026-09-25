@@ -1273,10 +1273,17 @@
       tbody.innerHTML = rows.map(m => {
         const stateBadge = m.etat_reforme === 'REFORME'
           ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">Réformé</span>'
-          : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Proposé à la réforme</span>';
+          : m.etat_reforme === 'VALIDEE'
+            ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Validé</span>'
+            : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Proposé à la réforme</span>';
         const motif = m.etat_reforme === 'REFORME'
           ? (m.motif_reforme === 'OBSOLETE' ? 'Obsolète' : m.motif_reforme === 'IRREPARABLE' ? 'Irréparable' : '—')
           : '—';
+        const workflowDates = [
+          m.date_proposition_reforme ? 'Prop. ' + formatDateSimple(m.date_proposition_reforme) : '',
+          m.date_validation_reforme ? 'Valid. ' + formatDateSimple(m.date_validation_reforme) : '',
+          m.date_reforme ? 'Réf. ' + formatDateSimple(m.date_reforme) : ''
+        ].filter(Boolean).join(' · ');
         return `
           <tr class="hover:bg-slate-50 transition text-xs">
             <td class="p-3">
