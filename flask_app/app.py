@@ -122,7 +122,9 @@ def init_db():
         image_url TEXT,
         valeur_acq REAL DEFAULT 0,
         archiv TEXT DEFAULT 'N',
-        dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP
+        dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
+        etat_reforme TEXT DEFAULT 'AUCUNE',
+        motif_reforme TEXT
     );
 
     CREATE TABLE IF NOT EXISTS affect_mat (
