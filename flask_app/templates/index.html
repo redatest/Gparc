@@ -64,6 +64,9 @@
         <button onclick="switchView('pannes')" id="tab-pannes" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
           <i class="fa-solid fa-wrench"></i> Pannes & Interventions
         </button>
+        <button onclick="switchView('reformes')" id="tab-reformes" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-recycle"></i> Réforme
+        </button>
         <button onclick="switchView('stats')" id="tab-stats" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
           <i class="fa-solid fa-chart-pie"></i> Statistiques & KPI
         </button>
@@ -178,6 +181,45 @@
             <tbody id="materiels-table-body" class="divide-y divide-slate-100">
               <!-- Rempli dynamiquement -->
             </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE RÉFORME : SUIVI DES ÉQUIPEMENTS PROPOSÉS / RÉFORMÉS -->
+    <div id="view-reformes" class="view-panel hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-recycle text-amber-600"></i> Suivi des Réformes
+              </h2>
+              <span id="reformes-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">0 équipement</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Suivi des équipements proposés à la réforme et déjà réformés, avec le motif de réforme.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="reforme-filter" onchange="renderReformes()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">
+              <option value="ALL">Tous</option>
+              <option value="PROPOSEE">Proposé à la réforme</option>
+              <option value="REFORME">Réformé</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Équipement</th>
+                <th class="p-3">N° Inventaire / Série</th>
+                <th class="p-3">Structure / Utilisateur</th>
+                <th class="p-3">État de réforme</th>
+                <th class="p-3">Motif</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reformes-table-body" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
@@ -477,6 +519,24 @@
             <option value="">Aucun (En stock DSI)</option>
           </select>
         </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">État de réforme</label>
+            <select id="mat-etat-reforme" onchange="updateReformeMotifVisibility()" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+              <option value="AUCUNE">Aucune réforme</option>
+              <option value="PROPOSEE">Proposé à la réforme</option>
+              <option value="REFORME">Réformé</option>
+            </select>
+          </div>
+          <div id="mat-motif-reforme-wrap" class="hidden">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Motif de la réforme *</label>
+            <select id="mat-motif-reforme" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+              <option value="">Sélectionner un motif...</option>
+              <option value="OBSOLETE">Obsolète</option>
+              <option value="IRREPARABLE">Irréparable</option>
+            </select>
+          </div>
+        </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Caractéristiques techniques (CPU, RAM, Disque)</label>
           <div class="grid grid-cols-3 gap-2">
@@ -768,6 +828,7 @@
     let currentView = 'materiels';
     let currentParamCat = 'all';
     let editingMaterielId = null;
+    let currentReformeFilter = 'ALL';
 
     // Chargement initial
     window.addEventListener('DOMContentLoaded', () => {
@@ -803,6 +864,7 @@
 
         // Rendu des vues
         renderMateriels();
+        renderReformes();
         renderPannes();
         renderStats(statsRes);
         renderParametres();
@@ -1092,6 +1154,66 @@
       renderMateriels();
     }
 
+    function updateReformeMotifVisibility() {
+      const state = document.getElementById('mat-etat-reforme')?.value || 'AUCUNE';
+      const wrap = document.getElementById('mat-motif-reforme-wrap');
+      const motif = document.getElementById('mat-motif-reforme');
+      const isReforme = state === 'REFORME';
+      if (wrap) wrap.classList.toggle('hidden', !isReforme);
+      if (motif) motif.required = isReforme;
+      if (!isReforme && motif) motif.value = '';
+    }
+
+    function renderReformes() {
+      const tbody = document.getElementById('reformes-table-body');
+      if (!tbody) return;
+      const filter = document.getElementById('reforme-filter')?.value || currentReformeFilter || 'ALL';
+      currentReformeFilter = filter;
+      const rows = allMateriels.filter(m =>
+        (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'REFORME') &&
+        (filter === 'ALL' || m.etat_reforme === filter)
+      );
+
+      const badge = document.getElementById('reformes-count-badge');
+      if (badge) badge.innerText = rows.length + ' équipement' + (rows.length > 1 ? 's' : '');
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400">Aucun équipement dans cette sélection.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(m => {
+        const stateBadge = m.etat_reforme === 'REFORME'
+          ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">Réformé</span>'
+          : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Proposé à la réforme</span>';
+        const motif = m.etat_reforme === 'REFORME'
+          ? (m.motif_reforme === 'OBSOLETE' ? 'Obsolète' : m.motif_reforme === 'IRREPARABLE' ? 'Irréparable' : '—')
+          : '—';
+        return `
+          <tr class="hover:bg-slate-50 transition text-xs">
+            <td class="p-3">
+              <div class="font-bold text-slate-900">${escapeHtml((m.marque_mat || '') + ' ' + (m.model_mat || 'Équipement'))}</div>
+              <div class="text-[11px] text-slate-500">${escapeHtml(m.type_nom || 'Matériel')}</div>
+            </td>
+            <td class="p-3">
+              <div class="font-mono font-bold text-blue-700">${escapeHtml(m.num_inv || '-')}</div>
+              <div class="font-mono text-slate-400 text-[11px]">SN: ${escapeHtml(m.num_ser || '-')}</div>
+            </td>
+            <td class="p-3">
+              <div class="font-semibold text-slate-800">${escapeHtml(m.nom_uti ? ((m.pnom_uti || '') + ' ' + m.nom_uti).trim() : 'Non assigné')}</div>
+              <div class="text-slate-500 text-[11px]">${escapeHtml(m.structure_nom || 'Direction Non Spécifiée')}</div>
+            </td>
+            <td class="p-3">${stateBadge}</td>
+            <td class="p-3 text-slate-600">${escapeHtml(motif)}</td>
+            <td class="p-3 text-right">
+              <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold">
+                <i class="fa-solid fa-pen-to-square"></i> Modifier
+              </button>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
     function openNewMaterielModal() {
       editingMaterielId = null;
       const title = document.getElementById('modal-materiel-title');
@@ -1132,6 +1254,9 @@
         document.getElementById('mat-cpu').value = mat.cpu || '';
         document.getElementById('mat-ram').value = mat.ram ?? '';
         document.getElementById('mat-disk').value = mat.disk ?? '';
+        document.getElementById('mat-etat-reforme').value = mat.etat_reforme || 'AUCUNE';
+        document.getElementById('mat-motif-reforme').value = mat.motif_reforme || '';
+        updateReformeMotifVisibility();
 
         document.getElementById('modal-materiel').classList.remove('hidden');
       } catch (err) {
@@ -1140,7 +1265,7 @@
     }
 
     function resetMaterielForm() {
-      ['mat-num-inv','mat-num-ser','mat-marque','mat-type','mat-model','mat-str','mat-user','mat-cpu','mat-ram','mat-disk'].forEach(id => {
+      ['mat-num-inv','mat-num-ser','mat-marque','mat-type','mat-model','mat-str','mat-user','mat-cpu','mat-ram','mat-disk','mat-etat-reforme','mat-motif-reforme'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -1148,6 +1273,11 @@
       if (modelSel) { modelSel.innerHTML = "<option value=''>Choisir d'abord une marque...</option>"; modelSel.disabled = true; }
       const userSel = document.getElementById('mat-user');
       if (userSel) userSel.value = '';
+      const reformSel = document.getElementById('mat-etat-reforme');
+      if (reformSel) reformSel.value = 'AUCUNE';
+      const motifSel = document.getElementById('mat-motif-reforme');
+      if (motifSel) motifSel.value = '';
+      updateReformeMotifVisibility();
     }
 
     function populateMaterielForm() {
@@ -1323,8 +1453,15 @@
         cpu: document.getElementById('mat-cpu').value.trim(),
         ram: parseInt(document.getElementById('mat-ram').value) || null,
         disk: parseInt(document.getElementById('mat-disk').value) || null,
+        etat_reforme: document.getElementById('mat-etat-reforme').value,
+        motif_reforme: document.getElementById('mat-motif-reforme').value || null,
         image_url: ''
       };
+
+      if (payload.etat_reforme === 'REFORME' && !payload.motif_reforme) {
+        showToast('Veuillez sélectionner le motif de la réforme.', true);
+        return;
+      }
 
       if (!payload.num_inv || !payload.num_ser || !payload.marque_mat || !payload.id_typ_mat || !payload.id_str) {
         showToast('Veuillez renseigner le N° inventaire, N° série, marque, type et structure.', true);
@@ -1952,6 +2089,8 @@
     window.closeModal = closeModal;
     window.deleteMateriel = deleteMateriel;
     window.handleSaveMateriel = handleSaveMateriel;
+    window.renderReformes = renderReformes;
+    window.updateReformeMotifVisibility = updateReformeMotifVisibility;
     window.openAffectationHistory = openAffectationHistory;
     window.handleSavePanne = handleSavePanne;
     window.markRepaired = markRepaired;
