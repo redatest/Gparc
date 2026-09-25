@@ -1201,6 +1201,56 @@
       updateReformeWorkflowFields();
     }
 
+    function formatDateSimple(value) {
+      if (!value) return '—';
+      return new Date(value + 'T00:00:00').toLocaleDateString('fr-FR');
+    }
+
+    async function transitionReforme(matId, targetState) {
+      const mat = allMateriels.find(m => String(m.id_mat) === String(matId));
+      if (!mat) return;
+      if (targetState === 'VALIDEE') {
+        const decision = prompt('Saisissez la décision de validation :');
+        if (!decision || !decision.trim()) return;
+        const ok = await updateReformeState(matId, { etat_reforme: 'VALIDEE', decision_reforme: decision.trim() });
+        if (ok) await loadAllData();
+      } else if (targetState === 'REFORME') {
+        const motif = prompt('Motif de réforme : Obsolète ou Irréparable ?');
+        const normalized = (motif || '').trim().toUpperCase();
+        if (!['OBSOLETE', 'IRREPARABLE'].includes(normalized)) {
+          showToast('Motif invalide. Utilisez Obsolète ou Irréparable.', true);
+          return;
+        }
+        const pv = prompt('N° PV de réforme (optionnel) :') || '';
+        const ok = await updateReformeState(matId, {
+          etat_reforme: 'REFORME',
+          motif_reforme: normalized,
+          pv_reforme: pv.trim() || null
+        });
+        if (ok) await loadAllData();
+      }
+    }
+
+    async function updateReformeState(matId, data) {
+      try {
+        const res = await fetch('/api/materiels/' + matId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(result.error || 'Erreur lors de la mise à jour du workflow.', true);
+          return false;
+        }
+        showToast('Workflow de réforme mis à jour.');
+        return true;
+      } catch (e) {
+        showToast('Erreur de connexion au serveur.', true);
+        return false;
+      }
+    }
+
     function renderReformes() {
       const tbody = document.getElementById('reformes-table-body');
       if (!tbody) return;
@@ -1241,11 +1291,16 @@
               <div class="text-slate-500 text-[11px]">${escapeHtml(m.structure_nom || 'Direction Non Spécifiée')}</div>
             </td>
             <td class="p-3">${stateBadge}</td>
-            <td class="p-3 text-slate-600">${escapeHtml(motif)}</td>
+            <td class="p-3">
+              <div>${escapeHtml(motif)}</div>
+              <div class="text-[10px] text-slate-400 mt-1">${escapeHtml(workflowDates || '—')}</div>
+            </td>
             <td class="p-3 text-right">
-              <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold">
-                <i class="fa-solid fa-pen-to-square"></i> Modifier
-              </button>
+              <div class="flex justify-end gap-1.5 flex-wrap">
+                ${m.etat_reforme === 'PROPOSEE' ? '<button onclick="transitionReforme(' + m.id_mat + ', \'VALIDEE\')" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-check"></i> Valider</button>' : ''}
+                ${m.etat_reforme === 'VALIDEE' ? '<button onclick="transitionReforme(' + m.id_mat + ', \'REFORME\')" class="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-[11px] font-semibold"><i class="fa-solid fa-recycle"></i> Réformer</button>' : ''}
+                <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-pen-to-square"></i> Modifier</button>
+              </div>
             </td>
           </tr>`;
       }).join('');
@@ -2147,6 +2202,8 @@
     window.handleSaveMateriel = handleSaveMateriel;
     window.renderReformes = renderReformes;
     window.updateReformeMotifVisibility = updateReformeMotifVisibility;
+    window.updateReformeWorkflowFields = updateReformeWorkflowFields;
+    window.transitionReforme = transitionReforme;
     window.openAffectationHistory = openAffectationHistory;
     window.handleSavePanne = handleSavePanne;
     window.markRepaired = markRepaired;
