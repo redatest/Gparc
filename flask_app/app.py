@@ -59,7 +59,12 @@ def init_db():
         archiv TEXT DEFAULT 'N',
         dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
         etat_reforme TEXT DEFAULT 'AUCUNE',
-        motif_reforme TEXT
+        motif_reforme TEXT,
+        date_proposition_reforme DATE,
+        date_validation_reforme DATE,
+        date_reforme DATE,
+        decision_reforme TEXT,
+        pv_reforme TEXT
     );
 
     CREATE TABLE IF NOT EXISTS type_mat (
@@ -230,6 +235,16 @@ def init_db():
         cur.execute("UPDATE materiel SET etat_reforme = 'AUCUNE' WHERE etat_reforme IS NULL")
     if 'motif_reforme' not in mat_columns:
         cur.execute("ALTER TABLE materiel ADD COLUMN motif_reforme TEXT")
+    if 'date_proposition_reforme' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN date_proposition_reforme DATE")
+    if 'date_validation_reforme' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN date_validation_reforme DATE")
+    if 'date_reforme' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN date_reforme DATE")
+    if 'decision_reforme' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN decision_reforme TEXT")
+    if 'pv_reforme' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN pv_reforme TEXT")
 
     # Migration légère de l'historique d'affectation.
     affect_columns = {row[1] for row in cur.execute("PRAGMA table_info(affect_mat)").fetchall()}
@@ -1509,8 +1524,9 @@ def handle_materiels():
         cur.execute("""
             INSERT INTO materiel (
                 id_str, id_typ_mat, id_model_mat, marque_mat, num_inv, num_ser, etat_mat, obs_mat,
-                ram, disk, cpu, se, ordi, ip, id_uti, image_url, etat_reforme, motif_reforme
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ram, disk, cpu, se, ordi, ip, id_uti, image_url, etat_reforme, motif_reforme,
+                date_proposition_reforme, date_validation_reforme, date_reforme, decision_reforme, pv_reforme
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data.get('id_str') or None, id_typ, id_model,
             marque or None,
@@ -1521,8 +1537,13 @@ def handle_materiels():
             data.get('cpu', 'Intel Core i5/i7'), data.get('se', 'Windows 11 Pro'),
             data.get('ordi', ''), data.get('ip', ''), data.get('id_uti') or None,
             data.get('image_url', ''),
-            data.get('etat_reforme') if data.get('etat_reforme') in ('PROPOSEE', 'REFORME') else 'AUCUNE',
-            data.get('motif_reforme') if data.get('etat_reforme') == 'REFORME' else None
+            data.get('etat_reforme') if data.get('etat_reforme') in ('PROPOSEE', 'VALIDEE', 'REFORME') else 'AUCUNE',
+            data.get('motif_reforme') if data.get('etat_reforme') == 'REFORME' else None,
+            data.get('date_proposition_reforme') or (datetime.now().strftime('%Y-%m-%d') if data.get('etat_reforme') == 'PROPOSEE' else None),
+            data.get('date_validation_reforme') or (datetime.now().strftime('%Y-%m-%d') if data.get('etat_reforme') == 'VALIDEE' else None),
+            data.get('date_reforme') or (datetime.now().strftime('%Y-%m-%d') if data.get('etat_reforme') == 'REFORME' else None),
+            data.get('decision_reforme') if data.get('etat_reforme') in ('VALIDEE', 'REFORME') else None,
+            data.get('pv_reforme') if data.get('etat_reforme') == 'REFORME' else None
         ))
         last_id = cur.lastrowid
 
@@ -1605,14 +1626,62 @@ def handle_single_materiel(mat_id):
             conn.close(); return jsonify({"error": "Utilisateur assigné invalide."}), 400
         etat_reforme = data.get('etat_reforme') if 'etat_reforme' in data else (existing['etat_reforme'] or 'AUCUNE')
         motif_reforme = data.get('motif_reforme') if 'motif_reforme' in data else existing['motif_reforme']
-        if etat_reforme not in ('AUCUNE', 'PROPOSEE', 'REFORME'):
+        date_proposition = data.get('date_proposition_reforme') or existing['date_proposition_reforme']
+        date_validation = data.get('date_validation_reforme') or existing['date_validation_reforme']
+        date_reforme = data.get('date_reforme') or existing['date_reforme']
+        decision = (data.get('decision_reforme') if 'decision_reforme' in data else existing['decision_reforme']) or None
+        pv_reforme = (data.get('pv_reforme') if 'pv_reforme' in data else existing['pv_reforme']) or None
+
+        if etat_reforme not in ('AUCUNE', 'PROPOSEE', 'VALIDEE', 'REFORME'):
             conn.close()
             return jsonify({"error": "État de réforme invalide."}), 400
-        if etat_reforme == 'REFORME' and motif_reforme not in ('OBSOLETE', 'IRREPARABLE'):
+
+        current_reforme = existing['etat_reforme'] or 'AUCUNE'
+        workflow_order = {'AUCUNE': 0, 'PROPOSEE': 1, 'VALIDEE': 2, 'REFORME': 3}
+        if workflow_order[etat_reforme] > workflow_order[current_reforme] + 1:
             conn.close()
-            return jsonify({"error": "Le motif de réforme doit être « Obsolète » ou « Irréparable »."}), 400
-        if etat_reforme != 'REFORME':
+            return jsonify({"error": "Le workflow de réforme doit suivre l'ordre : Proposé → Validé → Réformé."}), 400
+        if current_reforme == 'REFORME' and etat_reforme != 'REFORME':
+            conn.close()
+            return jsonify({"error": "Un équipement déjà réformé ne peut pas revenir à une étape antérieure."}), 400
+
+        today = datetime.now().strftime('%Y-%m-%d')
+        if etat_reforme == 'PROPOSEE':
+            date_proposition = date_proposition or today
+            date_validation = None
+            date_reforme = None
+            decision = None
+            pv_reforme = None
             motif_reforme = None
+        elif etat_reforme == 'VALIDEE':
+            if not date_proposition:
+                date_proposition = today
+            date_validation = date_validation or today
+            if not decision or not decision.strip():
+                conn.close()
+                return jsonify({"error": "La décision de validation est obligatoire."}), 400
+            date_reforme = None
+            motif_reforme = None
+            pv_reforme = None
+        elif etat_reforme == 'REFORME':
+            if not date_proposition:
+                date_proposition = today
+            if not date_validation:
+                date_validation = today
+            if not decision or not decision.strip():
+                conn.close()
+                return jsonify({"error": "La décision de validation est obligatoire avant la réforme."}), 400
+            if motif_reforme not in ('OBSOLETE', 'IRREPARABLE'):
+                conn.close()
+                return jsonify({"error": "Le motif de réforme doit être « Obsolète » ou « Irréparable »."}), 400
+            date_reforme = date_reforme or today
+        else:
+            date_proposition = None
+            date_validation = None
+            date_reforme = None
+            decision = None
+            motif_reforme = None
+            pv_reforme = None
 
         if id_model is not None:
             model = cur.execute("SELECT marque_mat, id_typ_mat FROM model_mat WHERE id_model_mat = ? AND archiv = 'N'", (id_model,)).fetchone()
@@ -1641,13 +1710,19 @@ def handle_single_materiel(mat_id):
                 image_url = COALESCE(?, image_url),
                 etat_reforme = ?,
                 motif_reforme = ?,
+                date_proposition_reforme = ?,
+                date_validation_reforme = ?,
+                date_reforme = ?,
+                decision_reforme = ?,
+                pv_reforme = ?,
                 dat_mod = CURRENT_TIMESTAMP
             WHERE id_mat = ?
         """, (
             data.get('num_inv'), data.get('num_ser'), marque or None,
             id_model, id_typ, id_str, id_uti, data.get('etat_mat'), data.get('obs_mat'),
             data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'),
-            etat_reforme, motif_reforme, mat_id
+            etat_reforme, motif_reforme, date_proposition, date_validation, date_reforme,
+            decision, pv_reforme, mat_id
         ))
         old_str = existing['id_str']
         old_uti = existing['id_uti']
