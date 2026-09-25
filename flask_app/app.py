@@ -1649,6 +1649,9 @@ def handle_single_materiel(mat_id):
         if current_reforme == 'REFORME' and etat_reforme != 'REFORME':
             conn.close()
             return jsonify({"error": "Un équipement déjà réformé ne peut pas revenir à une étape antérieure."}), 400
+        if workflow_order[etat_reforme] < workflow_order[current_reforme] and etat_reforme != 'AUCUNE':
+            conn.close()
+            return jsonify({"error": "Le workflow de réforme ne permet pas de revenir à une étape antérieure."}), 400
 
         today = datetime.now().strftime('%Y-%m-%d')
         if etat_reforme == 'PROPOSEE':
@@ -1697,6 +1700,8 @@ def handle_single_materiel(mat_id):
             if id_typ is not None and model['id_typ_mat'] is not None and int(model['id_typ_mat']) != int(id_typ):
                 conn.close(); return jsonify({"error": "Le modèle sélectionné ne correspond pas au type."}), 400
 
+        etat_mat_update = 'SO' if etat_reforme == 'REFORME' else data.get('etat_mat')
+
         cur.execute("""
             UPDATE materiel SET
                 num_inv = COALESCE(?, num_inv),
@@ -1724,7 +1729,7 @@ def handle_single_materiel(mat_id):
             WHERE id_mat = ?
         """, (
             data.get('num_inv'), data.get('num_ser'), marque or None,
-            id_model, id_typ, id_str, id_uti, data.get('etat_mat'), data.get('obs_mat'),
+            id_model, id_typ, id_str, id_uti, etat_mat_update, data.get('obs_mat'),
             data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'),
             etat_reforme, motif_reforme, date_proposition, date_validation, date_reforme,
             decision, pv_reforme, mat_id
