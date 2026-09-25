@@ -1507,6 +1507,11 @@ def handle_materiels():
         model_name = (data.get('model_mat_name') or '').strip()
         id_typ = data.get('id_typ_mat') or None
 
+        requested_reforme = data.get('etat_reforme') or 'AUCUNE'
+        if requested_reforme not in ('AUCUNE', 'PROPOSEE'):
+            conn.close()
+            return jsonify({"error": "Un nouvel équipement doit commencer par « Aucune réforme » ou « Proposé à la réforme »."}), 400
+
         if model_name and marque:
             model_row = cur.execute(
                 "SELECT id_model_mat FROM model_mat WHERE archiv = 'N' AND LOWER(TRIM(model_mat)) = LOWER(?) AND LOWER(TRIM(marque_mat)) = LOWER(?) AND (id_typ_mat = ? OR id_typ_mat IS NULL)",
