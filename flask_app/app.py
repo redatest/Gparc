@@ -257,6 +257,17 @@ def init_db():
     if 'pv_reforme' not in mat_columns:
         cur.execute("ALTER TABLE materiel ADD COLUMN pv_reforme TEXT")
 
+    # Migration légère de la procédure de panne.
+    # Les anciennes bases peuvent ne pas contenir les colonnes ajoutées
+    # pour documenter complètement une réparation.
+    panne_columns = {row[1] for row in cur.execute("PRAGMA table_info(panne)").fetchall()}
+    if 'pieces_remplacees' not in panne_columns:
+        cur.execute("ALTER TABLE panne ADD COLUMN pieces_remplacees TEXT")
+    if 'recommandations' not in panne_columns:
+        cur.execute("ALTER TABLE panne ADD COLUMN recommandations TEXT")
+    if 'cout_rep' not in panne_columns:
+        cur.execute("ALTER TABLE panne ADD COLUMN cout_rep REAL DEFAULT 0")
+
     # Migration légère de l'historique d'affectation.
     affect_columns = {row[1] for row in cur.execute("PRAGMA table_info(affect_mat)").fetchall()}
     if 'action_aff' not in affect_columns:
