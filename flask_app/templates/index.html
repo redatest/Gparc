@@ -203,10 +203,12 @@
             <select id="reforme-filter" onchange="renderReformes()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">
               <option value="ALL">Tous</option>
               <option value="PROPOSEE">Proposé à la réforme</option>
-              <option value="VALIDEE">Validé</option>
               <option value="REFORME">Réformé</option>
             </select>
-          </div>
+          
+            <button onclick="openNewReformeModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-recycle"></i> Déclarer une réforme
+            </button></div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
@@ -597,6 +599,45 @@
     </div>
   </div>
 
+  <!-- MODAL : DÉCLARER UNE RÉFORME -->
+  <div id="modal-reforme" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-recycle text-amber-600"></i> Déclarer une réforme</h3>
+        <button onclick="closeModal('modal-reforme')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveReforme(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Équipement concerné *</label>
+          <select id="reforme-mat-id" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">État de l'équipement *</label>
+            <select id="reforme-etat" onchange="updateReformeDeclarationFields()" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+              <option value="AUCUNE">En service</option>
+              <option value="PROPOSEE">Proposé à la réforme</option>
+              <option value="REFORME">Réformé</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date de réforme</label>
+            <input type="date" id="reforme-date" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Motif de réforme</label>
+          <textarea id="reforme-motif" rows="4" placeholder="Saisissez le motif de la réforme..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500"></textarea>
+        </div>
+        <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-500"><i class="fa-solid fa-circle-info mr-1"></i> Le statut sélectionné sera immédiatement appliqué à l'équipement dans le parc.</div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('modal-reforme')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-sm">Enregistrer la réforme</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL : SIGNALER UNE PANNE -->
   <div id="modal-panne" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 my-8">
@@ -929,6 +970,8 @@
             let badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">En service</span>';
             if (m.etat_mat === 'PA') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 animate-pulse">En panne</span>';
             if (m.etat_mat === 'RE') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">En réparation</span>';
+            if (m.etat_reforme === 'PROPOSEE') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Proposé à la réforme</span>';
+            if (m.etat_reforme === 'REFORME') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">Réformé</span>';
 
             const typeLabel = (m.type_nom || '').toLowerCase();
             let equipmentIcon = 'fa-desktop';
