@@ -1508,9 +1508,9 @@ def handle_materiels():
         id_typ = data.get('id_typ_mat') or None
 
         requested_reforme = data.get('etat_reforme') or 'AUCUNE'
-        if requested_reforme not in ('AUCUNE', 'PROPOSEE'):
+        if requested_reforme != 'AUCUNE':
             conn.close()
-            return jsonify({"error": "Un nouvel équipement doit commencer par « Aucune réforme » ou « Proposé à la réforme »."}), 400
+            return jsonify({"error": "La réforme d'un équipement se déclare depuis la rubrique « Réforme »."}), 400
 
         if model_name and marque:
             model_row = cur.execute(
@@ -1542,13 +1542,13 @@ def handle_materiels():
             data.get('cpu', 'Intel Core i5/i7'), data.get('se', 'Windows 11 Pro'),
             data.get('ordi', ''), data.get('ip', ''), data.get('id_uti') or None,
             data.get('image_url', ''),
-            data.get('etat_reforme') if data.get('etat_reforme') in ('PROPOSEE', 'VALIDEE', 'REFORME') else 'AUCUNE',
-            data.get('motif_reforme') if data.get('etat_reforme') == 'REFORME' else None,
-            data.get('date_proposition_reforme') or (datetime.now().strftime('%Y-%m-%d') if data.get('etat_reforme') == 'PROPOSEE' else None),
-            data.get('date_validation_reforme') or (datetime.now().strftime('%Y-%m-%d') if data.get('etat_reforme') == 'VALIDEE' else None),
-            data.get('date_reforme') or (datetime.now().strftime('%Y-%m-%d') if data.get('etat_reforme') == 'REFORME' else None),
-            data.get('decision_reforme') if data.get('etat_reforme') in ('VALIDEE', 'REFORME') else None,
-            data.get('pv_reforme') if data.get('etat_reforme') == 'REFORME' else None
+            'AUCUNE',
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
         ))
         last_id = cur.lastrowid
 
@@ -1629,67 +1629,36 @@ def handle_single_materiel(mat_id):
             conn.close(); return jsonify({"error": "Structure invalide."}), 400
         if id_uti is not None and not cur.execute("SELECT 1 FROM utilisateurs WHERE id_uti = ? AND archiv = 'N'", (id_uti,)).fetchone():
             conn.close(); return jsonify({"error": "Utilisateur assigné invalide."}), 400
-        etat_reforme = data.get('etat_reforme') if 'etat_reforme' in data else (existing['etat_reforme'] or 'AUCUNE')
-        motif_reforme = data.get('motif_reforme') if 'motif_reforme' in data else existing['motif_reforme']
-        date_proposition = data.get('date_proposition_reforme') or existing['date_proposition_reforme']
-        date_validation = data.get('date_validation_reforme') or existing['date_validation_reforme']
-        date_reforme = data.get('date_reforme') or existing['date_reforme']
-        decision = (data.get('decision_reforme') if 'decision_reforme' in data else existing['decision_reforme']) or None
-        pv_reforme = (data.get('pv_reforme') if 'pv_reforme' in data else existing['pv_reforme']) or None
+        reforme_update = 'etat_reforme' in data
+        etat_reforme = data.get('etat_reforme') if reforme_update else (existing['etat_reforme'] or 'AUCUNE')
+        motif_reforme = data.get('motif_reforme') if reforme_update else existing['motif_reforme']
+        date_reforme = data.get('date_reforme') if reforme_update else existing['date_reforme']
+        today = datetime.now().strftime('%Y-%m-%d')
 
-        if etat_reforme not in ('AUCUNE', 'PROPOSEE', 'VALIDEE', 'REFORME'):
+        if etat_reforme not in ('AUCUNE', 'PROPOSEE', 'REFORME'):
             conn.close()
             return jsonify({"error": "État de réforme invalide."}), 400
 
-        current_reforme = existing['etat_reforme'] or 'AUCUNE'
-        workflow_order = {'AUCUNE': 0, 'PROPOSEE': 1, 'VALIDEE': 2, 'REFORME': 3}
-        if workflow_order[etat_reforme] > workflow_order[current_reforme] + 1:
-            conn.close()
-            return jsonify({"error": "Le workflow de réforme doit suivre l'ordre : Proposé → Validé → Réformé."}), 400
-        if current_reforme == 'REFORME' and etat_reforme != 'REFORME':
-            conn.close()
-            return jsonify({"error": "Un équipement déjà réformé ne peut pas revenir à une étape antérieure."}), 400
-        if workflow_order[etat_reforme] < workflow_order[current_reforme] and etat_reforme != 'AUCUNE':
-            conn.close()
-            return jsonify({"error": "Le workflow de réforme ne permet pas de revenir à une étape antérieure."}), 400
-
-        today = datetime.now().strftime('%Y-%m-%d')
-        if etat_reforme == 'PROPOSEE':
-            date_proposition = date_proposition or today
-            date_validation = None
-            date_reforme = None
-            decision = None
-            pv_reforme = None
-            motif_reforme = None
-        elif etat_reforme == 'VALIDEE':
-            if not date_proposition:
-                date_proposition = today
-            date_validation = date_validation or today
-            if not decision or not decision.strip():
+        if etat_reforme == 'REFORME':
+            if not date_reforme:
                 conn.close()
-                return jsonify({"error": "La décision de validation est obligatoire."}), 400
+                return jsonify({"error": "La date de réforme est obligatoire."}), 400
+            if not motif_reforme or not str(motif_reforme).strip():
+                conn.close()
+                return jsonify({"error": "Le motif de réforme est obligatoire."}), 400
+            date_proposition = existing['date_proposition_reforme'] or today
+        elif etat_reforme == 'PROPOSEE':
+            date_proposition = today
             date_reforme = None
             motif_reforme = None
-            pv_reforme = None
-        elif etat_reforme == 'REFORME':
-            if not date_proposition:
-                date_proposition = today
-            if not date_validation:
-                date_validation = today
-            if not decision or not decision.strip():
-                conn.close()
-                return jsonify({"error": "La décision de validation est obligatoire avant la réforme."}), 400
-            if motif_reforme not in ('OBSOLETE', 'IRREPARABLE'):
-                conn.close()
-                return jsonify({"error": "Le motif de réforme doit être « Obsolète » ou « Irréparable »."}), 400
-            date_reforme = date_reforme or today
         else:
             date_proposition = None
-            date_validation = None
             date_reforme = None
-            decision = None
             motif_reforme = None
-            pv_reforme = None
+
+        date_validation = None
+        decision = None
+        pv_reforme = None
 
         if id_model is not None:
             model = cur.execute("SELECT marque_mat, id_typ_mat FROM model_mat WHERE id_model_mat = ? AND archiv = 'N'", (id_model,)).fetchone()
@@ -1700,7 +1669,7 @@ def handle_single_materiel(mat_id):
             if id_typ is not None and model['id_typ_mat'] is not None and int(model['id_typ_mat']) != int(id_typ):
                 conn.close(); return jsonify({"error": "Le modèle sélectionné ne correspond pas au type."}), 400
 
-        etat_mat_update = 'SO' if etat_reforme == 'REFORME' else data.get('etat_mat')
+        etat_mat_update = ('SO' if etat_reforme == 'REFORME' else 'OP') if reforme_update else data.get('etat_mat')
 
         cur.execute("""
             UPDATE materiel SET
