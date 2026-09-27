@@ -163,6 +163,18 @@ CREATE TABLE IF NOT EXISTS panne (
   FOREIGN KEY (id_lieu_rep) REFERENCES lieu_rep (id_lieu_rep)
 );
 
+-- 9. Historique des procédures de réforme
+CREATE TABLE IF NOT EXISTS historique_reforme (
+  id_his_ref INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_mat INTEGER NOT NULL,
+  etat_reforme TEXT NOT NULL,
+  date_evenement DATE NOT NULL,
+  motif_reforme TEXT,
+  ancien_etat_reforme TEXT,
+  dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_mat) REFERENCES materiel (id_mat)
+);
+
 -- 9. Table CARA_MAT (Caractéristiques personnalisées)
 CREATE TABLE IF NOT EXISTS cara_mat (
   id_cara_mat INTEGER PRIMARY KEY AUTOINCREMENT,
