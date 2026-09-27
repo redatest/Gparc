@@ -1216,83 +1216,49 @@
       renderMateriels();
     }
 
-    function setReformeDate(id, value) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.dataset.value = value || '';
-      el.innerText = value ? new Date(value + 'T00:00:00').toLocaleDateString('fr-FR') : '—';
+    function populateReformeSelect(selectedId = '') {
+      const sel = document.getElementById('reforme-mat-id');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Sélectionner un équipement...</option>' + allMateriels.map(m => '<option value="' + m.id_mat + '">' + escapeHtml((m.num_inv || 'Sans inventaire') + ' — ' + (m.marque_mat || '') + ' ' + (m.model_mat || '') + ' — ' + (m.structure_nom || 'Sans structure')) + '</option>').join('');
+      if (selectedId) sel.value = String(selectedId);
     }
 
-    function updateReformeWorkflowFields() {
-      const state = document.getElementById('mat-etat-reforme')?.value || 'AUCUNE';
-      const motifWrap = document.getElementById('mat-motif-reforme-wrap');
-      const motif = document.getElementById('mat-motif-reforme');
-      const details = document.getElementById('mat-reforme-details');
-      const decision = document.getElementById('mat-decision-reforme');
-      const pv = document.getElementById('mat-pv-reforme');
-      const isDecision = state === 'VALIDEE' || state === 'REFORME';
+    function updateReformeDeclarationFields() {
+      const state = document.getElementById('reforme-etat')?.value || 'AUCUNE';
+      const date = document.getElementById('reforme-date');
+      const motif = document.getElementById('reforme-motif');
       const isReforme = state === 'REFORME';
-      if (motifWrap) motifWrap.classList.toggle('hidden', !isReforme);
-      if (details) details.classList.toggle('hidden', !isDecision);
+      if (date) date.required = isReforme;
       if (motif) motif.required = isReforme;
-      if (decision) decision.required = isDecision;
-      if (!isReforme && motif) motif.value = '';
-      if (!isDecision && decision) decision.value = '';
-      if (!isReforme && pv) pv.value = '';
+      if (!isReforme) { if (date) date.value = ''; if (motif) motif.value = ''; }
     }
 
-    function updateReformeMotifVisibility() {
-      updateReformeWorkflowFields();
+    function openNewReformeModal(matId = '') {
+      populateReformeSelect(matId);
+      const mat = matId ? allMateriels.find(m => String(m.id_mat) === String(matId)) : null;
+      document.getElementById('reforme-etat').value = mat?.etat_reforme || 'PROPOSEE';
+      document.getElementById('reforme-date').value = mat?.date_reforme || '';
+      document.getElementById('reforme-motif').value = mat?.motif_reforme || '';
+      updateReformeDeclarationFields();
+      document.getElementById('modal-reforme').classList.remove('hidden');
     }
 
-    function formatDateSimple(value) {
-      if (!value) return '—';
-      return new Date(value + 'T00:00:00').toLocaleDateString('fr-FR');
-    }
-
-    async function transitionReforme(matId, targetState) {
-      const mat = allMateriels.find(m => String(m.id_mat) === String(matId));
-      if (!mat) return;
-      if (targetState === 'VALIDEE') {
-        const decision = prompt('Saisissez la décision de validation :');
-        if (!decision || !decision.trim()) return;
-        const ok = await updateReformeState(matId, { etat_reforme: 'VALIDEE', decision_reforme: decision.trim() });
-        if (ok) await loadAllData();
-      } else if (targetState === 'REFORME') {
-        const motif = prompt('Motif de réforme : Obsolète ou Irréparable ?');
-        const normalized = (motif || '').trim().toUpperCase();
-        if (!['OBSOLETE', 'IRREPARABLE'].includes(normalized)) {
-          showToast('Motif invalide. Utilisez Obsolète ou Irréparable.', true);
-          return;
-        }
-        const pv = prompt('N° PV de réforme (optionnel) :') || '';
-        const ok = await updateReformeState(matId, {
-          etat_reforme: 'REFORME',
-          motif_reforme: normalized,
-          pv_reforme: pv.trim() || null
-        });
-        if (ok) await loadAllData();
-      }
-    }
-
-    async function updateReformeState(matId, data) {
+    async function handleSaveReforme(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('reforme-mat-id').value);
+      const state = document.getElementById('reforme-etat').value;
+      const date = document.getElementById('reforme-date').value || null;
+      const motif = document.getElementById('reforme-motif').value.trim() || null;
+      if (!id) { showToast('Sélectionnez un équipement.', true); return; }
+      if (state === 'REFORME' && (!date || !motif)) { showToast('La date de réforme et le motif sont obligatoires.', true); return; }
       try {
-        const res = await fetch('/api/materiels/' + matId, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
+        const res = await fetch('/api/materiels/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ etat_reforme: state, date_reforme: state === 'REFORME' ? date : null, motif_reforme: state === 'REFORME' ? motif : null }) });
         const result = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          showToast(result.error || 'Erreur lors de la mise à jour du workflow.', true);
-          return false;
-        }
-        showToast('Workflow de réforme mis à jour.');
-        return true;
-      } catch (e) {
-        showToast('Erreur de connexion au serveur.', true);
-        return false;
-      }
+        if (!res.ok) { showToast(result.error || 'Erreur lors de la déclaration de réforme.', true); return; }
+        closeModal('modal-reforme');
+        showToast(state === 'REFORME' ? 'Équipement réformé.' : state === 'PROPOSEE' ? 'Équipement proposé à la réforme.' : 'Équipement remis en service.');
+        await loadAllData();
+      } catch (err) { showToast('Erreur serveur.', true); }
     }
 
     function renderReformes() {
@@ -1301,7 +1267,7 @@
       const filter = document.getElementById('reforme-filter')?.value || currentReformeFilter || 'ALL';
       currentReformeFilter = filter;
       const rows = allMateriels.filter(m =>
-        (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'VALIDEE' || m.etat_reforme === 'REFORME') &&
+        (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'REFORME') &&
         (filter === 'ALL' || m.etat_reforme === filter)
       );
 
@@ -1316,9 +1282,7 @@
       tbody.innerHTML = rows.map(m => {
         const stateBadge = m.etat_reforme === 'REFORME'
           ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">Réformé</span>'
-          : m.etat_reforme === 'VALIDEE'
-            ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Validé</span>'
-            : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Proposé à la réforme</span>';
+          : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Proposé à la réforme</span>';
         const motif = m.etat_reforme === 'REFORME'
           ? (m.motif_reforme === 'OBSOLETE' ? 'Obsolète' : m.motif_reforme === 'IRREPARABLE' ? 'Irréparable' : '—')
           : '—';
@@ -1350,8 +1314,7 @@
             </td>
             <td class="p-3 text-right">
               <div class="flex justify-end gap-1.5 flex-wrap">
-                ${m.etat_reforme === 'PROPOSEE' ? '<button onclick="transitionReforme(' + m.id_mat + ', \'VALIDEE\')" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-check"></i> Valider</button>' : ''}
-                ${m.etat_reforme === 'VALIDEE' ? '<button onclick="transitionReforme(' + m.id_mat + ', \'REFORME\')" class="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-[11px] font-semibold"><i class="fa-solid fa-recycle"></i> Réformer</button>' : ''}
+                <button onclick="openNewReformeModal(${m.id_mat})" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-pen-to-square"></i> Modifier</button>
                 <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-pen-to-square"></i> Modifier</button>
               </div>
             </td>
@@ -1399,15 +1362,6 @@
         document.getElementById('mat-cpu').value = mat.cpu || '';
         document.getElementById('mat-ram').value = mat.ram ?? '';
         document.getElementById('mat-disk').value = mat.disk ?? '';
-        document.getElementById('mat-etat-reforme').value = mat.etat_reforme || 'AUCUNE';
-        document.getElementById('mat-motif-reforme').value = mat.motif_reforme || '';
-        document.getElementById('mat-decision-reforme').value = mat.decision_reforme || '';
-        document.getElementById('mat-pv-reforme').value = mat.pv_reforme || '';
-        setReformeDate('mat-date-proposition', mat.date_proposition_reforme);
-        setReformeDate('mat-date-validation', mat.date_validation_reforme);
-        setReformeDate('mat-date-reforme', mat.date_reforme);
-        updateReformeWorkflowFields();
-
         document.getElementById('modal-materiel').classList.remove('hidden');
       } catch (err) {
         showToast("Impossible de charger l'équipement", true);
@@ -1423,16 +1377,6 @@
       if (modelSel) { modelSel.innerHTML = "<option value=''>Choisir d'abord une marque...</option>"; modelSel.disabled = true; }
       const userSel = document.getElementById('mat-user');
       if (userSel) userSel.value = '';
-      const reformSel = document.getElementById('mat-etat-reforme');
-      if (reformSel) reformSel.value = 'AUCUNE';
-      const motifSel = document.getElementById('mat-motif-reforme');
-      if (motifSel) motifSel.value = '';
-      const decisionSel = document.getElementById('mat-decision-reforme');
-      if (decisionSel) decisionSel.value = '';
-      const pvSel = document.getElementById('mat-pv-reforme');
-      if (pvSel) pvSel.value = '';
-      ['mat-date-proposition','mat-date-validation','mat-date-reforme'].forEach(id => setReformeDate(id, null));
-      updateReformeWorkflowFields();
     }
 
     function populateMaterielForm() {
@@ -1608,24 +1552,11 @@
         cpu: document.getElementById('mat-cpu').value.trim(),
         ram: parseInt(document.getElementById('mat-ram').value) || null,
         disk: parseInt(document.getElementById('mat-disk').value) || null,
-        etat_reforme: document.getElementById('mat-etat-reforme').value,
-        motif_reforme: document.getElementById('mat-motif-reforme').value || null,
-        decision_reforme: document.getElementById('mat-decision-reforme').value.trim() || null,
-        pv_reforme: document.getElementById('mat-pv-reforme').value.trim() || null,
-        date_proposition_reforme: document.getElementById('mat-date-proposition').dataset.value || null,
-        date_validation_reforme: document.getElementById('mat-date-validation').dataset.value || null,
-        date_reforme: document.getElementById('mat-date-reforme').dataset.value || null,
+        etat_reforme: 'AUCUNE',
+        motif_reforme: null,
+        date_reforme: null,
         image_url: ''
       };
-
-      if (payload.etat_reforme === 'VALIDEE' && !payload.decision_reforme) {
-        showToast('La décision de validation est obligatoire.', true);
-        return;
-      }
-      if (payload.etat_reforme === 'REFORME' && (!payload.motif_reforme || !payload.decision_reforme)) {
-        showToast('Pour réformer l’équipement, le motif et la décision de validation sont obligatoires.', true);
-        return;
-      }
 
       if (!payload.num_inv || !payload.num_ser || !payload.marque_mat || !payload.id_typ_mat || !payload.id_str) {
         showToast('Veuillez renseigner le N° inventaire, N° série, marque, type et structure.', true);
@@ -2249,6 +2180,9 @@
     window.loadAllData = loadAllData;
     window.openNewMaterielModal = openNewMaterielModal;
     window.openNewPanneModal = openNewPanneModal;
+    window.openNewReformeModal = openNewReformeModal;
+    window.handleSaveReforme = handleSaveReforme;
+    window.updateReformeDeclarationFields = updateReformeDeclarationFields;
     window.quickPanneFor = quickPanneFor;
     window.closeModal = closeModal;
     window.deleteMateriel = deleteMateriel;
