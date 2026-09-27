@@ -177,6 +177,17 @@ def init_db():
         dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS historique_reforme (
+        id_his_ref INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_mat INTEGER NOT NULL,
+        etat_reforme TEXT NOT NULL,
+        date_evenement DATE NOT NULL,
+        motif_reforme TEXT,
+        ancien_etat_reforme TEXT,
+        dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_mat) REFERENCES materiel (id_mat)
+    );
+
     CREATE TABLE IF NOT EXISTS parametres_materiel (
         id_param INTEGER PRIMARY KEY AUTOINCREMENT,
         categorie TEXT NOT NULL,
@@ -1726,6 +1737,14 @@ def handle_single_materiel(mat_id):
                     obs='Changement d’utilisateur assigné'
                 )
 
+        if reforme_update and etat_reforme != (existing['etat_reforme'] or 'AUCUNE'):
+            log_reforme(
+                cur, mat_id, etat_reforme,
+                date_reforme if etat_reforme == 'REFORME' and date_reforme else today,
+                motif_reforme,
+                existing['etat_reforme'] or 'AUCUNE'
+            )
+
         conn.commit()
         conn.close()
         return jsonify({"message": "Matériel mis à jour avec succès"})
@@ -1742,10 +1761,21 @@ def handle_single_materiel(mat_id):
         return jsonify({"error": "Matériel non trouvé"}), 404
     return jsonify(dict(row))
 
+def log_reforme(cur, id_mat, etat_reforme, date_evenement, motif_reforme=None, ancien_etat_reforme='AUCUNE'):
+    """Conserve une trace immuable de chaque changement déclaré dans le workflow de réforme."""
+    cur.execute("""
+        INSERT INTO historique_reforme (
+            id_mat, etat_reforme, date_evenement, motif_reforme, ancien_etat_reforme
+        ) VALUES (?, ?, ?, ?, ?)
+    """, (id_mat, etat_reforme, date_evenement, motif_reforme, ancien_etat_reforme or 'AUCUNE'))
+
+
 @app.route('/api/materiels/<int:mat_id>/historique', methods=['GET'])
 def get_materiel_historique(mat_id):
+    """Historique chronologique complet : affectations, pannes et réformes."""
     conn = get_db()
     cur = conn.cursor()
+
     exists = cur.execute(
         "SELECT id_mat FROM materiel WHERE id_mat = ? AND archiv = 'N'",
         (mat_id,)
@@ -1754,8 +1784,11 @@ def get_materiel_historique(mat_id):
         conn.close()
         return jsonify({"error": "Matériel non trouvé"}), 404
 
+    events = []
+
+    # 1. Historique des affectations
     rows = cur.execute("""
-        SELECT a.id_aff_mat, a.id_mat, a.dat_aff, a.action_aff, a.obs_aff,
+        SELECT a.id_aff_mat, a.dat_aff, a.action_aff, a.obs_aff,
                a.id_str, a.ancien_id_str, a.id_uti, a.ancien_id_uti,
                s.lib_str AS structure_nom, os.lib_str AS ancienne_structure_nom,
                u.nom_uti, u.pnom_uti, ou.nom_uti AS ancien_nom_uti,
@@ -1769,7 +1802,6 @@ def get_materiel_historique(mat_id):
         ORDER BY a.dat_aff DESC, a.id_aff_mat DESC
     """, (mat_id,)).fetchall()
 
-    result = []
     for r in rows:
         d = dict(r)
         if d['action_aff'] == 'NOUVELLE_AFFECTATION':
@@ -1785,13 +1817,85 @@ def get_materiel_historique(mat_id):
             old_name = ((d['ancien_pnom_uti'] or '') + ' ' + (d['ancien_nom_uti'] or '')).strip() or 'Aucun utilisateur'
             new_name = ((d['pnom_uti'] or '') + ' ' + (d['nom_uti'] or '')).strip() or 'Aucun utilisateur'
             detail = f"{old_name} → {new_name}"
-        d['libelle_action'] = libelle
-        d['detail_action'] = detail
-        result.append(d)
+        events.append({
+            'type_evenement': 'AFFECTATION',
+            'date_evenement': d['dat_aff'],
+            'libelle': libelle,
+            'detail': detail,
+            'obs': d['obs_aff'] or ''
+        })
 
+    # 2. Procédures de panne
+    pannes = cur.execute("""
+        SELECT id_pan, dat_pan, diag_pan, eta_pan, tp, technicien,
+               dat_env_rep, dat_ret_rep, obs_rep, pieces_remplacees,
+               recommandations, cout_rep
+        FROM panne
+        WHERE id_mat = ? AND archiv = 'N'
+        ORDER BY dat_pan DESC, id_pan DESC
+    """, (mat_id,)).fetchall()
+
+    panne_status = {
+        'EC': 'En cours',
+        'RP': 'Réparé',
+        'AT': 'En attente de pièces',
+        'NR': 'Non réparable'
+    }
+    for p in pannes:
+        d = dict(p)
+        details = {
+            'diagnostic': d['diag_pan'] or '',
+            'type': d['tp'] or 'MAT',
+            'technicien': d['technicien'] or '',
+            'statut': panne_status.get(d['eta_pan'], d['eta_pan'] or ''),
+            'date_envoi': d['dat_env_rep'],
+            'date_retour': d['dat_ret_rep'],
+            'observation_reparation': d['obs_rep'] or '',
+            'pieces_remplacees': d['pieces_remplacees'] or '',
+            'recommandations': d['recommandations'] or '',
+            'cout': d['cout_rep'] or 0
+        }
+        events.append({
+            'type_evenement': 'PANNE',
+            'date_evenement': d['dat_pan'],
+            'libelle': 'Déclaration de panne',
+            'detail': d['diag_pan'] or 'Panne signalée',
+            'obs': '',
+            'procedure': details
+        })
+
+    # 3. Procédures de réforme
+    reformes = cur.execute("""
+        SELECT id_his_ref, etat_reforme, date_evenement, motif_reforme,
+               ancien_etat_reforme, dat_cre
+        FROM historique_reforme
+        WHERE id_mat = ?
+        ORDER BY date_evenement DESC, id_his_ref DESC
+    """, (mat_id,)).fetchall()
+
+    reforme_labels = {
+        'AUCUNE': 'Remise en service',
+        'PROPOSEE': 'Proposé à la réforme',
+        'REFORME': 'Réformé'
+    }
+    for r in reformes:
+        d = dict(r)
+        events.append({
+            'type_evenement': 'REFORME',
+            'date_evenement': d['date_evenement'],
+            'libelle': reforme_labels.get(d['etat_reforme'], d['etat_reforme']),
+            'detail': d['motif_reforme'] or ('Changement vers : ' + reforme_labels.get(d['etat_reforme'], d['etat_reforme'])),
+            'obs': '',
+            'reforme': {
+                'etat': d['etat_reforme'],
+                'ancien_etat': d['ancien_etat_reforme'] or 'AUCUNE',
+                'motif': d['motif_reforme'] or ''
+            }
+        })
+
+    events.sort(key=lambda e: (e.get('date_evenement') or '', e.get('type_evenement') or ''), reverse=True)
     conn.close()
-    return jsonify(result)
-
+    return jsonify(events)
 
 @app.route('/api/pannes', methods=['GET', 'POST'])
 def handle_pannes():
