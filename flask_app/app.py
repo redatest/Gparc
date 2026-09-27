@@ -2031,6 +2031,7 @@ def reset_data_endpoint():
     cur = conn.cursor()
     try:
         # Les tables enfants doivent être supprimées avant materiel.
+        cur.execute("DROP TABLE IF EXISTS historique_reforme")
         cur.execute("DROP TABLE IF EXISTS panne")
         cur.execute("DROP TABLE IF EXISTS affect_mat")
         cur.execute("DROP TABLE IF EXISTS materiel")
