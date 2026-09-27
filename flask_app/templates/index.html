@@ -218,7 +218,7 @@
                 <th class="p-3">N° Inventaire / Série</th>
                 <th class="p-3">Structure / Utilisateur</th>
                 <th class="p-3">État de réforme</th>
-                <th class="p-3">Motif</th>
+                <th class="p-3">Motif / Date de réforme</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -1007,6 +1007,8 @@
             let badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>En service</span>';
             if (m.etat_mat === 'PA') badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 flex items-center gap-1 w-max animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>En panne</span>';
             if (m.etat_mat === 'RE') badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>En réparation</span>';
+            if (m.etat_reforme === 'PROPOSEE') badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>Proposé à la réforme</span>';
+            if (m.etat_reforme === 'REFORME') badge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700 flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>Réformé</span>';
 
             const typeLabel = (m.type_nom || '').toLowerCase();
             let equipmentIcon = 'fa-desktop';
