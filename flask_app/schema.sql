@@ -153,6 +153,7 @@ CREATE TABLE IF NOT EXISTS panne (
   tp TEXT DEFAULT 'MAT',     -- 'MAT': Matériel, 'LOG': Logiciel, 'RES': Réseau, 'ALIM': Alimentation
   technicien TEXT,
   pieces_remplacees TEXT,
+  recommandations TEXT,
   cout_rep REAL DEFAULT 0,
   recommandations TEXT,
   archiv TEXT DEFAULT 'N',
