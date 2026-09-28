@@ -9,14 +9,44 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @media print {
-      body * { visibility: hidden; }
-      #printable-report, #printable-report * { visibility: visible; }
-      #printable-report { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
-      .no-print { display: none !important; }
+    .fit-model-report {
+      width: 100%;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 12mm 12mm 10mm;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      line-height: 1.35;
     }
-  </style>
-</head>
+    .fir-header { display:flex; justify-content:space-between; gap:18px; padding-bottom:10px; border-bottom:1px solid #111; }
+    .fir-org { font-size:11px; line-height:1.55; }
+    .fir-org .fir-line:first-child { font-weight:700; font-size:12px; }
+    .fir-ref { min-width:220px; font-size:10px; line-height:1.65; }
+    .fir-meta { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:8px 0 10px; }
+    .fir-section-title { margin-top:7px; padding:4px 6px; border:1px solid #111; background:#f3f4f6; font-weight:700; font-size:11px; }
+    .fir-table { width:100%; border-collapse:collapse; }
+    .fir-table td { border:1px solid #111; padding:6px; vertical-align:top; min-height:20px; }
+    .fir-block { border:1px solid #111; border-top:none; padding:6px; min-height:46px; }
+    .fir-label { font-weight:700; margin-bottom:4px; }
+    .fir-large { min-height:48px; }
+    .fir-fill { white-space:pre-wrap; }
+    .fir-signatures { width:100%; border-collapse:collapse; margin-top:0; }
+    .fir-signatures td { width:50%; border:1px solid #111; padding:7px; vertical-align:top; height:92px; }
+    .fir-sign-space { height:42px; }
+    .fir-line-fill { min-height:22px; }
+    .fir-pv { border:1px solid #111; margin-top:10px; min-height:75px; padding:7px; }
+    .fir-pv-space { min-height:50px; }
+    .fir-footer { text-align:right; margin-top:10px; font-size:11px; }
+    @page { size:A4 portrait; margin:0; }
+    @media print {
+      body { background:#fff !important; }
+      body * { visibility:hidden; }
+      #printable-report, #printable-report * { visibility:visible; }
+      #printable-report { position:absolute; left:0; top:0; width:210mm; max-width:none; min-height:297mm; margin:0; padding:12mm 12mm 10mm; box-shadow:none; }
+      .no-print { display:none !important; }
+    }
+  </style></head>
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col font-sans">
 
   <!-- En-tête de navigation -->
@@ -647,8 +677,8 @@
 
   <!-- MODAL : FICHE D'INTERVENTION IMPRIMABLE -->
   <div id="modal-report" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 my-8">
-      <div class="flex items-center justify-between pb-3 border-b no-print">
+    <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 my-8">
+      <div class="flex items-center justify-between px-6 py-3 border-b no-print">
         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <i class="fa-solid fa-file-invoice text-blue-600"></i> Fiche d'Intervention Technique
         </h3>
@@ -660,48 +690,91 @@
         </div>
       </div>
 
-      <!-- Rapport technique formatté -->
-      <div id="printable-report" class="p-4 sm:p-6 bg-white text-slate-900">
-        <div class="border-b-2 border-slate-900 pb-4 mb-4 flex justify-between items-center">
-          <div>
-            <h1 class="text-xl font-bold tracking-tight text-slate-900">GPARC - FICHE D'INTERVENTION TECHNIQUE</h1>
-            <p class="text-xs text-slate-500 font-medium">Direction des Systèmes d'Information & Maintenance</p>
+      <div id="printable-report" class="fit-model-report bg-white text-black">
+        <div class="fir-header">
+          <div class="fir-org">
+            <div class="fir-line">REGION SONELGAZ SERVICES CONSTANTINE</div>
+            <div class="fir-line">Département Digitalisation et Sécurité</div>
+            <div class="fir-line">Service Support SI Guelma</div>
           </div>
-          <div class="text-right">
-            <div class="text-sm font-mono font-bold text-blue-700" id="rpt-num">RPT-2024-0001</div>
-            <div class="text-xs text-slate-500" id="rpt-date">Date : --/--/----</div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 text-xs mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-          <div>
-            <div class="font-bold text-slate-700 mb-1 uppercase tracking-wider">Équipement</div>
-            <div><span class="font-semibold">N° Inventaire :</span> <span id="rpt-inv">-</span></div>
-            <div><span class="font-semibold">N° Série :</span> <span id="rpt-ser">-</span></div>
-            <div><span class="font-semibold">Modèle :</span> <span id="rpt-model">-</span></div>
-            <div><span class="font-semibold">Type :</span> <span id="rpt-type">-</span></div>
-          </div>
-          <div>
-            <div class="font-bold text-slate-700 mb-1 uppercase tracking-wider">Affectation</div>
-            <div><span class="font-semibold">Utilisateur :</span> <span id="rpt-user">-</span></div>
-            <div><span class="font-semibold">Direction :</span> <span id="rpt-str">-</span></div>
-            <div><span class="font-semibold">Technicien :</span> <span id="rpt-tech">-</span></div>
-            <div><span class="font-semibold">Statut :</span> <span id="rpt-statut" class="font-bold">-</span></div>
+          <div class="fir-ref">
+            <div>N° <span id="rpt-ref">............/SSSI/2026</span></div>
+            <div>Bon n° : <span id="rpt-bon"></span></div>
+            <div>DPS n° : <span id="rpt-dps"></span></div>
+            <div>Date DPS : <span id="rpt-date-dps"></span></div>
           </div>
         </div>
 
-        <div class="mb-4">
-          <div class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">Diagnostic de la panne :</div>
-          <div id="rpt-diag" class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs leading-relaxed text-slate-700"></div>
+        <div class="fir-meta">
+          <div><b>Structure :</b> <span id="rpt-structure"></span></div>
+          <div><b>Date d’arrivée :</b> <span id="rpt-date-arrivee"></span></div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 pt-6 border-t border-slate-200 text-xs text-slate-600">
-          <div class="h-20 border border-dashed border-slate-300 rounded p-2">
-            <span class="font-bold">Visa du Technicien DSI :</span>
-          </div>
-          <div class="h-20 border border-dashed border-slate-300 rounded p-2">
-            <span class="font-bold">Visa & Signature Utilisateur :</span>
-          </div>
+        <div class="fir-section-title">MATERIEL</div>
+        <table class="fir-table fir-material">
+          <tr>
+            <td><b>N° de série :</b> <span id="rpt-ser"></span></td>
+            <td><b>Type :</b> <span id="rpt-type"></span></td>
+          </tr>
+          <tr>
+            <td><b>Marque :</b> <span id="rpt-brand"></span></td>
+            <td><b>Modèle :</b> <span id="rpt-model"></span></td>
+          </tr>
+        </table>
+
+        <div class="fir-section-title">COMPTE RENDU</div>
+        <table class="fir-table fir-report-fields">
+          <tr>
+            <td><b>Date de réparation :</b> <span id="rpt-date-reparation"></span></td>
+            <td><b>Date de retour :</b> <span id="rpt-date-retour"></span></td>
+          </tr>
+          <tr>
+            <td><b>Lieu de réparation :</b> <span id="rpt-lieu-reparation"></span></td>
+            <td><b>Code à barre :</b> <span id="rpt-barcode"></span></td>
+          </tr>
+        </table>
+
+        <div class="fir-block">
+          <div class="fir-label">Constat :</div>
+          <div id="rpt-diag" class="fir-fill"></div>
+        </div>
+
+        <div class="fir-block">
+          <div class="fir-label">Observation :</div>
+          <div id="rpt-observation" class="fir-fill fir-large"></div>
+        </div>
+
+        <table class="fir-signatures">
+          <tr>
+            <td>
+              <b>Accusé de réception</b>
+              <div class="fir-sign-space"></div>
+              <b>Intervenant :</b> <span id="rpt-tech"></span>
+            </td>
+            <td>
+              <b>Le chef SSSI</b>
+              <div class="fir-sign-space"></div>
+            </td>
+          </tr>
+        </table>
+
+        <div class="fir-block">
+          <div class="fir-label">Détail de la réparation :</div>
+          <div id="rpt-travaux" class="fir-fill fir-large"></div>
+        </div>
+
+        <div class="fir-block">
+          <div class="fir-label">Nouveau Code à barre :</div>
+          <div id="rpt-new-barcode" class="fir-fill fir-line-fill"></div>
+        </div>
+
+        <div class="fir-pv">
+          <b>PV d'intervention</b>
+          <div class="fir-pv-space"></div>
+        </div>
+
+        <div class="fir-footer">
+          Guelma le : <span id="rpt-date-generation"></span>
         </div>
       </div>
     </div>
