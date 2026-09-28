@@ -1999,7 +1999,14 @@ def get_panne_report(panne_id):
             "statut": d['eta_pan'],
             "technicien": d['technicien'],
             "travaux": d['obs_rep'],
-            "pieces": d['pieces_remplacees']
+            "observation": d['obs_rep'],
+            "pieces": d['pieces_remplacees'],
+            "recommandations": d['recommandations'],
+            "cout": d['cout_rep'],
+            "dateReparation": d['dat_ret_rep'],
+            "dateRetour": d['dat_ret_rep'],
+            "lieuReparation": d['nom_lieu_rep'],
+            "typePanne": d['tp']
         },
         "equipement": {
             "numInventaire": d['num_inv'],
