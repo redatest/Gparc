@@ -6,7 +6,7 @@ Application complète de gestion du parc informatique d'entreprise avec suivi en
 
 ## 🖥️ Démarrage sur Bureau (Mode Standalone type Green-DZ)
 
-Si vous utilisez l'application sur votre bureau Windows/Linux/Mac (comme l'application **green-dz**) :
+Si vous utilisez l'application sur votre bureau Windows/Linux/Mac  :
 
 ### Méthode 1 : Double-clic direct (Windows)
 Double-cliquez simplement sur le fichier :
