@@ -4,7 +4,7 @@ Application complète de gestion du parc informatique d'entreprise avec suivi en
 
 ---
 
-## 🖥️ Démarrage sur Bureau (Mode Standalone type Green-DZ)
+## 🖥️ Démarrage sur Bureau (Mode Standalone)
 
 Si vous utilisez l'application sur votre bureau Windows/Linux/Mac  :
 
