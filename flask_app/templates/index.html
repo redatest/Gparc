@@ -1708,7 +1708,7 @@
         set('rpt-dps', '');
         set('rpt-date-dps', '');
         set('rpt-structure', rpt.utilisateur?.service || '');
-        set('rpt-date-arrivee', formatReportDate(rpt.intervention?.datePanne));
+        set('rpt-date-arrivee', '');
 
         set('rpt-ser', rpt.equipement?.numSerie || '');
         set('rpt-type', rpt.equipement?.type || '');
@@ -1728,8 +1728,8 @@
         // La base ne possède pas de nouveau code à barre ni de PV numérisé.
         set('rpt-new-barcode', '');
 
-        const generated = new Date();
-        set('rpt-date-generation', generated.toLocaleDateString('fr-FR'));
+        // Aucun champ correspondant n'existe dans la base : laissé vide pour saisie manuelle.
+        set('rpt-date-generation', '');
 
         document.getElementById('modal-report').classList.remove('hidden');
       } catch (e) {
