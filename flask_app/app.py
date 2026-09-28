@@ -1442,6 +1442,13 @@ STANDALONE_HTML = """<!DOCTYPE html>
 # ROUTES STATIQUES & INTERFACE WEB
 # -----------------------------------------------------------------------------
 
+@app.route('/logoSS.jpg', methods=['GET'])
+def serve_logo_ss():
+    logo_path = os.path.abspath(os.path.join(BASE_DIR, '../logoSS.jpg'))
+    if os.path.isfile(logo_path):
+        return send_from_directory(os.path.dirname(logo_path), os.path.basename(logo_path))
+    return ('LogoSS.jpg introuvable', 404)
+
 @app.route('/')
 def index():
     """Point d'entrée principal : sert le template HTML autonome ou le build React."""
