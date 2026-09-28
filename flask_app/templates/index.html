@@ -1684,27 +1684,57 @@
       }
     }
 
+    function formatReportDate(value) {
+      if (!value) return '';
+      const d = new Date(String(value).replace(' ', 'T'));
+      if (Number.isNaN(d.getTime())) return String(value);
+      return d.toLocaleDateString('fr-FR');
+    }
+
     async function viewReport(panneId) {
       try {
         const res = await fetch('/api/pannes/' + panneId + '/report');
-        if (res.ok) {
-          const rpt = await res.json();
-          document.getElementById('rpt-num').innerText = rpt.numeroRapport;
-          document.getElementById('rpt-date').innerText = 'Date : ' + rpt.dateGeneration;
-          document.getElementById('rpt-inv').innerText = rpt.equipement.numInventaire;
-          document.getElementById('rpt-ser').innerText = rpt.equipement.numSerie;
-          document.getElementById('rpt-model').innerText = `${rpt.equipement.marque || ''} ${rpt.equipement.modele || ''}`;
-          document.getElementById('rpt-type').innerText = rpt.equipement.type || 'Matériel';
-          document.getElementById('rpt-user').innerText = rpt.utilisateur.nom || 'Non assigné';
-          document.getElementById('rpt-str').innerText = rpt.utilisateur.service || 'DSI';
-          document.getElementById('rpt-tech').innerText = rpt.intervention.technicien || 'DSI';
-          document.getElementById('rpt-statut').innerText = rpt.intervention.statut === 'RP' ? 'RÉPARÉ / REMIS EN SERVICE' : 'EN COURS';
-          document.getElementById('rpt-diag').innerText = rpt.intervention.diagnostic || 'Aucun détail';
+        if (!res.ok) throw new Error('Rapport introuvable');
+        const rpt = await res.json();
 
-          document.getElementById('modal-report').classList.remove('hidden');
-        }
+        const set = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = value ?? '';
+        };
+
+        // Champs présents dans le modèle et correspondants à notre base.
+        set('rpt-ref', '............/SSSI/2026');
+        set('rpt-bon', '');
+        set('rpt-dps', '');
+        set('rpt-date-dps', '');
+        set('rpt-structure', rpt.utilisateur?.service || '');
+        set('rpt-date-arrivee', formatReportDate(rpt.intervention?.datePanne));
+
+        set('rpt-ser', rpt.equipement?.numSerie || '');
+        set('rpt-type', rpt.equipement?.type || '');
+        set('rpt-brand', rpt.equipement?.marque || '');
+        set('rpt-model', rpt.equipement?.modele || '');
+
+        set('rpt-date-reparation', formatReportDate(rpt.intervention?.dateReparation));
+        set('rpt-date-retour', formatReportDate(rpt.intervention?.dateRetour));
+        set('rpt-lieu-reparation', rpt.intervention?.lieuReparation || '');
+        // La base ne possède pas de champ "code à barre" dédié : on laisse vide.
+        set('rpt-barcode', '');
+
+        set('rpt-diag', rpt.intervention?.diagnostic || '');
+        set('rpt-observation', rpt.intervention?.observation || '');
+        set('rpt-tech', rpt.intervention?.technicien || '');
+        set('rpt-travaux', rpt.intervention?.travaux || '');
+        // La base ne possède pas de nouveau code à barre ni de PV numérisé.
+        set('rpt-new-barcode', '');
+
+        const generated = new Date();
+        set('rpt-date-generation', generated.toLocaleDateString('fr-FR'));
+
+        document.getElementById('modal-report').classList.remove('hidden');
       } catch (e) {
-        showToast('Impossible d\'afficher la fiche', true);
+        console.error(e);
+        showToast("Impossible d'afficher la fiche", true);
       }
     }
 
