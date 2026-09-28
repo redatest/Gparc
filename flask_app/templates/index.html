@@ -1476,9 +1476,24 @@
       }
     }
 
+    function resetPanneForm() {
+      const form = document.querySelector('#modal-panne form');
+      if (form) form.reset();
+
+      const type = document.getElementById('panne-type');
+      const tech = document.getElementById('panne-tech');
+      const diag = document.getElementById('panne-diag');
+
+      if (type) type.value = 'MAT';
+      if (tech) tech.value = 'Support DSI Interne';
+      if (diag) diag.value = '';
+    }
+
     function openNewPanneModal() {
+      resetPanneForm();
       populatePanneSelect();
       document.getElementById('modal-panne').classList.remove('hidden');
+      setTimeout(() => document.getElementById('panne-diag')?.focus(), 50);
     }
 
     function quickPanneFor(matId) {
@@ -1569,6 +1584,7 @@
         });
         if (res.ok) {
           closeModal('modal-panne');
+          resetPanneForm();
           showToast('Panne enregistrée : matériel passé en statut En Panne !');
           loadAllData();
         } else {
@@ -2147,6 +2163,7 @@
     window.loadAllData = loadAllData;
     window.openNewMaterielModal = openNewMaterielModal;
     window.openNewPanneModal = openNewPanneModal;
+    window.resetPanneForm = resetPanneForm;
     window.openNewReformeModal = openNewReformeModal;
     window.handleSaveReforme = handleSaveReforme;
     window.updateReformeDeclarationFields = updateReformeDeclarationFields;
