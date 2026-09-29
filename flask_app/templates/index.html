@@ -348,6 +348,7 @@
           <button onclick="filterParamCategory('disk')" id="btn-param-disk" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Stockage (Disque)</button>
           <button onclick="filterParamCategory('se')" id="btn-param-se" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Systèmes (SE)</button>
           <button onclick="filterParamCategory('modele')" id="btn-param-modele" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Modèles</button>
+          <button onclick="filterParamCategory('types')" id="btn-param-types" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Types de matériel</button>
           <button onclick="filterParamCategory('structures')" id="btn-param-structures" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
             <i class="fa-solid fa-sitemap mr-1"></i> Structures
           </button>
@@ -372,6 +373,37 @@
             </tbody>
           </table>
         </div>
+        <!-- GESTION DES TYPES DE MATÉRIEL -->
+        <div id="types-param-panel" class="hidden mt-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-desktop text-indigo-600"></i> Référentiel des Types de Matériel
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Gérez les codes et libellés utilisés dans le formulaire d'ajout des équipements.</p>
+            </div>
+            <button onclick="openNewTypeMaterielModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+              <i class="fa-solid fa-plus"></i> Nouveau Type
+            </button>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Code</th>
+                  <th class="p-3">Libellé</th>
+                  <th class="p-3 text-center">Matériels</th>
+                  <th class="p-3 text-center">ID</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="types-table-body" class="divide-y divide-slate-100">
+                <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- GESTION DES STRUCTURES -->
         <div id="structures-param-panel" class="hidden mt-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
@@ -760,6 +792,35 @@
     </div>
   </div>
 
+  <!-- MODAL : AJOUT / MODIFICATION DE TYPE DE MATÉRIEL -->
+  <div id="modal-type-materiel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 id="type-materiel-modal-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-desktop text-indigo-600"></i> Nouveau type de matériel
+        </h3>
+        <button onclick="closeModal('modal-type-materiel')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveTypeMateriel(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="type-materiel-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Code type *</label>
+          <input type="text" id="type-materiel-code" required maxlength="50" placeholder="ex: PC, IMP, SRV"
+                 class="w-full px-3 py-2 border rounded-lg text-xs uppercase focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Libellé *</label>
+          <input type="text" id="type-materiel-libelle" required maxlength="200" placeholder="ex: Ordinateur, Imprimante, Serveur"
+                 class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-type-materiel')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL : AJOUT / MODIFICATION DE STRUCTURE -->
   <div id="modal-structure" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
@@ -899,6 +960,7 @@
     let allPannes = [];
     let allParametres = [];
     let allStructures = [];
+    let allTypes = [];
     let references = { structures: [], types: [], modeles: [], utilisateurs: [], parametres: [] };
     let allOracleHistory = [];
     let currentFilter = 'ALL';
@@ -930,6 +992,7 @@
         allPannes = panRes || [];
         allParametres = paramRes || [];
         allStructures = referencesRes?.structures || structuresRes || [];
+        allTypes = referencesRes?.types || [];
         references = referencesRes || references;
         allOracleHistory = oraHistRes || [];
 
@@ -1744,17 +1807,25 @@
     // GESTION DES PARAMÈTRES MATÉRIELS
     function renderParametres() {
       const tbody = document.getElementById('parametres-table-body');
+      const typePanel = document.getElementById('types-param-panel');
       const structurePanel = document.getElementById('structures-param-panel');
       const utilisateurPanel = document.getElementById('utilisateurs-param-panel');
+      const isTypes = currentParamCat === 'types';
       const isStructures = currentParamCat === 'structures';
       const isUtilisateurs = currentParamCat === 'utilisateurs';
 
+      if (typePanel) typePanel.classList.toggle('hidden', !isTypes);
       if (structurePanel) structurePanel.classList.toggle('hidden', !isStructures);
       if (utilisateurPanel) utilisateurPanel.classList.toggle('hidden', !isUtilisateurs);
       if (tbody) {
         const paramTable = tbody.closest('table');
         const paramContainer = paramTable ? paramTable.parentElement : null;
-        if (paramContainer) paramContainer.classList.toggle('hidden', isStructures || isUtilisateurs);
+        if (paramContainer) paramContainer.classList.toggle('hidden', isTypes || isStructures || isUtilisateurs);
+      }
+
+      if (isTypes) {
+        renderTypesMateriel();
+        return;
       }
 
       if (isStructures) {
@@ -1926,8 +1997,10 @@
       }
 
       const paramButton = document.querySelector('button[onclick="openNewParamModal()"]');
+      const typeButton = document.querySelector('button[onclick="openNewTypeMaterielModal()"]');
       const structureButton = document.querySelector('button[onclick="openNewStructureModal()"]');
-      if (paramButton) paramButton.classList.toggle('hidden', cat === 'structures' || cat === 'utilisateurs');
+      if (paramButton) paramButton.classList.toggle('hidden', cat === 'types' || cat === 'structures' || cat === 'utilisateurs');
+      if (typeButton) typeButton.classList.toggle('hidden', cat !== 'types');
       if (structureButton) structureButton.classList.toggle('hidden', cat !== 'structures');
 
       renderParametres();
@@ -1982,6 +2055,98 @@
         }
       } catch (err) {
         showToast('Erreur lors de la suppression', true);
+      }
+    }
+
+    // GESTION DES TYPES DE MATÉRIEL
+    function renderTypesMateriel() {
+      const tbody = document.getElementById('types-table-body');
+      if (!tbody) return;
+      const types = allTypes || [];
+      if (!types.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun type de matériel configuré.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = types.map(t =>
+        '<tr class="hover:bg-slate-50 transition">' +
+          '<td class="p-3 font-mono font-bold text-indigo-700">' + escapeHtml(t.cod_typ_mat || '') + '</td>' +
+          '<td class="p-3 font-semibold text-slate-800">' + escapeHtml(t.lib_typ_mat || '') + '</td>' +
+          '<td class="p-3 text-center font-mono text-slate-500">' + (t.nb_materiels || 0) + '</td>' +
+          '<td class="p-3 text-center font-mono text-slate-400">' + t.id_typ_mat + '</td>' +
+          '<td class="p-3 text-right whitespace-nowrap">' +
+            '<button onclick="editTypeMateriel(' + t.id_typ_mat + ')" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button>' +
+            '<button onclick="deleteTypeMateriel(' + t.id_typ_mat + ')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver"><i class="fa-solid fa-trash-can"></i></button>' +
+          '</td>' +
+        '</tr>'
+      ).join('');
+    }
+
+    function openNewTypeMaterielModal() {
+      document.getElementById('type-materiel-id').value = '';
+      document.getElementById('type-materiel-code').value = '';
+      document.getElementById('type-materiel-libelle').value = '';
+      document.getElementById('type-materiel-modal-title').innerHTML = '<i class="fa-solid fa-desktop text-indigo-600"></i> Nouveau type de matériel';
+      document.getElementById('modal-type-materiel').classList.remove('hidden');
+    }
+
+    function editTypeMateriel(id) {
+      const t = (allTypes || []).find(x => String(x.id_typ_mat) === String(id));
+      if (!t) return;
+      document.getElementById('type-materiel-id').value = t.id_typ_mat;
+      document.getElementById('type-materiel-code').value = t.cod_typ_mat || '';
+      document.getElementById('type-materiel-libelle').value = t.lib_typ_mat || '';
+      document.getElementById('type-materiel-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-indigo-600"></i> Modifier le type de matériel';
+      document.getElementById('modal-type-materiel').classList.remove('hidden');
+    }
+
+    async function refreshTypesMateriel() {
+      const res = await fetch('/api/types-materiel');
+      if (!res.ok) throw new Error('Erreur lors du chargement des types');
+      allTypes = await res.json();
+      references.types = allTypes;
+      renderTypesMateriel();
+      populateMaterielForm();
+    }
+
+    async function handleSaveTypeMateriel(e) {
+      e.preventDefault();
+      const id = document.getElementById('type-materiel-id').value;
+      const payload = {
+        cod_typ_mat: document.getElementById('type-materiel-code').value.trim(),
+        lib_typ_mat: document.getElementById('type-materiel-libelle').value.trim()
+      };
+      try {
+        const res = await fetch(id ? '/api/types-materiel/' + id : '/api/types-materiel', {
+          method: id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(result.error || 'Erreur lors de l’enregistrement du type', true);
+          return;
+        }
+        showToast(id ? 'Type de matériel modifié avec succès !' : 'Type de matériel ajouté avec succès !');
+        closeModal('modal-type-materiel');
+        await refreshTypesMateriel();
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
+      }
+    }
+
+    async function deleteTypeMateriel(id) {
+      if (!confirm('Voulez-vous archiver ce type de matériel ?')) return;
+      try {
+        const res = await fetch('/api/types-materiel/' + id, { method: 'DELETE' });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(result.error || 'Impossible d’archiver ce type', true);
+          return;
+        }
+        showToast('Type de matériel archivé');
+        await refreshTypesMateriel();
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
       }
     }
 
