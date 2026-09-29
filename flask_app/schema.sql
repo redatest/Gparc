@@ -155,7 +155,6 @@ CREATE TABLE IF NOT EXISTS panne (
   pieces_remplacees TEXT,
   recommandations TEXT,
   cout_rep REAL DEFAULT 0,
-  recommandations TEXT,
   archiv TEXT DEFAULT 'N',
   dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
   dat_mod DATETIME DEFAULT CURRENT_TIMESTAMP,
