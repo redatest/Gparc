@@ -172,6 +172,7 @@ def init_db():
         tp TEXT DEFAULT 'MAT',
         technicien TEXT,
         pieces_remplacees TEXT,
+        recommandations TEXT,
         cout_rep REAL DEFAULT 0,
         archiv TEXT DEFAULT 'N',
         dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -1961,14 +1962,33 @@ def update_panne(panne_id):
     cur = conn.cursor()
     data = request.json or {}
 
-    new_status = data.get('eta_pan')
-    if new_status:
-        cur.execute("UPDATE panne SET eta_pan = ? WHERE id_pan = ?", (new_status, panne_id))
-        # Si réparé ('RP'), remettre le matériel en état 'OP'
-        if new_status == 'RP':
-            panne_row = cur.execute("SELECT id_mat FROM panne WHERE id_pan = ?", (panne_id,)).fetchone()
-            if panne_row:
-                cur.execute("UPDATE materiel SET etat_mat = 'OP' WHERE id_mat = ?", (panne_row['id_mat'],))
+    panne_row = cur.execute("SELECT id_mat FROM panne WHERE id_pan = ?", (panne_id,)).fetchone()
+    if not panne_row:
+        conn.close()
+        return jsonify({"error": "Panne introuvable"}), 404
+
+    updates = []
+    params = []
+
+    if data.get('eta_pan') is not None:
+        updates.append("eta_pan = ?")
+        params.append(data.get('eta_pan'))
+
+    if 'obs_rep' in data:
+        updates.append("obs_rep = ?")
+        params.append(data.get('obs_rep') or '')
+
+    if 'recommandations' in data:
+        updates.append("recommandations = ?")
+        params.append(data.get('recommandations') or '')
+
+    if data.get('eta_pan') == 'RP':
+        updates.append("dat_ret_rep = COALESCE(dat_ret_rep, date('now'))")
+        cur.execute("UPDATE materiel SET etat_mat = 'OP' WHERE id_mat = ?", (panne_row['id_mat'],))
+
+    if updates:
+        params.append(panne_id)
+        cur.execute("UPDATE panne SET " + ", ".join(updates) + " WHERE id_pan = ?", params)
 
     conn.commit()
     conn.close()
@@ -2006,7 +2026,7 @@ def get_panne_report(panne_id):
             "statut": d['eta_pan'],
             "technicien": d['technicien'],
             "travaux": d['obs_rep'],
-            "observation": d['obs_rep'],
+            "observation": d['recommandations'] or '',
             "pieces": d['pieces_remplacees'],
             "recommandations": d['recommandations'],
             "cout": d['cout_rep'],
