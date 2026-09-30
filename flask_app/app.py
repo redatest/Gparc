@@ -90,6 +90,7 @@ def init_db():
         adr_lieu_rep TEXT,
         tel_lieu_rep TEXT,
         contact_rep TEXT,
+        categorie_lieu TEXT DEFAULT 'EXTERIEUR',
         archiv TEXT DEFAULT 'N',
         dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -128,6 +129,7 @@ def init_db():
         valeur_acq REAL DEFAULT 0,
         archiv TEXT DEFAULT 'N',
         dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
+        statut_mat TEXT DEFAULT 'ES',
         etat_reforme TEXT DEFAULT 'AUCUNE',
         motif_reforme TEXT
     );
@@ -168,7 +170,7 @@ def init_db():
         dat_ret_rep DATE,
         id_lieu_rep INTEGER,
         obs_rep TEXT,
-        eta_pan TEXT DEFAULT 'EC',
+        eta_pan TEXT DEFAULT 'EP',
         tp TEXT DEFAULT 'MAT',
         technicien TEXT,
         pieces_remplacees TEXT,
@@ -257,6 +259,40 @@ def init_db():
         cur.execute("ALTER TABLE materiel ADD COLUMN decision_reforme TEXT")
     if 'pv_reforme' not in mat_columns:
         cur.execute("ALTER TABLE materiel ADD COLUMN pv_reforme TEXT")
+    if 'statut_mat' not in mat_columns:
+        cur.execute("ALTER TABLE materiel ADD COLUMN statut_mat TEXT DEFAULT 'ES'")
+    # Séparation stricte entre le statut de cycle de vie et l'état physique.
+    cur.execute("""
+        UPDATE materiel
+        SET statut_mat = CASE
+            WHEN etat_reforme = 'PROPOSEE' THEN 'PR'
+            WHEN etat_reforme = 'REFORME' THEN 'RF'
+            ELSE COALESCE(NULLIF(statut_mat, ''), 'ES')
+        END
+        WHERE statut_mat IS NULL OR statut_mat = '' OR etat_reforme IN ('PROPOSEE','REFORME')
+    """)
+    cur.execute("""
+        UPDATE materiel
+        SET etat_mat = CASE
+            WHEN etat_mat = 'OP' THEN 'BON'
+            WHEN etat_mat IN ('PA','RE') THEN 'PANNE'
+            WHEN etat_mat = 'SO' THEN 'BON'
+            WHEN etat_mat IS NULL OR etat_mat = '' THEN 'BON'
+            ELSE etat_mat
+        END
+    """)
+
+    # Migration légère des lieux de réparation.
+    lieu_columns = {row[1] for row in cur.execute("PRAGMA table_info(lieu_rep)").fetchall()}
+    if 'categorie_lieu' not in lieu_columns:
+        cur.execute("ALTER TABLE lieu_rep ADD COLUMN categorie_lieu TEXT DEFAULT 'EXTERIEUR'")
+        cur.execute("""
+            UPDATE lieu_rep
+            SET categorie_lieu = CASE
+                WHEN LOWER(nom_lieu_rep) LIKE '%atelier%' OR LOWER(nom_lieu_rep) LIKE '%interne%' THEN 'LOCAL'
+                ELSE 'EXTERIEUR'
+            END
+        """)
 
     # Migration légère de la procédure de panne.
     # Les anciennes bases peuvent ne pas contenir les colonnes ajoutées
@@ -268,6 +304,17 @@ def init_db():
         cur.execute("ALTER TABLE panne ADD COLUMN recommandations TEXT")
     if 'cout_rep' not in panne_columns:
         cur.execute("ALTER TABLE panne ADD COLUMN cout_rep REAL DEFAULT 0")
+    # Harmonisation des anciens codes de traitement de panne.
+    cur.execute("""
+        UPDATE panne
+        SET eta_pan = CASE
+            WHEN eta_pan = 'EC' THEN 'EP'
+            WHEN eta_pan = 'AT' THEN 'ER'
+            WHEN eta_pan = 'NR' THEN 'IR'
+            ELSE eta_pan
+        END
+        WHERE eta_pan IN ('EC','AT','NR')
+    """)
 
     # Migration légère de l'historique d'affectation.
     affect_columns = {row[1] for row in cur.execute("PRAGMA table_info(affect_mat)").fetchall()}
@@ -398,6 +445,25 @@ def init_db():
                 dat_pan, diag_pan, eta_pan, tp, technicien, id_lieu_rep, pieces_remplacees, cout_rep, obs_rep
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, p)
+
+        # Normaliser les données de démonstration vers la nouvelle séparation.
+        cur.execute("""
+            UPDATE materiel
+            SET statut_mat = 'ES',
+                etat_mat = CASE
+                    WHEN etat_mat IN ('PA','RE') THEN 'PANNE'
+                    ELSE 'BON'
+                END
+        """)
+        cur.execute("""
+            UPDATE panne
+            SET eta_pan = CASE
+                WHEN eta_pan = 'EC' THEN 'EP'
+                WHEN eta_pan = 'AT' THEN 'ER'
+                WHEN eta_pan = 'NR' THEN 'IR'
+                ELSE eta_pan
+            END
+        """)
 
         conn.commit()
         print("[GPARC] Base SQLite initialisée avec succès.")
@@ -1484,12 +1550,12 @@ def get_stats():
     cur = conn.cursor()
 
     total = cur.execute("SELECT COUNT(*) FROM materiel WHERE archiv = 'N'").fetchone()[0]
-    op = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'OP' AND archiv = 'N'").fetchone()[0]
-    pa = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'PA' AND archiv = 'N'").fetchone()[0]
-    re = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'RE' AND archiv = 'N'").fetchone()[0]
-    so = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'SO' AND archiv = 'N'").fetchone()[0]
-    pannes_actives = cur.execute("SELECT COUNT(*) FROM panne WHERE eta_pan IN ('EC', 'AT') AND archiv = 'N'").fetchone()[0]
-    pannes_resolues = cur.execute("SELECT COUNT(*) FROM panne WHERE eta_pan = 'RP' AND archiv = 'N'").fetchone()[0]
+    op = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'BON' AND archiv = 'N'").fetchone()[0]
+    pa = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'PANNE' AND archiv = 'N'").fetchone()[0]
+    re = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'IRREPARABLE' AND archiv = 'N'").fetchone()[0]
+    so = cur.execute("SELECT COUNT(*) FROM materiel WHERE statut_mat = 'RF' AND archiv = 'N'").fetchone()[0]
+    pannes_actives = cur.execute("SELECT COUNT(*) FROM panne WHERE eta_pan IN ('EP', 'ER') AND archiv = 'N'").fetchone()[0]
+    pannes_resolues = cur.execute("SELECT COUNT(*) FROM panne WHERE eta_pan IN ('RP','IR') AND archiv = 'N'").fetchone()[0]
 
     repart_type = [dict(row) for row in cur.execute("""
         SELECT t.lib_typ_mat as type, COUNT(m.id_mat) as count
@@ -1567,7 +1633,7 @@ def handle_materiels():
             marque or None,
             data.get('num_inv', f"INV-{datetime.now().strftime('%y%m%d%H%M')}"),
             data.get('num_ser', f"SN-{datetime.now().strftime('%y%m%d%H%M')}"),
-            data.get('etat_mat', 'OP'), data.get('obs_mat', ''),
+            'BON', data.get('obs_mat', ''),
             data.get('ram', 16), data.get('disk', 512),
             data.get('cpu', 'Intel Core i5/i7'), data.get('se', 'Windows 11 Pro'),
             data.get('ordi', ''), data.get('ip', ''), data.get('id_uti') or None,
@@ -1699,7 +1765,15 @@ def handle_single_materiel(mat_id):
             if id_typ is not None and model['id_typ_mat'] is not None and int(model['id_typ_mat']) != int(id_typ):
                 conn.close(); return jsonify({"error": "Le modèle sélectionné ne correspond pas au type."}), 400
 
-        etat_mat_update = ('SO' if etat_reforme == 'REFORME' else 'OP') if reforme_update else data.get('etat_mat')
+        statut_mat_update = ({'AUCUNE': 'ES', 'PROPOSEE': 'PR', 'REFORME': 'RF'}.get(etat_reforme, 'ES')) if reforme_update else (data.get('statut_mat') if 'statut_mat' in data else (existing['statut_mat'] or 'ES'))
+        etat_mat_update = data.get('etat_mat') if 'etat_mat' in data else existing['etat_mat']
+
+        if etat_mat_update not in ('BON', 'PANNE', 'IRREPARABLE'):
+            conn.close()
+            return jsonify({"error": "État de l'équipement invalide. Valeurs autorisées : Bon, En panne, Irréparable."}), 400
+        if statut_mat_update not in ('ES', 'PR', 'RF'):
+            conn.close()
+            return jsonify({"error": "Statut de l'équipement invalide. Valeurs autorisées : En service, Proposé à la réforme, Réformé."}), 400
 
         cur.execute("""
             UPDATE materiel SET
@@ -1711,6 +1785,7 @@ def handle_single_materiel(mat_id):
                 id_str = ?,
                 id_uti = ?,
                 etat_mat = COALESCE(?, etat_mat),
+                statut_mat = COALESCE(?, statut_mat),
                 obs_mat = COALESCE(?, obs_mat),
                 cpu = COALESCE(?, cpu),
                 ram = COALESCE(?, ram),
@@ -1728,7 +1803,7 @@ def handle_single_materiel(mat_id):
             WHERE id_mat = ?
         """, (
             data.get('num_inv'), data.get('num_ser'), marque or None,
-            id_model, id_typ, id_str, id_uti, etat_mat_update, data.get('obs_mat'),
+            id_model, id_typ, id_str, id_uti, etat_mat_update, statut_mat_update, data.get('obs_mat'),
             data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'),
             etat_reforme, motif_reforme, date_proposition, date_validation, date_reforme,
             decision, pv_reforme, mat_id
@@ -1855,10 +1930,13 @@ def get_materiel_historique(mat_id):
     """, (mat_id,)).fetchall()
 
     panne_status = {
-        'EC': 'En cours',
+        'EP': 'En panne',
+        'ER': 'En réparation',
         'RP': 'Réparé',
-        'AT': 'En attente de pièces',
-        'NR': 'Non réparable'
+        'IR': 'Irréparable',
+        'EC': 'En panne',
+        'AT': 'En réparation',
+        'NR': 'Irréparable'
     }
     for p in pannes:
         d = dict(p)
@@ -1930,7 +2008,7 @@ def handle_pannes():
         cur.execute("""
             INSERT INTO panne (id_mat, id_str, id_typ_mat, id_model_mat, num_inv, num_ser,
                                dat_pan, diag_pan, eta_pan, tp, technicien, obs_rep, pieces_remplacees)
-            SELECT id_mat, id_str, id_typ_mat, id_model_mat, num_inv, num_ser, ?, ?, 'EC', ?, ?, ?, ?
+            SELECT id_mat, id_str, id_typ_mat, id_model_mat, num_inv, num_ser, ?, ?, 'EP', ?, ?, ?, ?
             FROM materiel WHERE id_mat = ?
         """, (
             data.get('dat_pan', datetime.now().strftime('%Y-%m-%d')),
@@ -1938,19 +2016,21 @@ def handle_pannes():
             data.get('technicien', 'Support DSI'),
             data.get('obs_rep', ''), data.get('pieces_remplacees', ''), mat_id
         ))
-        # Passer le matériel en panne
-        cur.execute("UPDATE materiel SET etat_mat = 'PA' WHERE id_mat = ?", (mat_id,))
+        # L'état physique devient "En panne". Le statut de cycle de vie reste indépendant.
+        cur.execute("UPDATE materiel SET etat_mat = 'PANNE' WHERE id_mat = ?", (mat_id,))
         conn.commit()
         last_id = cur.lastrowid
         conn.close()
         return jsonify({"id": last_id, "message": "Panne enregistrée"}), 201
     else:
         rows = [dict(r) for r in cur.execute("""
-            SELECT p.*, m.num_inv, m.num_ser, mod.marque_mat, mod.model_mat, s.lib_str as structure_nom
+            SELECT p.*, m.num_inv, m.num_ser, mod.marque_mat, mod.model_mat, s.lib_str as structure_nom,
+                   l.nom_lieu_rep as lieu_reparation, l.categorie_lieu as categorie_lieu_reparation
             FROM panne p
             JOIN materiel m ON p.id_mat = m.id_mat
             LEFT JOIN model_mat mod ON m.id_model_mat = mod.id_model_mat
             LEFT JOIN structures s ON p.id_str = s.id_str
+            LEFT JOIN lieu_rep l ON p.id_lieu_rep = l.id_lieu_rep
             WHERE p.archiv = 'N' ORDER BY p.id_pan DESC
         """).fetchall()]
         conn.close()
@@ -1962,37 +2042,61 @@ def update_panne(panne_id):
     cur = conn.cursor()
     data = request.json or {}
 
-    panne_row = cur.execute("SELECT id_mat FROM panne WHERE id_pan = ?", (panne_id,)).fetchone()
+    panne_row = cur.execute("SELECT * FROM panne WHERE id_pan = ?", (panne_id,)).fetchone()
     if not panne_row:
         conn.close()
         return jsonify({"error": "Panne introuvable"}), 404
 
-    updates = []
-    params = []
+    eta_pan = data.get('eta_pan') if 'eta_pan' in data else panne_row['eta_pan']
+    if eta_pan not in ('EP', 'ER', 'RP', 'IR'):
+        conn.close()
+        return jsonify({"error": "État de panne invalide. Valeurs : En panne, En réparation, Réparé, Irréparable."}), 400
 
-    if data.get('eta_pan') is not None:
-        updates.append("eta_pan = ?")
-        params.append(data.get('eta_pan'))
+    id_lieu_rep = data.get('id_lieu_rep') if 'id_lieu_rep' in data else panne_row['id_lieu_rep']
+    if id_lieu_rep not in (None, ''):
+        if not cur.execute("SELECT 1 FROM lieu_rep WHERE id_lieu_rep = ? AND archiv = 'N'", (id_lieu_rep,)).fetchone():
+            conn.close()
+            return jsonify({"error": "Lieu de réparation invalide."}), 400
+        id_lieu_rep = int(id_lieu_rep)
+    else:
+        id_lieu_rep = None
 
-    if 'obs_rep' in data:
-        updates.append("obs_rep = ?")
-        params.append(data.get('obs_rep') or '')
+    dat_env_rep = data.get('dat_env_rep') if 'dat_env_rep' in data else panne_row['dat_env_rep']
+    dat_ret_rep = data.get('dat_ret_rep') if 'dat_ret_rep' in data else panne_row['dat_ret_rep']
+    if eta_pan in ('RP', 'IR') and not dat_ret_rep:
+        dat_ret_rep = datetime.now().strftime('%Y-%m-%d')
 
-    if 'recommandations' in data:
-        updates.append("recommandations = ?")
-        params.append(data.get('recommandations') or '')
+    if eta_pan in ('ER', 'RP', 'IR') and not dat_env_rep:
+        conn.close()
+        return jsonify({"error": "La date d'envoi à la réparation est obligatoire pour ce traitement."}), 400
 
-    if data.get('eta_pan') == 'RP':
-        updates.append("dat_ret_rep = COALESCE(dat_ret_rep, date('now'))")
-        cur.execute("UPDATE materiel SET etat_mat = 'OP' WHERE id_mat = ?", (panne_row['id_mat'],))
+    updates = [
+        "eta_pan = ?",
+        "dat_env_rep = ?",
+        "id_lieu_rep = ?",
+        "dat_ret_rep = ?"
+    ]
+    params = [eta_pan, dat_env_rep, id_lieu_rep, dat_ret_rep]
 
-    if updates:
-        params.append(panne_id)
-        cur.execute("UPDATE panne SET " + ", ".join(updates) + " WHERE id_pan = ?", params)
+    for field in ('obs_rep', 'recommandations', 'pieces_remplacees'):
+        if field in data:
+            updates.append(field + " = ?")
+            params.append(data.get(field) or '')
+
+    cur.execute("UPDATE panne SET " + ", ".join(updates) + " WHERE id_pan = ?", params + [panne_id])
+
+    etat_mat = {
+        'EP': 'PANNE',
+        'ER': 'PANNE',
+        'RP': 'BON',
+        'IR': 'IRREPARABLE'
+    }[eta_pan]
+    cur.execute("UPDATE materiel SET etat_mat = ?, dat_mod = CURRENT_TIMESTAMP WHERE id_mat = ?", (etat_mat, panne_row['id_mat']))
 
     conn.commit()
     conn.close()
-    return jsonify({"message": "Panne mise à jour"})
+    return jsonify({"message": "Traitement de la panne mis à jour"})
+
 
 @app.route('/api/pannes/<int:panne_id>/report', methods=['GET'])
 def get_panne_report(panne_id):
