@@ -1102,11 +1102,7 @@
           `;
         } else {
           grid.innerHTML = filtered.map(m => {
-            let badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">En service</span>';
-            if (m.etat_mat === 'PA') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 animate-pulse">En panne</span>';
-            if (m.etat_mat === 'RE') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">En réparation</span>';
-            if (m.etat_reforme === 'PROPOSEE') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Proposé à la réforme</span>';
-            if (m.etat_reforme === 'REFORME') badge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">Réformé</span>';
+            const badge = '<div class="flex flex-col items-end gap-1">' + equipmentStatusBadge(m) + equipmentEtatBadge(m) + '</div>';
 
             const typeLabel = (m.type_nom || '').toLowerCase();
             let equipmentIcon = 'fa-desktop';
