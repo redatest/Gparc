@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS lieu_rep (
   adr_lieu_rep TEXT,
   tel_lieu_rep TEXT,
   contact_rep TEXT,
+  categorie_lieu TEXT DEFAULT 'EXTERIEUR',
   archiv TEXT DEFAULT 'N',
   dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
   dat_mod DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -97,6 +98,7 @@ CREATE TABLE IF NOT EXISTS materiel (
   archiv TEXT DEFAULT 'N',
   dat_cre DATETIME DEFAULT CURRENT_TIMESTAMP,
   dat_mod DATETIME DEFAULT CURRENT_TIMESTAMP,
+  statut_mat TEXT DEFAULT 'ES',
   etat_reforme TEXT DEFAULT 'AUCUNE',
   motif_reforme TEXT,
   date_proposition_reforme DATE,
@@ -148,7 +150,7 @@ CREATE TABLE IF NOT EXISTS panne (
   dat_ret_rep DATE,
   id_lieu_rep INTEGER,
   obs_rep TEXT,
-  eta_pan TEXT DEFAULT 'EC', -- 'EC': En cours, 'RP': Réparé, 'AT': Attente pièces, 'NR': Non réparable
+  eta_pan TEXT DEFAULT 'EP', -- 'EP': En panne, 'ER': En réparation, 'RP': Réparé, 'IR': Irréparable
   dat_sortie_pan DATE,
   tp TEXT DEFAULT 'MAT',     -- 'MAT': Matériel, 'LOG': Logiciel, 'RES': Réseau, 'ALIM': Alimentation
   technicien TEXT,
