@@ -1241,6 +1241,8 @@
 
     function renderPannes() {
       const tbody = document.getElementById('pannes-table-body');
+      if (!tbody) return;
+
       if (allPannes.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400 text-xs">Aucune panne enregistrée.</td></tr>';
         return;
@@ -1251,7 +1253,7 @@
         EC: 'En panne', AT: 'En réparation', NR: 'Irréparable'
       };
 
-      tbody.innerHTML = `allPannes.map(p => {
+      tbody.innerHTML = allPannes.map(p => {
         const state = panneLabels[p.eta_pan] || p.eta_pan || 'En panne';
         let statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">En panne</span>';
         if (p.eta_pan === 'ER' || p.eta_pan === 'AT') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">En réparation</span>';
@@ -1266,32 +1268,32 @@
 
         return `
           <tr class="hover:bg-slate-50 transition text-xs">
-            <td class="p-3 font-mono text-slate-500">${p.dat_pan || '-'`</td>
+            <td class="p-3 font-mono text-slate-500">${p.dat_pan || '-'}</td>
             <td class="p-3">
-              <div class="font-bold text-slate-800">${p.marque_mat || ''` ${p.model_mat || ''`</div>
-              <div class="font-mono text-slate-400 text-[11px]">${p.num_inv || ''`</div>
+              <div class="font-bold text-slate-800">${p.marque_mat || ''} ${p.model_mat || ''}</div>
+              <div class="font-mono text-slate-400 text-[11px]">${p.num_inv || ''}</div>
             </td>
-            <td class="p-3 max-w-xs text-slate-700 leading-snug">${p.diag_pan || ''`</td>
+            <td class="p-3 max-w-xs text-slate-700 leading-snug">${p.diag_pan || ''}</td>
             <td class="p-3 text-slate-600">
-              <div>${p.technicien || 'Tech DSI'`</div>
-              <div class="text-[11px] text-slate-400 mt-1">${lieu`</div>
-              <div class="text-[11px] text-slate-400 mt-1">${dates`</div>
+              <div>${p.technicien || 'Tech DSI'}</div>
+              <div class="text-[11px] text-slate-400 mt-1">${lieu}</div>
+              <div class="text-[11px] text-slate-400 mt-1">${dates}</div>
             </td>
-            <td class="p-3">${statusBadge`</td>
+            <td class="p-3">${statusBadge}</td>
             <td class="p-3 text-slate-500 text-[11px] max-w-xs">
-              <div class="font-semibold text-slate-700">${state`</div>
-              <div>${p.obs_rep || ''`</div>
+              <div class="font-semibold text-slate-700">${state}</div>
+              <div>${p.obs_rep || ''}</div>
             </td>
             <td class="p-3 text-right space-x-1">
-              <button onclick="openRepairModal(${p.id_pan`)" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold" title="Gérer le traitement de la panne">
+              <button onclick="openRepairModal(${p.id_pan})" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold" title="Gérer le traitement de la panne">
                 <i class="fa-solid fa-screwdriver-wrench"></i> Traitement
               </button>
               ${p.eta_pan !== 'RP' && p.eta_pan !== 'IR' ? `
-                <button onclick="markRepaired(${p.id_pan`)" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-semibold" title="Marquer comme réparé">
+                <button onclick="markRepaired(${p.id_pan})" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-semibold" title="Marquer comme réparé">
                   <i class="fa-solid fa-check"></i> Réparé
                 </button>
-              ` : ''`
-              <button onclick="viewReport(${p.id_pan`)" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold" title="Imprimer fiche">
+              ` : ''}
+              <button onclick="viewReport(${p.id_pan})" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold" title="Imprimer fiche">
                 <i class="fa-solid fa-print"></i> Fiche
               </button>
             </td>
