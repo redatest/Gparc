@@ -403,7 +403,8 @@ def init_db():
             ('Prestataire Maintenance Matériel HP', 'Boulevard des Martyrs, Alger', '021 77 66 55', 'Ingénieur d\'Affaires HP')
         ]
         for l in lieux:
-            cur.execute("INSERT INTO lieu_rep (nom_lieu_rep, adr_lieu_rep, tel_lieu_rep, contact_rep) VALUES (?, ?, ?, ?)", l)
+            categorie = 'LOCAL' if 'atelier' in (l[0] or '').lower() or 'interne' in (l[0] or '').lower() else 'EXTERIEUR'
+            cur.execute("INSERT INTO lieu_rep (nom_lieu_rep, adr_lieu_rep, tel_lieu_rep, contact_rep, categorie_lieu) VALUES (?, ?, ?, ?, ?)", (*l, categorie))
 
         # Utilisateurs
         users = [
