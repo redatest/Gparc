@@ -1179,7 +1179,7 @@
       // 2. Rendu du tableau d'inventaire complet (Parc Équipements)
       if (tableBody) {
         if (filtered.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Aucun équipement trouvé correspondant aux critères.</td></tr>`;
+          tableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">Aucun équipement trouvé correspondant aux critères.</td></tr>`;
         } else {
           tableBody.innerHTML = filtered.map(m => {
             const statusBadge = equipmentStatusBadge(m);
