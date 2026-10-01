@@ -294,6 +294,7 @@
                 <th class="p-3">Date</th>
                 <th class="p-3">Matériel</th>
                 <th class="p-3">Diagnostic & Panne</th>
+                <th class="p-3">Utilisateur assigné</th>
                 <th class="p-3">Technicien / Lieu</th>
                 <th class="p-3">Statut</th>
                 <th class="p-3 text-right">Actions</th>
@@ -1285,6 +1286,9 @@
               <div class="font-mono text-slate-400 text-[11px]">${p.num_inv || ''}</div>
             </td>
             <td class="p-3 max-w-xs text-slate-700 leading-snug">${p.diag_pan || ''}</td>
+            <td class="p-3 text-slate-700">
+              <div class="font-semibold">${p.nom_uti ? ((p.pnom_uti || '') + ' ' + p.nom_uti).trim() : 'Non assigné'}</div>
+            </td>
             <td class="p-3 text-slate-600">
               <div>${p.technicien || 'Tech DSI'}</div>
               <div class="text-[11px] text-slate-400 mt-1">${lieu}</div>
