@@ -41,7 +41,9 @@
     .fir-constat { height:35px; margin-bottom:11px; }
     .fir-travaux { height:51px; margin-bottom:5px; }
     .fir-observation { height:36px; }
-    .fir-sign-row { display:grid; grid-template-columns:1fr 1fr; margin-top:16px; font-size:11px; }
+    .fir-feedback-label { margin-top:7px; }
+    .fir-feedback { height:42px; margin-bottom:0; }
+    .fir-sign-row { display:grid; grid-template-columns:1fr 1fr; margin-top:12px; font-size:11px; }
     .fir-sign-row > div:last-child { text-align:right; }
     .fir-sign-space { height:34px; }
     .fir-pv-area { display:none; }
@@ -62,7 +64,9 @@
       .fir-constat { height:11mm; }
       .fir-travaux { height:16mm; }
       .fir-observation { height:11mm; }
-      .fir-sign-space { height:10mm; }
+      .fir-feedback-label { margin-top:2mm; }
+      .fir-feedback { height:12mm; }
+      .fir-sign-space { height:8mm; }
     }
     .no-print { }
   </style>/head>
@@ -824,6 +828,9 @@
 
         <div class="fir-labelbox">Observation:</div>
         <div id="rpt-observation" class="fir-box fir-observation"></div>
+
+        <div class="fir-labelbox fir-feedback-label">Feedback de l'utilisateur :</div>
+        <div class="fir-box fir-feedback"></div>
 
         <div class="fir-sign-row">
           <div><b>Accusé de réception</b><div class="fir-sign-space"></div></div>
