@@ -1,0 +1,2728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPARC - Gestion du Parc Informatique</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .fir-model {
+      width: 620px;
+      min-height: 827px;
+      margin: 0 auto;
+      padding: 18px 39px 24px 69px;
+      box-sizing: border-box;
+      background:#fff;
+      color:#000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size:11px;
+      line-height:1.2;
+    }
+    .fir-logo-wrap { width:100%; height:61px; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
+    .fir-logo { width:425px; height:60px; object-fit:contain; object-position:center top; display:block; }
+    .fir-top { position:relative; height:74px; text-align:center; }
+    .fir-company { font-weight:700; font-size:12px; line-height:1.45; padding-top:0; }
+    .fir-guelma { position:absolute; right:0; bottom:0; font-size:11px; font-weight:400; }
+    .fir-number { margin-top:0; font-size:11px; height:25px; }
+    .fir-title { width:338px; height:43px; margin:0 auto 31px; border:2px solid #777; box-shadow: inset 0 0 6px #aaa; display:flex; align-items:center; justify-content:center; font-size:17px; }
+    .fir-info-row { display:grid; grid-template-columns:1fr 1fr; column-gap:38px; min-height:55px; font-size:11px; }
+    .fir-info-row > div > div { margin-bottom:5px; }
+    .fir-left { padding-left:3px; }
+    .fir-right { padding-left:0; }
+    .fir-rule { height:1px; background:#111; margin:0; }
+    .fir-heading { text-align:center; font-weight:700; text-decoration:underline; font-size:13px; padding:5px 0 9px; }
+    .fir-material-grid { display:grid; grid-template-columns:1fr 1fr; row-gap:8px; min-height:78px; padding:0 3px 7px; }
+    .fir-cr-grid { display:grid; grid-template-columns:1fr 1fr; row-gap:8px; min-height:75px; padding:0 3px 4px; }
+    .fir-labelbox { font-weight:700; text-decoration:underline; margin-top:3px; margin-bottom:0; }
+    .fir-box { border:1px solid #111; width:100%; box-sizing:border-box; padding:5px; white-space:pre-wrap; overflow:hidden; }
+    .fir-constat { height:35px; margin-bottom:11px; }
+    .fir-travaux { height:51px; margin-bottom:5px; }
+    .fir-observation { height:36px; }
+    .fir-feedback-label { margin-top:7px; }
+    .fir-feedback { height:42px; margin-bottom:0; }
+    .fir-sign-row { display:grid; grid-template-columns:1fr 1fr; margin-top:12px; font-size:11px; }
+    .fir-sign-row > div:last-child { text-align:right; }
+    .fir-sign-space { height:34px; }
+    .fir-pv-area { display:none; }
+    @page { size:A4 portrait; margin:0; }
+    @media print {
+      body { background:#fff !important; }
+      body * { visibility:hidden !important; }
+      #printable-report, #printable-report * { visibility:visible !important; }
+      #printable-report { position:absolute; left:0; top:0; width:210mm; height:297mm; min-height:297mm; margin:0; padding:5.5mm 10.5mm 8mm 23.5mm; box-sizing:border-box; }
+      .fir-logo { width:155mm; height:15.9mm; }
+      .fir-logo-wrap { height:15.9mm; }
+      .fir-top { height:19mm; }
+      .fir-company { font-size:9pt; }
+      .fir-number,.fir-info-row,.fir-material-grid,.fir-cr-grid,.fir-labelbox,.fir-box,.fir-sign-row { font-size:8.2pt; }
+      .fir-title { width:114mm; height:11.5mm; margin-bottom:8mm; font-size:13pt; }
+      .fir-material-grid { min-height:20mm; }
+      .fir-cr-grid { min-height:19mm; }
+      .fir-constat { height:11mm; }
+      .fir-travaux { height:16mm; }
+      .fir-observation { height:11mm; }
+      .fir-feedback-label { margin-top:2mm; }
+      .fir-feedback { height:12mm; }
+      .fir-sign-space { height:8mm; }
+    }
+    .no-print { }
+  </style>/head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col font-sans">
+
+  <!-- En-tête de navigation -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo & Titre -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('materiels')">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-bold text-lg">
+            <i class="fa-solid fa-server"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">GPARC</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Serveur Flask & SQLite Actifs
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 font-medium">Gestion du Parc Informatique & Pannes</p>
+          </div>
+        </div>
+
+        <!-- Actions rapides d'en-tête -->
+        <div class="flex items-center gap-3">
+          <button onclick="openNewMaterielModal()" class="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Nouveau Matériel</span>
+          </button>
+          <button onclick="openNewPanneModal()" class="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Signaler Panne</span>
+          </button>
+          <button onclick="loadAllData()" title="Rafraîchir" class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+            <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Onglets de navigation -->
+      <nav class="flex space-x-1 border-t border-slate-800 py-1.5 overflow-x-auto">
+        <button onclick="switchView('materiels')" id="tab-materiels" class="nav-tab px-3 py-1 rounded text-xs font-medium bg-blue-600 text-white flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-desktop"></i> Parc Informatique
+        </button>
+        <button onclick="switchView('pannes')" id="tab-pannes" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-wrench"></i> Pannes & Interventions
+        </button>
+        <button onclick="switchView('reformes')" id="tab-reformes" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-recycle"></i> Réforme
+        </button>
+        <button onclick="switchView('stats')" id="tab-stats" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-chart-pie"></i> Statistiques & KPI
+        </button>
+        <button onclick="switchView('parametres')" id="tab-parametres" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-sliders text-indigo-400"></i> Paramètres
+        </button>
+        <button onclick="switchView('oracle')" id="tab-oracle" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-database text-rose-400"></i> Import Oracle
+        </button>
+        <button onclick="resetData()" class="nav-tab ml-auto px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-rose-300 hover:bg-rose-950/40 border border-slate-800 flex items-center gap-1 whitespace-nowrap">
+          <i class="fa-solid fa-rotate-left"></i> Réinitialiser Démo
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-4 right-4 z-50 transform translate-y-16 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl border border-slate-700 flex items-center gap-3 text-sm">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+    <span id="toast-text">Action effectuée</span>
+  </div>
+
+  <!-- Contenu Principal -->
+  <main class="max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex-1">
+
+    <!-- Indicateurs KPI Rapides -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-layer-group"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-slate-800" id="kpi-total">0</div>
+          <div class="text-xs text-slate-500 font-medium">Total Équipements</div>
+        </div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-circle-check"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-emerald-600" id="kpi-op">0</div>
+          <div class="text-xs text-slate-500 font-medium">État : Bon</div>
+        </div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-rose-600" id="kpi-pa">0</div>
+          <div class="text-xs text-slate-500 font-medium">En Panne active</div>
+        </div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg"><i class="fa-solid fa-wrench"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-amber-600" id="kpi-re">0</div>
+          <div class="text-xs text-slate-500 font-medium">État : Irréparable</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre de Recherche et Filtres -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div class="relative w-full sm:w-96">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" id="search-input" oninput="applyFilters()" placeholder="Rechercher par N° inv, série, utilisateur, modèle..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+        <button onclick="setFilter('ALL')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Tous</button>
+        <button onclick="setFilter('ES')" id="filter-es" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition">En service</button>
+        <button onclick="setFilter('PR')" id="filter-pr" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Proposé à la réforme</button>
+        <button onclick="setFilter('RF')" id="filter-rf" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Réformé</button>
+      </div>
+    </div>
+
+    <!-- VUE 1 : INTERFACE SIMPLE (Grille d'équipements & Cartes d'action) -->
+    <div id="view-simple" class="view-panel hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="materiels-grid">
+        <!-- Rempli dynamiquement en JavaScript -->
+      </div>
+    </div>
+
+    <!-- VUE MATÉRIELS : PARC ÉQUIPEMENTS / PARC INFORMATIQUE -->
+    <div id="view-materiels" class="view-panel space-y-4">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-desktop text-blue-600"></i> Parc des Équipements Informatiques
+              </h2>
+              <span id="materiels-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">0 équipements</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Inventaire complet, spécifications techniques, affectations et statut en temps réel.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openNewMaterielModal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+              <i class="fa-solid fa-plus"></i> Nouvel Équipement
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Équipement</th>
+                <th class="p-3">N° Inventaire / Série</th>
+                <th class="p-3">Affectation (Utilisateur & Structure)</th>
+                <th class="p-3">Spécifications (CPU / RAM / Disque / SE)</th>
+                <th class="p-3">Structure</th>
+                <th class="p-3">Statut</th>
+                <th class="p-3">État</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="materiels-table-body" class="divide-y divide-slate-100">
+              <!-- Rempli dynamiquement -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE RÉFORME : SUIVI DES ÉQUIPEMENTS PROPOSÉS / RÉFORMÉS -->
+    <div id="view-reformes" class="view-panel hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-recycle text-amber-600"></i> Suivi des Réformes
+              </h2>
+              <span id="reformes-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">0 équipement</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Suivi des équipements proposés à la réforme et déjà réformés, avec le motif de réforme.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="reforme-filter" onchange="renderReformes()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">
+              <option value="ALL">Tous</option>
+              <option value="PROPOSEE">Proposé à la réforme</option>
+              <option value="REFORME">Réformé</option>
+            </select>
+          
+            <button onclick="openNewReformeModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-recycle"></i> Déclarer une réforme
+            </button></div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Équipement</th>
+                <th class="p-3">N° Inventaire / Série</th>
+                <th class="p-3">Structure / Utilisateur</th>
+                <th class="p-3">État de réforme</th>
+                <th class="p-3">Motif / Date de réforme</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reformes-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE 2 : PANNES & INTERVENTIONS -->
+    <div id="view-pannes" class="view-panel hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center">
+          <h2 class="text-base font-bold text-slate-800">Historique et Suivi des Pannes Techniques</h2>
+          <button onclick="openNewPanneModal()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> Déclarer une nouvelle panne
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead class="bg-slate-50 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Date</th>
+                <th class="p-3">Matériel</th>
+                <th class="p-3">Diagnostic & Panne</th>
+                <th class="p-3">Utilisateur assigné</th>
+                <th class="p-3">Technicien / Lieu</th>
+                <th class="p-3">Statut</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pannes-table-body" class="divide-y divide-slate-100">
+              <!-- Rempli dynamiquement -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE 3 : STATISTIQUES & KPI -->
+    <div id="view-stats" class="view-panel hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-chart-column text-blue-600"></i> Répartition par Type d'Équipement
+          </h3>
+          <div id="stats-types" class="space-y-2.5"></div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-building text-indigo-600"></i> Répartition par Direction & Structure
+          </h3>
+          <div id="stats-structures" class="space-y-2.5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE 4 : PARAMÈTRES MATÉRIEL (CPU, RAM, Disque, Système) -->
+    <div id="view-parametres" class="view-panel hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-indigo-600"></i> Paramètres & Spécifications Matériel
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Configurez les marques, modèles, processeurs, capacités mémoires, disques et systèmes d'exploitation utilisés dans le parc.</p>
+          </div>
+          <button onclick="openNewParamModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+            <i class="fa-solid fa-plus"></i> Nouveau Paramètre
+          </button>
+        </div>
+
+        <!-- Onglets Catégories Paramètres -->
+        <div class="flex gap-2 border-b border-slate-200 mt-4 overflow-x-auto pb-1">
+          <button onclick="filterParamCategory('all')" id="btn-param-all" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 transition">Tous les paramètres</button>
+          <button onclick="filterParamCategory('marque')" id="btn-param-marque" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Marques</button>
+          <button onclick="filterParamCategory('cpu')" id="btn-param-cpu" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Processeurs (CPU)</button>
+          <button onclick="filterParamCategory('ram')" id="btn-param-ram" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Mémoire (RAM)</button>
+          <button onclick="filterParamCategory('disk')" id="btn-param-disk" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Stockage (Disque)</button>
+          <button onclick="filterParamCategory('se')" id="btn-param-se" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Systèmes (SE)</button>
+          <button onclick="filterParamCategory('modele')" id="btn-param-modele" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Modèles</button>
+          <button onclick="filterParamCategory('types')" id="btn-param-types" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Types de matériel</button>
+          <button onclick="filterParamCategory('structures')" id="btn-param-structures" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-sitemap mr-1"></i> Structures
+          </button>
+          <button onclick="filterParamCategory('utilisateurs')" id="btn-param-utilisateurs" class="param-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-users mr-1"></i> Utilisateurs
+          </button>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Catégorie</th>
+                <th class="p-3">Valeur / Référence</th>
+                <th class="p-3">Description / Utilisation</th>
+                <th class="p-3 text-center">Ordre</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="parametres-table-body" class="divide-y divide-slate-100">
+              <!-- Chargé en JavaScript -->
+            </tbody>
+          </table>
+        </div>
+        <!-- GESTION DES TYPES DE MATÉRIEL -->
+        <div id="types-param-panel" class="hidden mt-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-desktop text-indigo-600"></i> Référentiel des Types de Matériel
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Gérez les codes et libellés utilisés dans le formulaire d'ajout des équipements.</p>
+            </div>
+            <button onclick="openNewTypeMaterielModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+              <i class="fa-solid fa-plus"></i> Nouveau Type
+            </button>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Code</th>
+                  <th class="p-3">Libellé</th>
+                  <th class="p-3 text-center">Matériels</th>
+                  <th class="p-3 text-center">ID</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="types-table-body" class="divide-y divide-slate-100">
+                <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- GESTION DES STRUCTURES -->
+        <div id="structures-param-panel" class="hidden mt-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-sitemap text-indigo-600"></i> Référentiel des Structures
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Gérez les codes, libellés et rattachements hiérarchiques des structures.</p>
+            </div>
+            <button onclick="openNewStructureModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+              <i class="fa-solid fa-plus"></i> Nouvelle Structure
+            </button>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Code</th>
+                  <th class="p-3">Libellé</th>
+                  <th class="p-3">Structure mère</th>
+                  <th class="p-3 text-center">ID</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="structures-table-body" class="divide-y divide-slate-100">
+                <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- GESTION DES UTILISATEURS -->
+        <div id="utilisateurs-param-panel" class="hidden mt-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-users text-indigo-600"></i> Référentiel des Utilisateurs
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Gérez les utilisateurs pouvant être affectés aux équipements et leur structure de rattachement.</p>
+            </div>
+            <button onclick="openNewUtilisateurModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+              <i class="fa-solid fa-plus"></i> Nouvel Utilisateur
+            </button>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Nom</th><th class="p-3">Prénom</th><th class="p-3">E-mail</th>
+                  <th class="p-3">Structure</th><th class="p-3 text-center">ID</th><th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="utilisateurs-table-body" class="divide-y divide-slate-100">
+                <tr><td colspan="6" class="p-6 text-center text-slate-400">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE 5 : IMPORTATION ET SYNCHRONISATION ORACLE -->
+    <div id="view-oracle" class="view-panel hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 mb-1">
+              <i class="fa-solid fa-database text-rose-600"></i> Module Connecteur Entreprise Oracle
+            </div>
+            <h2 class="text-xl font-bold text-slate-900">Synchronisation & Importation depuis Oracle Database</h2>
+            <p class="text-xs text-slate-500 mt-1">Connectez-vous directement à votre serveur Oracle (SID / Service) ou chargez des données exportées.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openOracleSqlModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-code"></i> Script SQL d'export
+            </button>
+            <button onclick="runTestOracleConnection()" id="btn-oracle-test" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+              <i class="fa-solid fa-bolt"></i> Tester la connexion
+            </button>
+          </div>
+        </div>
+
+        <!-- Paramètres de Connexion Oracle -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Hôte / Serveur IP</label>
+            <input type="text" id="ora-host" value="localhost" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Port Oracle TNS</label>
+            <input type="number" id="ora-port" value="1521" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">SID / Service Name</label>
+            <input type="text" id="ora-sid" value="ORCL" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Schéma / Utilisateur</label>
+            <input type="text" id="ora-schema" value="GPARC_USER" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono">
+          </div>
+        </div>
+
+        <!-- Résultat du Test Oracle -->
+        <div id="oracle-test-result" class="hidden mt-4 p-4 rounded-xl border">
+          <!-- Rempli en JS -->
+        </div>
+
+        <!-- Options d'importation & Lancement -->
+        <div class="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 bg-slate-900 text-white rounded-xl">
+          <div>
+            <div class="text-sm font-bold flex items-center gap-2">
+              <i class="fa-solid fa-cloud-arrow-down text-emerald-400"></i> Lancer la synchronisation complète
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Importe les structures, les types d'équipements et injecte les matériels dans la base locale SQLite.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select id="ora-strategy" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-3 py-1.5 text-xs">
+              <option value="merge_update">Mettre à jour & ajouter les nouveaux (Merge)</option>
+              <option value="insert_only">Ajouter uniquement les nouveaux matériels</option>
+            </select>
+            <button onclick="runExecuteOracleSync()" id="btn-oracle-exec" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-2 transition shadow">
+              <i class="fa-solid fa-play"></i> Démarrer l'importation
+            </button>
+          </div>
+        </div>
+
+        <!-- Logs et Historique -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-slate-950 text-slate-200 p-4 rounded-xl border border-slate-800 font-mono text-[11px] h-64 overflow-y-auto" id="oracle-logs-box">
+            <div class="text-slate-500">// Journal d'exécution de la synchronisation Oracle...</div>
+            <div class="text-slate-400 mt-1">Prêt. Cliquez sur "Tester la connexion" ou "Démarrer l'importation".</div>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 bg-white">
+            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> Historique des synchronisations
+            </h4>
+            <div class="overflow-y-auto max-h-52 divide-y divide-slate-100 text-xs" id="oracle-history-list">
+              <div class="text-slate-400 py-3 text-center">Aucune synchronisation précédente enregistrée.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL : NOUVEAU MATÉRIEL -->
+  <div id="modal-materiel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-desktop text-blue-600"></i> <span id="modal-materiel-title">Ajouter un équipement au parc</span>
+        </h3>
+        <button onclick="closeModal('modal-materiel')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveMateriel(event)" class="mt-4 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">N° Inventaire *</label>
+            <input type="text" id="mat-num-inv" required placeholder="ex: INV-2024-001" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">N° de Série *</label>
+            <input type="text" id="mat-num-ser" required placeholder="ex: SN-DELL-8840" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Marque *</label>
+            <select id="mat-marque" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+              <option value="">Sélectionner une marque...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Type d'équipement *</label>
+            <select id="mat-type" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+              <option value="">Sélectionner un type...</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Modèle</label>
+            <select id="mat-model" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+              <option value="">Choisir d'abord une marque...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Structure / Direction</label>
+            <select id="mat-str" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+              <option value="">Sélectionner une structure...</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Utilisateur assigné</label>
+          <select id="mat-user" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+            <option value="">Aucun (En stock DSI)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Caractéristiques techniques (CPU, RAM, Disque)</label>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="text" id="mat-cpu" placeholder="CPU (i7, i5...)" class="px-2.5 py-1.5 border rounded-lg text-xs">
+            <input type="number" id="mat-ram" placeholder="RAM Go (16)" class="px-2.5 py-1.5 border rounded-lg text-xs">
+            <input type="number" id="mat-disk" placeholder="SSD Go (512)" class="px-2.5 py-1.5 border rounded-lg text-xs">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('modal-materiel')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" id="mat-submit-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm">Enregistrer l'équipement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : HISTORIQUE DES AFFECTATIONS -->
+  <div id="modal-affectation-history" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+            Historique de l’équipement
+          </h3>
+          <p id="affect-history-equipment" class="text-xs text-slate-500 mt-0.5">Équipement</p>
+        </div>
+        <button onclick="closeModal('modal-affectation-history')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="affect-history-content" class="mt-5 max-h-[60vh] overflow-y-auto pr-1">
+        <div class="text-center py-8 text-slate-400 text-xs">
+          <i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i>
+          <p>Chargement de l'historique...</p>
+        </div>
+      </div>
+      <div class="flex justify-end pt-4 mt-4 border-t border-slate-100">
+        <button type="button" onclick="closeModal('modal-affectation-history')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL : DÉCLARER UNE RÉFORME -->
+  <div id="modal-reforme" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-recycle text-amber-600"></i> Déclarer une réforme</h3>
+        <button onclick="closeModal('modal-reforme')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveReforme(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Équipement concerné *</label>
+          <select id="reforme-mat-id" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">État de l'équipement *</label>
+            <select id="reforme-etat" onchange="updateReformeDeclarationFields()" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+              <option value="AUCUNE">En service</option>
+              <option value="PROPOSEE">Proposé à la réforme</option>
+              <option value="REFORME">Réformé</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date de réforme</label>
+            <input type="date" id="reforme-date" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Motif de réforme</label>
+          <textarea id="reforme-motif" rows="4" placeholder="Saisissez le motif de la réforme..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500"></textarea>
+        </div>
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div class="text-xs font-semibold text-slate-700 mb-2">Raccourcis du motif</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+              <input type="checkbox" id="reforme-motif-irreparable" onchange="updateReformeMotif()" class="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span>Irréparable</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+              <input type="checkbox" id="reforme-motif-obsolete" onchange="updateReformeMotif()" class="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span>Obsolète</span>
+            </label>
+          </div>
+        </div>
+        <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-500"><i class="fa-solid fa-circle-info mr-1"></i> Le statut sélectionné sera immédiatement appliqué à l'équipement dans le parc.</div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('modal-reforme')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-sm">Enregistrer la réforme</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : SIGNALER UNE PANNE -->
+  <div id="modal-panne" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Déclarer un incident / Panne
+        </h3>
+        <button onclick="closeModal('modal-panne')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSavePanne(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Équipement concerné *</label>
+          <select id="panne-mat-id" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500">
+            <!-- Rempli par JavaScript -->
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Type d'anomalie</label>
+            <select id="panne-type" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500">
+              <option value="MAT">Panne Matérielle (Composant / Pièce)</option>
+              <option value="ALIM">Alimentation / Énergie</option>
+              <option value="LOG">Système & Logiciel</option>
+              <option value="RES">Réseau & Connectivité</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Technicien assigné</label>
+            <input type="text" id="panne-tech" value="Support DSI Interne" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Diagnostic & Description de l'anomalie *</label>
+          <textarea id="panne-diag" rows="3" required placeholder="Détaillez le problème constaté..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('modal-panne')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm">Créer la fiche de panne</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : TRAITEMENT DE LA PANNE -->
+  <div id="modal-repair" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-indigo-600"></i> Traitement de la panne</h3>
+        <button onclick="closeModal('modal-repair')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="repair-equipment-info" class="mt-4 rounded-lg border border-indigo-100 bg-indigo-50/50 px-4 py-3">
+        <div class="text-xs font-bold text-indigo-800 mb-2 flex items-center gap-2"><i class="fa-solid fa-desktop"></i> Équipement concerné</div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 text-xs">
+          <div><div class="text-slate-400">Type</div><div id="repair-info-type" class="font-semibold text-slate-800">-</div></div>
+          <div><div class="text-slate-400">Marque</div><div id="repair-info-brand" class="font-semibold text-slate-800">-</div></div>
+          <div><div class="text-slate-400">Modèle</div><div id="repair-info-model" class="font-semibold text-slate-800">-</div></div>
+          <div><div class="text-slate-400">N° de série</div><div id="repair-info-serial" class="font-semibold text-slate-800 font-mono">-</div></div>
+          <div><div class="text-slate-400">Utilisateur assigné</div><div id="repair-info-user" class="font-semibold text-slate-800">-</div></div>
+        </div>
+      </div>
+      <form onsubmit="handleRepairConfirmation(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="repair-panne-id">
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Date d'envoi à la réparation</label><input type="date" id="repair-date-send" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Lieu de réparation</label><select id="repair-lieu" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"><option value="">Sélectionner un lieu...</option></select></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Date de retour de la réparation</label><input type="date" id="repair-date-return" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">État actuel de la panne</label><select id="repair-state" onchange="setRepairStateFields()" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"><option value="EP">En panne</option><option value="ER">En réparation</option><option value="RP">Réparé</option><option value="IR">Irréparable</option></select></div>
+        </div>
+        <div><label class="block text-xs font-semibold text-slate-700 mb-1">Détail de la réparation</label><textarea id="repair-detail" rows="4" placeholder="Décrivez les travaux réalisés, les contrôles effectués, les pièces remplacées..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea><p class="text-[11px] text-slate-400 mt-1">Ce contenu alimente le champ « Détail de la réparation » de la fiche d'intervention.</p></div>
+        <div><label class="block text-xs font-semibold text-slate-700 mb-2">Observation</label><textarea id="repair-observation" rows="2" placeholder="Observation complémentaire..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea></div>
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div class="text-xs font-semibold text-slate-700 mb-2">Raccourcis d'observation</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer"><input type="checkbox" id="repair-obs-ras" onchange="updateRepairObservation()" class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"><span>R.A.S</span></label>
+            <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer"><input type="checkbox" id="repair-obs-remis" onchange="updateRepairObservation()" class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"><span>Réparé et remis en service</span></label>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t"><button type="button" onclick="closeModal('modal-repair')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button><button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm"><i class="fa-solid fa-floppy-disk mr-1"></i> Enregistrer le traitement</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : FICHE D'INTERVENTION IMPRIMABLE -->
+  <div id="modal-report" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 my-8">
+      <div class="flex items-center justify-between px-6 py-3 border-b no-print">
+        <h3 class="text-base font-bold text-slate-800"><i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i>Fiche d'Intervention Technique</h3>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold"><i class="fa-solid fa-print mr-1"></i>Imprimer / PDF</button>
+          <button onclick="closeModal('modal-report')" class="text-slate-400 hover:text-slate-600 text-lg px-2"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div id="printable-report" class="fir-model">
+        <div class="fir-logo-wrap"><img src="/logoSS.jpg" class="fir-logo" alt="Sonelgaz Services"></div>
+        <div class="fir-top">
+          <div class="fir-company">REGION SONELGAZ SERVICES CONSTANTINE<br>Département Digitalisation et Sécurité<br>Service Support SI Guelma</div>
+          <div class="fir-guelma">Guelma le : <span id="rpt-date-generation"></span></div>
+        </div>
+
+        <div class="fir-number">N°<span id="rpt-ref">............/SSSI/2026</span></div>
+        <div class="fir-title">PV d’intervention</div>
+
+        <div class="fir-info-row">
+          <div class="fir-left">
+            <div>Bon n°: <span id="rpt-bon"></span></div>
+            <div>DPS n°: <span id="rpt-dps"></span></div>
+            <div>Date DPS: <span id="rpt-date-dps"></span></div>
+          </div>
+          <div class="fir-right">
+            <div>Structure : <span id="rpt-structure"></span></div>
+            <div>Date d’arrivée : <span id="rpt-date-arrivee"></span></div>
+          </div>
+        </div>
+
+        <div class="fir-rule"></div>
+        <div class="fir-heading">MATERIEL</div>
+        <div class="fir-material-grid">
+          <div>N° de série : <span id="rpt-ser"></span></div><div>Type : <span id="rpt-type"></span></div>
+          <div>Code à barre : <span id="rpt-barcode"></span></div><div>Marque : <span id="rpt-brand"></span></div>
+          <div>Nouveau Code à barre : <span id="rpt-new-barcode"></span></div><div>Modèle : <span id="rpt-model"></span></div>
+        </div>
+
+        <div class="fir-rule"></div>
+        <div class="fir-heading">COMPTE RENDU</div>
+        <div class="fir-cr-grid">
+          <div>Date de réparation : <span id="rpt-date-reparation"></span></div><div>Lieu de réparation : <span id="rpt-lieu-reparation"></span></div>
+          <div>Date de retour : <span id="rpt-date-retour"></span></div><div>Intervenant : <span id="rpt-tech"></span></div>
+        </div>
+
+        <div class="fir-labelbox">Constat:</div>
+        <div id="rpt-diag" class="fir-box fir-constat"></div>
+
+        <div class="fir-labelbox">Détail de la réparation :</div>
+        <div id="rpt-travaux" class="fir-box fir-travaux"></div>
+
+        <div class="fir-labelbox">Observation:</div>
+        <div id="rpt-observation" class="fir-box fir-observation"></div>
+
+        <div class="fir-labelbox fir-feedback-label">Feedback de l'utilisateur :</div>
+        <div class="fir-box fir-feedback"></div>
+
+        <div class="fir-sign-row">
+          <div><b>Accusé de réception</b><div class="fir-sign-space"></div></div>
+          <div><b>Le chef SSSI</b><div class="fir-sign-space"></div></div>
+        </div>
+
+        <div class="fir-pv-area"><b>PV d’intervention</b><div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL : AJOUT / MODIFICATION DE TYPE DE MATÉRIEL -->
+  <div id="modal-type-materiel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 id="type-materiel-modal-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-desktop text-indigo-600"></i> Nouveau type de matériel
+        </h3>
+        <button onclick="closeModal('modal-type-materiel')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveTypeMateriel(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="type-materiel-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Code type *</label>
+          <input type="text" id="type-materiel-code" required maxlength="50" placeholder="ex: PC, IMP, SRV"
+                 class="w-full px-3 py-2 border rounded-lg text-xs uppercase focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Libellé *</label>
+          <input type="text" id="type-materiel-libelle" required maxlength="200" placeholder="ex: Ordinateur, Imprimante, Serveur"
+                 class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-type-materiel')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : AJOUT / MODIFICATION DE STRUCTURE -->
+  <div id="modal-structure" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div>
+          <h3 id="structure-modal-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-sitemap text-indigo-600"></i> Nouvelle structure
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Définition du code et du rattachement hiérarchique.</p>
+        </div>
+        <button onclick="closeModal('modal-structure')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveStructure(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="structure-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Code structure *</label>
+          <input type="text" id="structure-code" required maxlength="50" placeholder="ex: DSI, DRH, DSI-EXP"
+                 class="w-full px-3 py-2 border rounded-lg text-xs uppercase focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Libellé *</label>
+          <input type="text" id="structure-libelle" required maxlength="200" placeholder="ex: Direction des Systèmes d'Information"
+                 class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Structure mère</label>
+          <select id="structure-parent" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+            <option value="">Aucune — structure racine</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-structure')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : AJOUT / MODIFICATION D'UTILISATEUR -->
+  <div id="modal-utilisateur" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 id="utilisateur-modal-title" class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user text-indigo-600"></i> Nouvel utilisateur</h3>
+        <button onclick="closeModal('modal-utilisateur')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveUtilisateur(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="utilisateur-id">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Nom *</label><input type="text" id="utilisateur-nom" required maxlength="100" class="w-full px-3 py-2 border rounded-lg text-xs"></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Prénom *</label><input type="text" id="utilisateur-prenom" required maxlength="100" class="w-full px-3 py-2 border rounded-lg text-xs"></div>
+        </div>
+        <div><label class="block text-xs font-semibold text-slate-700 mb-1">E-mail</label><input type="email" id="utilisateur-mail" maxlength="200" class="w-full px-3 py-2 border rounded-lg text-xs"></div>
+        <div><label class="block text-xs font-semibold text-slate-700 mb-1">Structure de rattachement</label><select id="utilisateur-structure" class="w-full px-3 py-2 border rounded-lg text-xs"><option value="">Aucune structure</option></select></div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-utilisateur')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : AJOUT / MODIFICATION DE PARAMÈTRE -->
+  <div id="modal-parametre" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-indigo-600"></i> Ajouter un paramètre matériel
+        </h3>
+        <button onclick="closeModal('modal-parametre')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveParametre(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Catégorie de paramètre *</label>
+          <select id="param-cat" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+            <option value="marque">Marque</option>
+            <option value="cpu">Processeur (CPU)</option>
+            <option value="ram">Mémoire Vive (RAM en Go)</option>
+            <option value="disk">Capacité Disque (SSD/HDD en Go)</option>
+            <option value="se">Système d'Exploitation (SE)</option>
+            <option value="modele">Modèle d'équipement</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Valeur / Dénomination *</label>
+          <input type="text" id="param-val" required placeholder="ex: Intel Core Ultra 9 ou 32 ou Windows 11" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Rôle</label>
+          <input type="text" id="param-desc" placeholder="ex: Pour postes cadres ou serveurs" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Ordre d'affichage</label>
+          <input type="number" id="param-ordre" value="1" min="1" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-parametre')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Enregistrer le paramètre</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL : SCRIPT SQL D'EXPORT ORACLE -->
+  <div id="modal-oracle-sql" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-code text-rose-600"></i> Script SQL d'extraction Oracle
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Exécutez ce script dans SQL*Plus ou SQL Developer pour extraire les données en JSON direct.</p>
+        </div>
+        <button onclick="closeModal('modal-oracle-sql')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="mt-4">
+        <textarea id="oracle-sql-textarea" readonly class="w-full h-72 font-mono text-xs p-3 bg-slate-900 text-emerald-300 rounded-xl border border-slate-800 focus:outline-none"></textarea>
+      </div>
+      <div class="mt-4 flex justify-between items-center pt-3 border-t border-slate-100">
+        <span class="text-xs text-slate-500">Copiez ce script et collez-le dans SQL Developer</span>
+        <div class="flex gap-2">
+          <button onclick="copyOracleSqlScript()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-copy"></i> Copier le script SQL
+          </button>
+          <button onclick="closeModal('modal-oracle-sql')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
+    GPARC - Gestion du Parc Informatique & SQLite Intégrée &bull; Prêt pour Windows, Linux & Mac
+  </footer>
+
+  <!-- Code JavaScript applicatif -->
+  <script>
+    let allMateriels = [];
+    let allPannes = [];
+    let allParametres = [];
+    let allStructures = [];
+    let allTypes = [];
+    let references = { structures: [], types: [], modeles: [], utilisateurs: [], parametres: [] };
+    let allOracleHistory = [];
+    let currentFilter = 'ES';
+    let currentView = 'materiels';
+    let currentParamCat = 'all';
+    let editingMaterielId = null;
+    let currentReformeFilter = 'ALL';
+
+    // Chargement initial
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAllData();
+    });
+
+    async function loadAllData() {
+      const refreshIcon = document.getElementById('refresh-icon');
+      if (refreshIcon) refreshIcon.classList.add('fa-spin');
+      try {
+        const [statsRes, matRes, panRes, paramRes, structuresRes, referencesRes, oraHistRes] = await Promise.all([
+          fetch('/api/stats').then(r => r.json()),
+          fetch('/api/materiels').then(r => r.json()),
+          fetch('/api/pannes').then(r => r.json()),
+          fetch('/api/parametres').then(r => r.json()).catch(() => []),
+          fetch('/api/structures').then(r => r.json()).catch(() => []),
+          fetch('/api/references').then(r => r.json()).catch(() => ({ structures: [], types: [], modeles: [], utilisateurs: [], parametres: [] })),
+          fetch('/api/oracle-sync/history').then(r => r.json()).catch(() => [])
+        ]);
+
+        allMateriels = matRes || [];
+        allPannes = panRes || [];
+        allParametres = paramRes || [];
+        allStructures = referencesRes?.structures || structuresRes || [];
+        allTypes = referencesRes?.types || [];
+        references = referencesRes || references;
+        allOracleHistory = oraHistRes || [];
+
+        // Mise à jour des KPI
+        document.getElementById('kpi-total').innerText = statsRes.totalEquipements || allMateriels.length;
+        document.getElementById('kpi-op').innerText = statsRes.operationnels ?? allMateriels.filter(m => m.etat_mat === 'BON').length;
+        document.getElementById('kpi-pa').innerText = statsRes.enPanne ?? allMateriels.filter(m => m.etat_mat === 'PANNE').length;
+        document.getElementById('kpi-re').innerText = statsRes.enReparation ?? allMateriels.filter(m => m.etat_mat === 'IRREPARABLE').length;
+
+        // Rendu des vues
+        renderMateriels();
+        renderReformes();
+        renderPannes();
+        renderStats(statsRes);
+        renderParametres();
+        populateMaterielForm();
+        renderOracleHistory();
+        populatePanneSelect();
+      } catch (err) {
+        console.error('Erreur de chargement:', err);
+        showToast('Erreur de connexion au serveur Flask', true);
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+      }
+    }
+
+    function equipmentStatusLabel(m) {
+      const status = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
+      return { ES: 'En service', PR: 'Proposé à la réforme', RF: 'Réformé' }[status] || 'En service';
+    }
+
+    function equipmentEtatLabel(m) {
+      return { BON: 'Bon', PANNE: 'En panne', IRREPARABLE: 'Irréparable' }[m.etat_mat] || 'Bon';
+    }
+
+    function equipmentStatusBadge(m) {
+      const status = m.statut_mat || 'ES';
+      if (status === 'PR') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800">Proposé à la réforme</span>';
+      if (status === 'RF') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700">Réformé</span>';
+      return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">En service</span>';
+    }
+
+    function equipmentEtatBadge(m) {
+      const etat = m.etat_mat || 'BON';
+      if (etat === 'PANNE') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">En panne</span>';
+      if (etat === 'IRREPARABLE') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700">Irréparable</span>';
+      return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Bon</span>';
+    }
+
+    function renderMateriels() {
+      const grid = document.getElementById('materiels-grid');
+      const tableBody = document.getElementById('materiels-table-body');
+      const countBadge = document.getElementById('materiels-count-badge');
+      const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase().trim() : '';
+
+      const filtered = allMateriels.filter(m => {
+        const equipmentStatus = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
+        const matchFilter = currentFilter === 'ALL' || equipmentStatus === currentFilter;
+        const text = `${m.num_inv || ''} ${m.num_ser || ''} ${m.model_mat || ''} ${m.marque_mat || ''} ${m.nom_uti || ''} ${m.structure_nom || ''} ${m.ip || ''} ${m.cpu || ''} ${m.se || ''} ${m.ordi || ''}`.toLowerCase();
+        const matchSearch = !query || text.includes(query);
+        return matchFilter && matchSearch;
+      });
+
+      if (countBadge) {
+        countBadge.innerText = `${filtered.length} équipement${filtered.length > 1 ? 's' : ''}`;
+      }
+
+      // 1. Rendu de la grille (Interface Simple)
+      if (grid) {
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full p-8 text-center bg-white rounded-xl border border-slate-200 text-slate-500">
+              <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-400"></i>
+              <p class="font-medium text-sm">Aucun équipement ne correspond à vos critères de recherche.</p>
+            </div>
+          `;
+        } else {
+          grid.innerHTML = filtered.map(m => {
+            const badge = '<div class="flex flex-col items-end gap-1">' + equipmentStatusBadge(m) + equipmentEtatBadge(m) + '</div>';
+
+            const typeLabel = (m.type_nom || '').toLowerCase();
+            let equipmentIcon = 'fa-desktop';
+            if (typeLabel.includes('imprim')) equipmentIcon = 'fa-print';
+            else if (typeLabel.includes('serveur')) equipmentIcon = 'fa-server';
+            else if (typeLabel.includes('réseau') || typeLabel.includes('switch') || typeLabel.includes('routeur')) equipmentIcon = 'fa-network-wired';
+            else if (typeLabel.includes('téléphone')) equipmentIcon = 'fa-phone';
+            else if (typeLabel.includes('écran') || typeLabel.includes('moniteur')) equipmentIcon = 'fa-display';
+            else if (typeLabel.includes('portable')) equipmentIcon = 'fa-laptop';
+
+            return `
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="relative h-40 bg-slate-100 overflow-hidden">
+                  <div class="w-24 h-24 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg">
+                    <i class="fa-solid ${equipmentIcon} text-5xl"></i>
+                  </div>
+                  <div class="absolute top-2.5 right-2.5">${badge}</div>
+                  <div class="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded">
+                    ${m.num_inv || 'SANS-INV'}
+                  </div>
+                </div>
+                <div class="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 class="font-bold text-slate-900 text-base mb-0.5">${m.marque_mat || ''} ${m.model_mat || 'Équipement Standard'}</h4>
+                    <p class="text-xs text-slate-500 font-medium mb-3">${m.type_nom || 'Matériel Informatique'}</p>
+                    
+                    <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">N° Série :</span>
+                        <span class="font-mono font-medium text-slate-700">${m.num_ser || '-'}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Affecté à :</span>
+                        <span class="font-semibold text-slate-800">${m.nom_uti ? (m.pnom_uti || '') + ' ' + m.nom_uti : 'Non assigné'}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Direction :</span>
+                        <span class="text-slate-700">${m.structure_nom || 'DSI'}</span>
+                      </div>
+                      ${m.cpu ? `<div class="flex justify-between"><span class="text-slate-400">Processeur :</span><span class="text-slate-700">${m.cpu}</span></div>` : ''}
+                      ${m.ram ? `<div class="flex justify-between"><span class="text-slate-400">Mémoire / Disque :</span><span class="text-slate-700">${m.ram} Go RAM / ${m.disk || 512} Go SSD</span></div>` : ''}
+                    </div>
+                  </div>
+
+                  <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-3">
+                      <button onclick="openAffectationHistory(${m.id_mat})" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer" title="Historique de l’équipement">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Historique
+                      </button>
+                      <button onclick="quickPanneFor(${m.id_mat})" class="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Panne
+                      </button>
+                    </div>
+                    <div class="text-[11px] font-mono text-slate-400">${m.ip ? 'IP: ' + m.ip : ''}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Rendu du tableau d'inventaire complet (Parc Équipements)
+      if (tableBody) {
+        if (filtered.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">Aucun équipement trouvé correspondant aux critères.</td></tr>`;
+        } else {
+          tableBody.innerHTML = filtered.map(m => {
+            const statusBadge = equipmentStatusBadge(m);
+            const etatBadge = equipmentEtatBadge(m);
+
+            const typeLabel = (m.type_nom || '').toLowerCase();
+            let equipmentIcon = 'fa-desktop';
+            if (typeLabel.includes('imprim')) equipmentIcon = 'fa-print';
+            else if (typeLabel.includes('serveur')) equipmentIcon = 'fa-server';
+            else if (typeLabel.includes('réseau') || typeLabel.includes('switch') || typeLabel.includes('routeur')) equipmentIcon = 'fa-network-wired';
+            else if (typeLabel.includes('téléphone')) equipmentIcon = 'fa-phone';
+            else if (typeLabel.includes('écran') || typeLabel.includes('moniteur')) equipmentIcon = 'fa-display';
+            else if (typeLabel.includes('portable')) equipmentIcon = 'fa-laptop';
+
+            return `
+              <tr class="hover:bg-slate-50 transition text-xs">
+                <td class="p-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                      <i class="fa-solid ${equipmentIcon} text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900">${m.marque_mat || ''} ${m.model_mat || 'Équipement'}</div>
+                      <div class="text-[11px] text-slate-500">${m.type_nom || 'Matériel'} ${m.ordi ? `&bull; <span class="font-mono text-indigo-600">${m.ordi}</span>` : ''}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-3">
+                  <div class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded w-max">${m.num_inv || '-'}</div>
+                  <div class="font-mono text-slate-400 text-[11px] mt-0.5">SN: ${m.num_ser || '-'}</div>
+                </td>
+                <td class="p-3">
+                  <div class="font-semibold text-slate-800">${m.nom_uti ? (m.pnom_uti || '') + ' ' + m.nom_uti : '<span class="text-slate-400 italic">Non assigné</span>'}</div>
+                  <div class="text-slate-500 text-[11px]">${m.structure_nom || 'Direction Non Spécifiée'}</div>
+                </td>
+                <td class="p-3">
+                  <div class="text-slate-800 font-medium">${m.cpu || 'CPU Standard'}</div>
+                  <div class="text-slate-500 text-[11px]">${m.ram || 16} Go RAM &bull; ${m.disk || 512} Go SSD &bull; ${m.se || 'Win 11'}</div>
+                </td>
+                <td class="p-3">
+                  <div class="font-semibold text-slate-800">${m.structure_nom || '<span class="text-slate-400 italic">Structure non spécifiée</span>'}</div>
+                </td>
+                <td class="p-3">${statusBadge}</td>
+                <td class="p-3">${etatBadge}</td>
+                <td class="p-3 text-right">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Modifier l'équipement">
+                      <i class="fa-solid fa-pen-to-square"></i> Modifier
+                    </button>
+                    <button onclick="openAffectationHistory(${m.id_mat})" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Historique des affectations">
+                       <i class="fa-solid fa-clock-rotate-left"></i> Historique
+                     </button>
+                     <button onclick="quickPanneFor(${m.id_mat})" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une panne">
+                      <i class="fa-solid fa-triangle-exclamation"></i> Panne
+                    </button>
+                    <button onclick="openNewReformeModal(${m.id_mat})" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une réforme">
+                      <i class="fa-solid fa-recycle"></i> Réforme
+                    </button>
+                    <button onclick="deleteMateriel(${m.id_mat})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded transition" title="Supprimer du parc">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function renderPannes() {
+      const tbody = document.getElementById('pannes-table-body');
+      if (!tbody) return;
+
+      if (allPannes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 text-xs">Aucune panne enregistrée.</td></tr>';
+        return;
+      }
+
+      const panneLabels = {
+        EP: 'En panne', ER: 'En réparation', RP: 'Réparé', IR: 'Irréparable',
+        EC: 'En panne', AT: 'En réparation', NR: 'Irréparable'
+      };
+
+      tbody.innerHTML = allPannes.map(p => {
+        const state = panneLabels[p.eta_pan] || p.eta_pan || 'En panne';
+        let statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">En panne</span>';
+        if (p.eta_pan === 'ER' || p.eta_pan === 'AT') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">En réparation</span>';
+        if (p.eta_pan === 'RP') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Réparé</span>';
+        if (p.eta_pan === 'IR' || p.eta_pan === 'NR') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">Irréparable</span>';
+
+        const lieu = p.lieu_reparation || '-';
+        const dates = [
+          p.dat_env_rep ? 'Envoi: ' + formatReportDate(p.dat_env_rep) : '',
+          p.dat_ret_rep ? 'Retour: ' + formatReportDate(p.dat_ret_rep) : ''
+        ].filter(Boolean).join(' • ');
+
+        return `
+          <tr class="hover:bg-slate-50 transition text-xs">
+            <td class="p-3 font-mono text-slate-500">${p.dat_pan || '-'}</td>
+            <td class="p-3">
+              <div class="font-bold text-slate-800">${p.marque_mat || ''} ${p.model_mat || ''}</div>
+              <div class="font-mono text-slate-400 text-[11px]">${p.num_inv || ''}</div>
+            </td>
+            <td class="p-3 max-w-xs text-slate-700 leading-snug">${p.diag_pan || ''}</td>
+            <td class="p-3 text-slate-700">
+              <div class="font-semibold">${p.nom_uti ? ((p.pnom_uti || '') + ' ' + p.nom_uti).trim() : 'Non assigné'}</div>
+            </td>
+            <td class="p-3 text-slate-600">
+              <div>${p.technicien || 'Tech DSI'}</div>
+              <div class="text-[11px] text-slate-400 mt-1">${lieu}</div>
+              <div class="text-[11px] text-slate-400 mt-1">${dates}</div>
+            </td>
+            <td class="p-3">${statusBadge}</td>
+            <td class="p-3 text-slate-500 text-[11px] max-w-xs">
+              <div class="font-semibold text-slate-700">${state}</div>
+              <div>${p.obs_rep || ''}</div>
+            </td>
+            <td class="p-3 text-right space-x-1">
+              <button onclick="openRepairModal(${p.id_pan})" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold" title="Gérer le traitement de la panne">
+                <i class="fa-solid fa-screwdriver-wrench"></i> Traitement
+              </button>
+              ${p.eta_pan !== 'RP' ? `
+                <button onclick="openReformeFromPanne(${p.id_pan})" class="px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold" title="Déclarer cet équipement à la réforme">
+                  <i class="fa-solid fa-recycle"></i> Réforme
+                </button>
+              ` : ''}
+              ${p.eta_pan !== 'RP' && p.eta_pan !== 'IR' ? `
+                <button onclick="markRepaired(${p.id_pan})" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-semibold" title="Marquer comme réparé">
+                  <i class="fa-solid fa-check"></i> Réparé
+                </button>
+              ` : ''}
+              <button onclick="viewReport(${p.id_pan})" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold" title="Imprimer fiche">
+                <i class="fa-solid fa-print"></i> Fiche
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderStats(stats) {
+      const typesDiv = document.getElementById('stats-types');
+      const strDiv = document.getElementById('stats-structures');
+
+      if (stats.repartitionTypes) {
+        typesDiv.innerHTML = stats.repartitionTypes.map(t => `
+          <div class="flex items-center justify-between text-xs p-2 bg-slate-50 rounded border border-slate-100">
+            <span class="font-medium text-slate-700">${t.type}</span>
+            <span class="font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">${t.count}</span>
+          </div>
+        `).join('');
+      }
+
+      if (stats.repartitionStructures) {
+        strDiv.innerHTML = stats.repartitionStructures.map(s => `
+          <div class="flex items-center justify-between text-xs p-2 bg-slate-50 rounded border border-slate-100">
+            <span class="font-medium text-slate-700">${s.label} (${s.code})</span>
+            <span class="font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">${s.count}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function populatePanneSelect() {
+      const sel = document.getElementById('panne-mat-id');
+      if (!sel) return;
+      sel.innerHTML = allMateriels.map(m => `
+        <option value="${m.id_mat}">${m.num_inv} - ${m.marque_mat || ''} ${m.model_mat || ''} (${m.nom_uti || 'Non assigné'})</option>
+      `).join('');
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(t => {
+        t.classList.remove('bg-blue-600', 'text-white');
+        t.classList.add('text-slate-300');
+      });
+
+      const activeTab = document.getElementById('tab-' + view);
+      if (activeTab) {
+        activeTab.classList.remove('text-slate-300');
+        activeTab.classList.add('bg-blue-600', 'text-white');
+      }
+
+      const panel = document.getElementById('view-' + view);
+      if (panel) panel.classList.remove('hidden');
+
+    }
+
+    function toggleView() {
+      switchView('materiels');
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-slate-900', 'text-white');
+        b.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      const filterButtonIds = { ALL: 'filter-all', ES: 'filter-es', PR: 'filter-pr', RF: 'filter-rf' };
+      const activeBtn = document.getElementById(filterButtonIds[filter] || 'filter-all');
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-slate-100', 'text-slate-700');
+        activeBtn.classList.add('bg-slate-900', 'text-white');
+      }
+      renderMateriels();
+    }
+
+    function applyFilters() {
+      renderMateriels();
+    }
+
+    function populateReformeSelect(selectedId = '') {
+      const sel = document.getElementById('reforme-mat-id');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Sélectionner un équipement...</option>' + allMateriels.map(m => '<option value="' + m.id_mat + '">' + escapeHtml((m.num_inv || 'Sans inventaire') + ' — ' + (m.marque_mat || '') + ' ' + (m.model_mat || '') + ' — ' + (m.structure_nom || 'Sans structure')) + '</option>').join('');
+      if (selectedId) sel.value = String(selectedId);
+    }
+
+    function updateReformeDeclarationFields() {
+      const state = document.getElementById('reforme-etat')?.value || 'AUCUNE';
+      const date = document.getElementById('reforme-date');
+      const motif = document.getElementById('reforme-motif');
+      const isReforme = state === 'REFORME';
+      if (date) date.required = isReforme;
+      if (motif) motif.required = isReforme;
+      if (!isReforme) { if (date) date.value = ''; if (motif) motif.value = ''; }
+    }
+
+    function updateReformeMotif() {
+      const irreparable = document.getElementById('reforme-motif-irreparable');
+      const obsolete = document.getElementById('reforme-motif-obsolete');
+      const motif = document.getElementById('reforme-motif');
+      if (!motif) return;
+
+      const values = [];
+      if (irreparable?.checked) values.push('Irréparable');
+      if (obsolete?.checked) values.push('Obsolète');
+      motif.value = values.join(' / ');
+    }
+
+    function syncReformeMotifShortcuts(value) {
+      const text = (value || '').toLowerCase();
+      const irreparable = document.getElementById('reforme-motif-irreparable');
+      const obsolete = document.getElementById('reforme-motif-obsolete');
+      if (irreparable) irreparable.checked = text.includes('irréparable');
+      if (obsolete) obsolete.checked = text.includes('obsolète');
+    }
+
+    function openNewReformeModal(matId = '') {
+      populateReformeSelect(matId);
+      const mat = matId ? allMateriels.find(m => String(m.id_mat) === String(matId)) : null;
+      document.getElementById('reforme-etat').value = mat?.etat_reforme || 'PROPOSEE';
+      document.getElementById('reforme-date').value = mat?.date_reforme || '';
+      document.getElementById('reforme-motif').value = mat?.motif_reforme || '';
+      syncReformeMotifShortcuts(mat?.motif_reforme || '');
+      updateReformeDeclarationFields();
+      document.getElementById('modal-reforme').classList.remove('hidden');
+    }
+
+    function openReformeFromPanne(panneId) {
+      const panne = allPannes.find(p => String(p.id_pan) === String(panneId));
+      if (!panne || !panne.id_mat) {
+        showToast('Équipement de la panne introuvable.', true);
+        return;
+      }
+
+      openNewReformeModal(panne.id_mat);
+
+      const state = document.getElementById('reforme-etat');
+      const date = document.getElementById('reforme-date');
+      const motif = document.getElementById('reforme-motif');
+      if (state) state.value = 'PROPOSEE';
+      if (date) date.value = '';
+      if (motif) motif.value = '';
+      syncReformeMotifShortcuts('');
+      updateReformeDeclarationFields();
+    }
+
+    async function handleSaveReforme(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('reforme-mat-id').value);
+      const state = document.getElementById('reforme-etat').value;
+      const date = document.getElementById('reforme-date').value || null;
+      const motif = document.getElementById('reforme-motif').value.trim() || null;
+      if (!id) { showToast('Sélectionnez un équipement.', true); return; }
+      if (state === 'REFORME' && (!date || !motif)) { showToast('La date de réforme et le motif sont obligatoires.', true); return; }
+      try {
+        const res = await fetch('/api/materiels/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ etat_reforme: state, date_reforme: state === 'REFORME' ? date : null, motif_reforme: state === 'REFORME' ? motif : null }) });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) { showToast(result.error || 'Erreur lors de la déclaration de réforme.', true); return; }
+        closeModal('modal-reforme');
+        showToast(state === 'REFORME' ? 'Équipement réformé.' : state === 'PROPOSEE' ? 'Équipement proposé à la réforme.' : 'Équipement remis en service.');
+        await loadAllData();
+      } catch (err) { showToast('Erreur serveur.', true); }
+    }
+
+    function renderReformes() {
+      const tbody = document.getElementById('reformes-table-body');
+      if (!tbody) return;
+      const filter = document.getElementById('reforme-filter')?.value || 'ALL';
+      const rows = allMateriels.filter(m => (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'REFORME') && (filter === 'ALL' || m.etat_reforme === filter));
+      const badge = document.getElementById('reformes-count-badge');
+      if (badge) badge.innerText = rows.length + ' équipement' + (rows.length > 1 ? 's' : '');
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400">Aucun équipement dans cette sélection.</td></tr>'; return; }
+      tbody.innerHTML = rows.map(m => {
+        const stateBadge = m.etat_reforme === 'REFORME' ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">Réformé</span>' : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Proposé à la réforme</span>';
+        return '<tr class="hover:bg-slate-50 transition text-xs">' +
+          '<td class="p-3"><div class="font-bold text-slate-900">' + escapeHtml((m.marque_mat || '') + ' ' + (m.model_mat || 'Équipement')) + '</div><div class="text-[11px] text-slate-500">' + escapeHtml(m.type_nom || 'Matériel') + '</div></td>' +
+          '<td class="p-3"><div class="font-mono font-bold text-blue-700">' + escapeHtml(m.num_inv || '-') + '</div><div class="font-mono text-slate-400 text-[11px]">SN: ' + escapeHtml(m.num_ser || '-') + '</div></td>' +
+          '<td class="p-3"><div class="font-semibold text-slate-800">' + escapeHtml(m.nom_uti ? ((m.pnom_uti || '') + ' ' + m.nom_uti).trim() : 'Non assigné') + '</div><div class="text-slate-500 text-[11px]">' + escapeHtml(m.structure_nom || 'Direction Non Spécifiée') + '</div></td>' +
+          '<td class="p-3">' + stateBadge + '</td>' +
+          '<td class="p-3"><div>' + escapeHtml(m.motif_reforme || '—') + '</div><div class="text-[10px] text-slate-400 mt-1">Date : ' + escapeHtml(m.date_reforme ? new Date(m.date_reforme + 'T00:00:00').toLocaleDateString('fr-FR') : '—') + '</div></td>' +
+          '<td class="p-3 text-right"><button onclick="openNewReformeModal(' + m.id_mat + ')" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-pen-to-square"></i> Modifier</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function openNewMaterielModal() {
+      editingMaterielId = null;
+      const title = document.getElementById('modal-materiel-title');
+      const submit = document.getElementById('mat-submit-btn');
+      if (title) title.innerText = "Ajouter un équipement au parc";
+      if (submit) submit.innerText = "Enregistrer l'équipement";
+
+      // Réinitialiser d'abord le formulaire, puis charger les listes.
+      // L'ancien ordre effaçait la liste des modèles juste après son alimentation.
+      resetMaterielForm();
+      populateMaterielForm();
+
+      document.getElementById('modal-materiel').classList.remove('hidden');
+    }
+
+    async function openEditMaterielModal(matId) {
+      try {
+        const res = await fetch('/api/materiels/' + matId);
+        if (!res.ok) throw new Error('Équipement introuvable');
+        const mat = await res.json();
+        editingMaterielId = mat.id_mat;
+
+        const title = document.getElementById('modal-materiel-title');
+        const submit = document.getElementById('mat-submit-btn');
+        if (title) title.innerText = "Modifier l'équipement";
+        if (submit) submit.innerText = 'Enregistrer les modifications';
+
+        populateMaterielForm();
+        document.getElementById('mat-num-inv').value = mat.num_inv || '';
+        document.getElementById('mat-num-ser').value = mat.num_ser || '';
+        document.getElementById('mat-marque').value = mat.marque_mat || '';
+        document.getElementById('mat-type').value = mat.id_typ_mat || '';
+        document.getElementById('mat-str').value = mat.id_str || '';
+        filterMaterielModels();
+        filterMaterielUsers();
+        document.getElementById('mat-model').value = mat.id_model_mat || '';
+        document.getElementById('mat-user').value = mat.id_uti || '';
+        document.getElementById('mat-cpu').value = mat.cpu || '';
+        document.getElementById('mat-ram').value = mat.ram ?? '';
+        document.getElementById('mat-disk').value = mat.disk ?? '';
+        document.getElementById('modal-materiel').classList.remove('hidden');
+      } catch (err) {
+        showToast("Impossible de charger l'équipement", true);
+      }
+    }
+
+    function resetMaterielForm() {
+      ['mat-num-inv','mat-num-ser','mat-marque','mat-type','mat-model','mat-str','mat-user','mat-cpu','mat-ram' ,'mat-disk'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const modelSel = document.getElementById('mat-model');
+      if (modelSel) { modelSel.innerHTML = "<option value=''>Choisir d'abord une marque...</option>"; modelSel.disabled = true; }
+      const userSel = document.getElementById('mat-user');
+      if (userSel) userSel.value = '';
+    }
+
+    function populateMaterielForm() {
+      const brandSel = document.getElementById('mat-marque');
+      const typeSel = document.getElementById('mat-type');
+      const strSel = document.getElementById('mat-str');
+      const userSel = document.getElementById('mat-user');
+      const modelSel = document.getElementById('mat-model');
+      if (!brandSel || !typeSel || !strSel || !userSel || !modelSel) return;
+
+      const brands = (references.parametres || [])
+        .filter(p => p.categorie === 'marque')
+        .map(p => p.valeur)
+        .filter(Boolean);
+      brandSel.innerHTML = '<option value="">Sélectionner une marque...</option>' +
+        [...new Set(brands)].sort().map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+
+      typeSel.innerHTML = '<option value="">Sélectionner un type...</option>' +
+        (references.types || []).map(t => `<option value="${t.id_typ_mat}">${escapeHtml(t.lib_typ_mat)} (${escapeHtml(t.cod_typ_mat || '')})</option>`).join('');
+
+      strSel.innerHTML = '<option value="">Sélectionner une structure...</option>' +
+        (references.structures || []).map(st => `<option value="${st.id_str}">[${escapeHtml(st.cod_str || '')}] ${escapeHtml(st.lib_str || '')}</option>`).join('');
+
+      modelSel.innerHTML = "<option value=''>Choisir d'abord une marque...</option>";
+      userSel.innerHTML = '<option value="">Aucun (En stock DSI)</option>' +
+        (references.utilisateurs || []).map(u => `<option value="${u.id_uti}">${escapeHtml((u.nom_uti || '') + ' ' + (u.pnom_uti || ''))}</option>`).join('');
+
+      brandSel.onchange = filterMaterielModels;
+      typeSel.onchange = filterMaterielModels;
+      strSel.onchange = filterMaterielUsers;
+      filterMaterielModels();
+      filterMaterielUsers();
+    }
+
+    function filterMaterielModels() {
+      const brand = document.getElementById('mat-marque')?.value || '';
+      const typeId = document.getElementById('mat-type')?.value || '';
+      const modelSel = document.getElementById('mat-model');
+      if (!modelSel) return;
+
+      // Les modèles définis dans Paramètres sont disponibles dès l'ajout.
+      // Les modèles du référentiel restent filtrés par marque/type.
+      const models = brand
+        ? (references.modeles || []).filter(m =>
+            m.marque_mat === brand && (!typeId || !m.id_typ_mat || String(m.id_typ_mat) === String(typeId))
+          )
+        : [];
+
+      const parameterModels = (references.parametres || [])
+        .filter(p => p.categorie === 'modele' && p.archiv !== 'O' && (p.valeur || '').trim())
+        .map(p => ({ id_param: p.id_param, model_mat: p.valeur.trim() }));
+
+      const existingNames = new Set(models.map(m => (m.model_mat || '').trim().toLowerCase()));
+      const extraModels = parameterModels.filter(p => !existingNames.has(p.model_mat.toLowerCase()));
+
+      modelSel.disabled = models.length === 0 && extraModels.length === 0;
+      modelSel.innerHTML =
+        '<option value="">' +
+        (extraModels.length || models.length ? 'Sélectionner un modèle...' : 'Aucun modèle configuré...') +
+        '</option>' +
+        models.map(m => `<option value="${m.id_model_mat}">${escapeHtml(m.model_mat || '')}</option>`).join('') +
+        extraModels.map(p => `<option value="param:${p.id_param}" data-model-name="${escapeHtml(p.model_mat)}">${escapeHtml(p.model_mat)} (Paramètre)</option>`).join('');
+    }
+
+    function filterMaterielUsers() {
+      const structureId = document.getElementById('mat-str')?.value || '';
+      const userSel = document.getElementById('mat-user');
+      if (!userSel) return;
+      const users = (references.utilisateurs || []).filter(u => !structureId || !u.id_str_mere || String(u.id_str_mere) === String(structureId));
+      userSel.innerHTML = '<option value="">Aucun (En stock DSI)</option>' +
+        users.map(u => `<option value="${u.id_uti}">${escapeHtml((u.nom_uti || '') + ' ' + (u.pnom_uti || ''))}</option>`).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;',"\"":'&quot;'}[c]));
+    }
+
+    async function openAffectationHistory(matId) {
+      const content = document.getElementById('affect-history-content');
+      const title = document.getElementById('affect-history-equipment');
+      if (!content) return;
+
+      const mat = allMateriels.find(m => String(m.id_mat) === String(matId));
+      if (title && mat) {
+        title.innerText = (mat.num_inv || 'Équipement') + ' — ' + (mat.marque_mat || '') + ' ' + (mat.model_mat || '');
+      }
+
+      content.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i><p>Chargement de l\'historique...</p></div>';
+      document.getElementById('modal-affectation-history').classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/materiels/' + matId + '/historique');
+        const history = await res.json().catch(() => []);
+        if (!res.ok) throw new Error(history.error || 'Erreur de chargement');
+
+        if (!history.length) {
+          content.innerHTML = '<div class="text-center py-10 text-slate-400 text-xs"><i class="fa-solid fa-clock-rotate-left text-3xl mb-2"></i><p>Aucun événement enregistré pour cet équipement.</p><p class="mt-1">Les affectations, pannes et réformes seront automatiquement tracées ici.</p></div>';
+          return;
+        }
+
+        content.innerHTML = history.map((h, index) => {
+          let icon = 'fa-user-check';
+          let iconClass = 'bg-emerald-100 text-emerald-700';
+          let typeLabel = 'AFFECTATION';
+          let detailHtml = escapeHtml(h.detail || '');
+          let extraHtml = '';
+
+          if (h.type_evenement === 'PANNE') {
+            icon = 'fa-triangle-exclamation';
+            iconClass = 'bg-rose-100 text-rose-700';
+            typeLabel = 'PANNE';
+            const p = h.procedure || {};
+            extraHtml =
+              '<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">' +
+                '<div><span class="text-slate-400">Statut :</span> <strong class="text-slate-700">' + escapeHtml(p.statut || '-') + '</strong></div>' +
+                '<div><span class="text-slate-400">Type :</span> <strong class="text-slate-700">' + escapeHtml(p.type || '-') + '</strong></div>' +
+                '<div><span class="text-slate-400">Technicien :</span> <strong class="text-slate-700">' + escapeHtml(p.technicien || '-') + '</strong></div>' +
+                '<div><span class="text-slate-400">Coût :</span> <strong class="text-slate-700">' + (p.cout ? Number(p.cout).toLocaleString('fr-FR') + ' DA' : '-') + '</strong></div>' +
+              '</div>' +
+              ((p.observation_reparation || p.pieces_remplacees || p.recommandations) ?
+                '<div class="mt-2 pt-2 border-t border-slate-200 text-[11px] text-slate-600">' +
+                  (p.observation_reparation ? '<div><span class="font-semibold">Réparation :</span> ' + escapeHtml(p.observation_reparation) + '</div>' : '') +
+                  (p.pieces_remplacees ? '<div><span class="font-semibold">Pièces :</span> ' + escapeHtml(p.pieces_remplacees) + '</div>' : '') +
+                  (p.recommandations ? '<div><span class="font-semibold">Recommandations :</span> ' + escapeHtml(p.recommandations) + '</div>' : '') +
+                '</div>' : '');
+          } else if (h.type_evenement === 'REFORME') {
+            icon = 'fa-recycle';
+            iconClass = h.reforme?.etat === 'REFORME' ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-700';
+            typeLabel = 'RÉFORME';
+            const r = h.reforme || {};
+            detailHtml = escapeHtml(r.motif || h.detail || '');
+            extraHtml =
+              '<div class="mt-2 text-[11px]">' +
+                '<span class="px-2 py-0.5 rounded-full font-bold ' + (r.etat === 'REFORME' ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-800') + '">' +
+                  escapeHtml(h.libelle || '-') +
+                '</span>' +
+                '<span class="text-slate-400 ml-2">Avant : ' + escapeHtml(r.ancien_etat || 'AUCUNE') + '</span>' +
+              '</div>';
+          } else {
+            if (h.libelle === 'Changement de structure') {
+              icon = 'fa-sitemap';
+              iconClass = 'bg-blue-100 text-blue-700';
+            } else if (h.libelle === 'Changement d’utilisateur') {
+              icon = 'fa-user-pen';
+              iconClass = 'bg-amber-100 text-amber-700';
+            }
+          }
+
+          const date = h.date_evenement
+            ? new Date(String(h.date_evenement).replace(' ', 'T')).toLocaleString('fr-FR')
+            : '-';
+
+          return '<div class="relative flex gap-3 pb-5 ' + (index < history.length - 1 ? 'border-l-2 border-slate-200 ml-4 pl-5' : 'ml-4 pl-5') + '">' +
+            '<div class="absolute -left-[13px] top-0 w-6 h-6 rounded-full ' + iconClass + ' flex items-center justify-center border-2 border-white shadow-sm"><i class="fa-solid ' + icon + ' text-[10px]"></i></div>' +
+            '<div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3">' +
+              '<div class="flex items-center justify-between gap-2">' +
+                '<div class="text-xs font-bold text-slate-800">' + escapeHtml(h.libelle || 'Événement') + '</div>' +
+                '<span class="text-[9px] font-bold tracking-wide text-slate-400">' + typeLabel + '</span>' +
+              '</div>' +
+              '<div class="text-[11px] text-slate-400 mt-0.5">' + escapeHtml(date) + '</div>' +
+              '<div class="mt-2 text-xs text-slate-700">' + detailHtml + '</div>' +
+              extraHtml +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } catch (err) {
+        content.innerHTML = '<div class="text-center py-8 text-rose-500 text-xs"><i class="fa-solid fa-circle-exclamation text-xl mb-2"></i><p>Impossible de charger l\'historique.</p><p class="mt-1 text-slate-400">' + escapeHtml(err.message || '') + '</p></div>';
+      }
+    }
+
+    function resetPanneForm() {
+      const form = document.querySelector('#modal-panne form');
+      if (form) form.reset();
+
+      const type = document.getElementById('panne-type');
+      const tech = document.getElementById('panne-tech');
+      const diag = document.getElementById('panne-diag');
+
+      if (type) type.value = 'MAT';
+      if (tech) tech.value = 'Support DSI Interne';
+      if (diag) diag.value = '';
+    }
+
+    function openNewPanneModal() {
+      resetPanneForm();
+      populatePanneSelect();
+      document.getElementById('modal-panne').classList.remove('hidden');
+      setTimeout(() => document.getElementById('panne-diag')?.focus(), 50);
+    }
+
+    function quickPanneFor(matId) {
+      openNewPanneModal();
+      document.getElementById('panne-mat-id').value = matId;
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    async function deleteMateriel(matId) {
+      if (!confirm('Êtes-vous sûr de vouloir retirer cet équipement du parc ?')) return;
+      try {
+        const res = await fetch('/api/materiels/' + matId, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Équipement retiré du parc');
+          await loadAllData();
+        } else {
+          showToast('Erreur lors de la suppression', true);
+        }
+      } catch (e) {
+        showToast('Erreur de connexion', true);
+      }
+    }
+
+    async function handleSaveMateriel(e) {
+      e.preventDefault();
+      const payload = {
+        num_inv: document.getElementById('mat-num-inv').value.trim(),
+        num_ser: document.getElementById('mat-num-ser').value.trim(),
+        marque_mat: document.getElementById('mat-marque').value.trim(),
+        id_model_mat: /^\d+$/.test(document.getElementById('mat-model').value) ? parseInt(document.getElementById('mat-model').value) : null,
+        model_mat_name: (() => {
+          const opt = document.getElementById('mat-model').selectedOptions[0];
+          return opt?.dataset.modelName || '';
+        })(),
+        id_typ_mat: parseInt(document.getElementById('mat-type').value) || null,
+        id_str: parseInt(document.getElementById('mat-str').value) || null,
+        id_uti: parseInt(document.getElementById('mat-user').value) || null,
+        cpu: document.getElementById('mat-cpu').value.trim(),
+        ram: parseInt(document.getElementById('mat-ram').value) || null,
+        disk: parseInt(document.getElementById('mat-disk').value) || null,
+        image_url: ''
+      };
+
+      if (!payload.num_inv || !payload.num_ser || !payload.marque_mat || !payload.id_typ_mat || !payload.id_str) {
+        showToast('Veuillez renseigner le N° inventaire, N° série, marque, type et structure.', true);
+        return;
+      }
+
+      try {
+        const url = editingMaterielId ? '/api/materiels/' + editingMaterielId : '/api/materiels';
+        const method = editingMaterielId ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json().catch(() => ({}));
+        if (res.ok) {
+          closeModal('modal-materiel');
+          showToast(editingMaterielId ? 'Équipement modifié avec succès !' : 'Équipement ajouté au parc avec succès !');
+          editingMaterielId = null;
+          await loadAllData();
+        } else {
+          showToast(result.error || "Erreur lors de l'enregistrement", true);
+        }
+      } catch (err) {
+        showToast('Erreur serveur', true);
+      }
+    }
+
+    async function handleSavePanne(e) {
+      e.preventDefault();
+      const payload = {
+        id_mat: parseInt(document.getElementById('panne-mat-id').value),
+        tp: document.getElementById('panne-type').value,
+        technicien: document.getElementById('panne-tech').value.trim(),
+        diag_pan: document.getElementById('panne-diag').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/pannes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          closeModal('modal-panne');
+          resetPanneForm();
+          showToast('Panne enregistrée : matériel passé en statut En Panne !');
+          loadAllData();
+        } else {
+          showToast('Erreur lors de l\'enregistrement', true);
+        }
+      } catch (err) {
+        showToast('Erreur serveur', true);
+      }
+    }
+
+    function populateRepairLocationSelect(selectedId = '') {
+      const sel = document.getElementById('repair-lieu');
+      if (!sel) return;
+      const lieux = references?.lieuxReparation || [];
+      const local = lieux.filter(l => (l.categorie_lieu || '').toUpperCase() === 'LOCAL');
+      const external = lieux.filter(l => (l.categorie_lieu || '').toUpperCase() !== 'LOCAL');
+      let html = '<option value="">Sélectionner un lieu...</option>';
+      if (local.length) {
+        html += '<optgroup label="Atelier local de la DSI">' +
+          local.map(l => '<option value="' + l.id_lieu_rep + '">' + escapeHtml(l.nom_lieu_rep) + '</option>').join('') +
+          '</optgroup>';
+      }
+      if (external.length) {
+        html += '<optgroup label="Réparateurs extérieurs">' +
+          external.map(l => '<option value="' + l.id_lieu_rep + '">' + escapeHtml(l.nom_lieu_rep) + '</option>').join('') +
+          '</optgroup>';
+      }
+      sel.innerHTML = html;
+      if (selectedId) sel.value = String(selectedId);
+    }
+
+    function setRepairStateFields() {
+      const state = document.getElementById('repair-state')?.value || 'EP';
+      const send = document.getElementById('repair-date-send');
+      const retour = document.getElementById('repair-date-return');
+      const detail = document.getElementById('repair-detail');
+      if (send) send.required = state !== 'EP';
+      if (retour) retour.required = state === 'RP' || state === 'IR';
+      if (detail) detail.required = state === 'RP';
+      if (state === 'RP' && retour && !retour.value) retour.value = new Date().toISOString().slice(0,10);
+    }
+
+    function openRepairModal(panneId, forcedState = '') {
+      const panne = allPannes.find(p => String(p.id_pan) === String(panneId));
+      if (!panne) {
+        showToast("Panne introuvable", true);
+        return;
+      }
+
+      document.getElementById('repair-panne-id').value = panneId;
+
+      const setRepairInfo = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || '-';
+      };
+      setRepairInfo('repair-info-type', panne.type_nom);
+      setRepairInfo('repair-info-brand', panne.marque_mat);
+      setRepairInfo('repair-info-model', panne.model_mat);
+      setRepairInfo('repair-info-serial', panne.num_ser);
+      setRepairInfo('repair-info-user', panne.nom_uti ? ((panne.pnom_uti || '') + ' ' + panne.nom_uti).trim() : 'Non assigné');
+
+      document.getElementById('repair-date-send').value = panne.dat_env_rep || '';
+      document.getElementById('repair-date-return').value = panne.dat_ret_rep || '';
+      document.getElementById('repair-detail').value = panne.obs_rep || '';
+      document.getElementById('repair-observation').value = panne.recommandations || '';
+      document.getElementById('repair-obs-ras').checked = false;
+      document.getElementById('repair-obs-remis').checked = false;
+      populateRepairLocationSelect(panne.id_lieu_rep || '');
+      document.getElementById('repair-state').value = forcedState || panne.eta_pan || 'EP';
+      setRepairStateFields();
+      document.getElementById('modal-repair').classList.remove('hidden');
+      setTimeout(() => document.getElementById('repair-detail')?.focus(), 50);
+    }
+
+    function updateRepairObservation() {
+      const ras = document.getElementById('repair-obs-ras');
+      const remis = document.getElementById('repair-obs-remis');
+      const observation = document.getElementById('repair-observation');
+      if (!observation) return;
+      const values = [];
+      if (ras?.checked) values.push('R.A.S');
+      if (remis?.checked) values.push('Réparé et remis en service');
+      observation.value = values.join(' / ');
+    }
+
+    async function handleRepairConfirmation(e) {
+      e.preventDefault();
+      const panneId = document.getElementById('repair-panne-id').value;
+      const state = document.getElementById('repair-state').value;
+      const dateSend = document.getElementById('repair-date-send').value || null;
+      const dateReturn = document.getElementById('repair-date-return').value || null;
+      const lieuId = parseInt(document.getElementById('repair-lieu').value) || null;
+      const detail = document.getElementById('repair-detail').value.trim();
+      const observation = document.getElementById('repair-observation').value.trim();
+
+      if (state !== 'EP' && !dateSend) {
+        showToast("La date d'envoi à la réparation est obligatoire.", true);
+        return;
+      }
+      if ((state === 'RP' || state === 'IR') && !dateReturn) {
+        showToast("La date de retour est obligatoire pour cet état.", true);
+        return;
+      }
+      if (state !== 'EP' && !lieuId) {
+        showToast("Sélectionnez le lieu de réparation.", true);
+        return;
+      }
+      if (state === 'RP' && !detail) {
+        showToast("Veuillez renseigner le détail de la réparation.", true);
+        document.getElementById('repair-detail')?.focus();
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/pannes/' + panneId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eta_pan: state,
+            dat_env_rep: dateSend,
+            id_lieu_rep: lieuId,
+            dat_ret_rep: dateReturn,
+            obs_rep: detail,
+            recommandations: observation
+          })
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(result.error || 'Erreur lors de la mise à jour', true);
+          return;
+        }
+
+        closeModal('modal-repair');
+        const messages = {
+          EP: 'Panne enregistrée.',
+          ER: 'Matériel envoyé en réparation.',
+          RP: 'Panne réparée : matériel remis en état Bon.',
+          IR: 'Panne déclarée irréparable : état du matériel mis à Irréparable.'
+        };
+        showToast(messages[state] || 'Traitement enregistré.');
+        await loadAllData();
+      } catch (err) {
+        showToast("Erreur lors de la mise à jour", true);
+      }
+    }
+
+    async function markRepaired(panneId) {
+      openRepairModal(panneId, 'RP');
+    }
+
+    function formatReportDate(value) {
+      if (!value) return '';
+      const d = new Date(String(value).replace(' ', 'T'));
+      if (Number.isNaN(d.getTime())) return String(value);
+      return d.toLocaleDateString('fr-FR');
+    }
+
+    async function viewReport(panneId) {
+      try {
+        const res = await fetch('/api/pannes/' + panneId + '/report');
+        if (!res.ok) throw new Error('Rapport introuvable');
+        const rpt = await res.json();
+
+        const set = (id, value) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = value ?? '';
+        };
+
+        // Champs présents dans le modèle et correspondants à notre base.
+        set('rpt-ref', '............/SSSI/2026');
+        set('rpt-bon', '');
+        set('rpt-dps', '');
+        set('rpt-date-dps', '');
+        set('rpt-structure', rpt.utilisateur?.service || '');
+        set('rpt-date-arrivee', '');
+
+        set('rpt-ser', rpt.equipement?.numSerie || '');
+        set('rpt-type', rpt.equipement?.type || '');
+        set('rpt-brand', rpt.equipement?.marque || '');
+        set('rpt-model', rpt.equipement?.modele || '');
+
+        set('rpt-date-reparation', formatReportDate(rpt.intervention?.dateReparation));
+        set('rpt-date-retour', formatReportDate(rpt.intervention?.dateRetour));
+        set('rpt-lieu-reparation', rpt.intervention?.lieuReparation || '');
+        // La base ne possède pas de champ "code à barre" dédié : on laisse vide.
+        set('rpt-barcode', '');
+
+        set('rpt-diag', rpt.intervention?.diagnostic || '');
+        set('rpt-observation', rpt.intervention?.observation || '');
+        set('rpt-tech', rpt.intervention?.technicien || '');
+        set('rpt-travaux', rpt.intervention?.travaux || '');
+        // La base ne possède pas de nouveau code à barre ni de PV numérisé.
+        set('rpt-new-barcode', '');
+
+        // Aucun champ correspondant n'existe dans la base : laissé vide pour saisie manuelle.
+        set('rpt-date-generation', '');
+
+        document.getElementById('modal-report').classList.remove('hidden');
+      } catch (e) {
+        console.error(e);
+        showToast("Impossible d'afficher la fiche", true);
+      }
+    }
+
+    async function resetData() {
+      if (confirm('Voulez-vous réinitialiser toutes les données de test SQLite ?')) {
+        await fetch('/api/reset-data', { method: 'POST' });
+        showToast('Base SQLite réinitialisée avec succès !');
+        loadAllData();
+      }
+    }
+
+    function showToast(text, isError = false) {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+      toastText.innerText = text;
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      if (isError) {
+        toast.classList.add('border-rose-500');
+      } else {
+        toast.classList.remove('border-rose-500');
+      }
+      setTimeout(() => {
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 3500);
+    }
+
+    // GESTION DES PARAMÈTRES MATÉRIELS
+    function renderParametres() {
+      const tbody = document.getElementById('parametres-table-body');
+      const typePanel = document.getElementById('types-param-panel');
+      const structurePanel = document.getElementById('structures-param-panel');
+      const utilisateurPanel = document.getElementById('utilisateurs-param-panel');
+      const isTypes = currentParamCat === 'types';
+      const isStructures = currentParamCat === 'structures';
+      const isUtilisateurs = currentParamCat === 'utilisateurs';
+
+      if (typePanel) typePanel.classList.toggle('hidden', !isTypes);
+      if (structurePanel) structurePanel.classList.toggle('hidden', !isStructures);
+      if (utilisateurPanel) utilisateurPanel.classList.toggle('hidden', !isUtilisateurs);
+      if (tbody) {
+        const paramTable = tbody.closest('table');
+        const paramContainer = paramTable ? paramTable.parentElement : null;
+        if (paramContainer) paramContainer.classList.toggle('hidden', isTypes || isStructures || isUtilisateurs);
+      }
+
+      if (isTypes) {
+        renderTypesMateriel();
+        return;
+      }
+
+      if (isStructures) {
+        renderStructures();
+        return;
+      }
+      if (isUtilisateurs) {
+        renderUtilisateurs();
+        return;
+      }
+
+      if (!tbody) return;
+
+      const filtered = allParametres.filter(p => {
+        if (currentParamCat === 'all') return true;
+        return (p.categorie || '').toLowerCase() === currentParamCat.toLowerCase();
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun paramètre configuré pour cette sélection.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => {
+        let catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800">CPU</span>';
+        if (p.categorie === 'marque') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800">Marque</span>';
+        if (p.categorie === 'ram') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">RAM</span>';
+        if (p.categorie === 'disk') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">Disque</span>';
+        if (p.categorie === 'se') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-800">Système (SE)</span>';
+        if (p.categorie === 'modele') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">Modèle</span>';
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3">${catBadge}</td>
+            <td class="p-3 font-semibold text-slate-800">${escapeHtml(p.valeur || '')}</td>
+            <td class="p-3 text-slate-500">${escapeHtml(p.description || '-')}</td>
+            <td class="p-3 text-center font-mono text-slate-500">${p.ordre || 1}</td>
+            <td class="p-3 text-right">
+              <button onclick="deleteParametre(${p.id_param})" class="p-1 text-slate-400 hover:text-rose-600 rounded" title="Supprimer">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderStructures() {
+      const tbody = document.getElementById('structures-table-body');
+      if (!tbody) return;
+
+      if (!allStructures || allStructures.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucune structure configurée.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allStructures.map(s => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 font-mono font-bold text-indigo-700">${escapeHtml(s.cod_str || '')}</td>
+          <td class="p-3 font-semibold text-slate-800">${escapeHtml(s.lib_str || '')}</td>
+          <td class="p-3 text-slate-500">${escapeHtml(s.structure_mere_nom || '—')}</td>
+          <td class="p-3 text-center font-mono text-slate-400">${s.id_str}</td>
+          <td class="p-3 text-right whitespace-nowrap">
+            <button onclick="editStructure(${s.id_str})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteStructure(${s.id_str})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderUtilisateurs() {
+      const tbody = document.getElementById('utilisateurs-table-body');
+      if (!tbody) return;
+      const users = (references.utilisateurs || []).filter(u => u.archiv !== 'O');
+      tbody.innerHTML = users.length ? users.map(u => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 font-semibold text-slate-800">${escapeHtml(u.nom_uti || '')}</td>
+          <td class="p-3 text-slate-700">${escapeHtml(u.pnom_uti || '')}</td>
+          <td class="p-3 text-slate-500">${escapeHtml(u.mail_uti || '—')}</td>
+          <td class="p-3 text-slate-600">${escapeHtml(u.lib_str || '—')}</td>
+          <td class="p-3 text-center font-mono text-slate-400">${u.id_uti}</td>
+          <td class="p-3 text-right whitespace-nowrap">
+            <button onclick="editUtilisateur(${u.id_uti})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="deleteUtilisateur(${u.id_uti})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver"><i class="fa-solid fa-trash-can"></i></button>
+          </td>
+        </tr>`).join('') : '<tr><td colspan="6" class="p-6 text-center text-slate-400">Aucun utilisateur configuré.</td></tr>';
+    }
+
+    function populateUtilisateurStructures(selectedId = '') {
+      const select = document.getElementById('utilisateur-structure');
+      if (!select) return;
+      select.innerHTML = '<option value="">Aucune structure</option>' + (allStructures || []).map(s => `<option value="${s.id_str}">${escapeHtml(s.cod_str || '')} — ${escapeHtml(s.lib_str || '')}</option>`).join('');
+      select.value = selectedId || '';
+    }
+
+    function openNewUtilisateurModal() {
+      document.getElementById('utilisateur-id').value = '';
+      document.getElementById('utilisateur-nom').value = '';
+      document.getElementById('utilisateur-prenom').value = '';
+      document.getElementById('utilisateur-mail').value = '';
+      populateUtilisateurStructures();
+      document.getElementById('utilisateur-modal-title').innerHTML = '<i class="fa-solid fa-user text-indigo-600"></i> Nouvel utilisateur';
+      document.getElementById('modal-utilisateur').classList.remove('hidden');
+    }
+
+    function editUtilisateur(id) {
+      const u = (references.utilisateurs || []).find(x => String(x.id_uti) === String(id));
+      if (!u) return;
+      document.getElementById('utilisateur-id').value = u.id_uti;
+      document.getElementById('utilisateur-nom').value = u.nom_uti || '';
+      document.getElementById('utilisateur-prenom').value = u.pnom_uti || '';
+      document.getElementById('utilisateur-mail').value = u.mail_uti || '';
+      populateUtilisateurStructures(u.id_str_mere || '');
+      document.getElementById('utilisateur-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-indigo-600"></i> Modifier l’utilisateur';
+      document.getElementById('modal-utilisateur').classList.remove('hidden');
+    }
+
+    async function refreshUtilisateurs() {
+      const users = await fetch('/api/utilisateurs').then(r => r.json());
+      references.utilisateurs = users || [];
+      renderUtilisateurs();
+      populateMaterielForm();
+    }
+
+    async function handleSaveUtilisateur(e) {
+      e.preventDefault();
+      const id = document.getElementById('utilisateur-id').value;
+      const payload = {
+        nom_uti: document.getElementById('utilisateur-nom').value.trim(),
+        pnom_uti: document.getElementById('utilisateur-prenom').value.trim(),
+        mail_uti: document.getElementById('utilisateur-mail').value.trim(),
+        id_str_mere: document.getElementById('utilisateur-structure').value || null
+      };
+      try {
+        const res = await fetch(id ? '/api/utilisateurs/' + id : '/api/utilisateurs', { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) { showToast(result.error || 'Erreur lors de l’enregistrement', true); return; }
+        showToast(id ? 'Utilisateur modifié avec succès !' : 'Utilisateur ajouté avec succès !');
+        closeModal('modal-utilisateur');
+        await refreshUtilisateurs();
+      } catch (err) { showToast('Erreur serveur Flask', true); }
+    }
+
+    async function deleteUtilisateur(id) {
+      if (!confirm('Voulez-vous archiver cet utilisateur ? Les affectations historiques seront conservées.')) return;
+      try {
+        const res = await fetch('/api/utilisateurs/' + id, { method: 'DELETE' });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) { showToast(result.error || 'Erreur lors de l’archivage', true); return; }
+        showToast('Utilisateur archivé');
+        await refreshUtilisateurs();
+      } catch (err) { showToast('Erreur serveur Flask', true); }
+    }
+
+    function filterParamCategory(cat) {
+      currentParamCat = cat;
+      document.querySelectorAll('.param-cat-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-50', 'text-indigo-700', 'border', 'border-indigo-200');
+        btn.classList.add('text-slate-600');
+      });
+      const activeBtn = document.getElementById('btn-param-' + cat);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-600');
+        activeBtn.classList.add('bg-indigo-50', 'text-indigo-700', 'border', 'border-indigo-200');
+      }
+
+      const paramButton = document.querySelector('button[onclick="openNewParamModal()"]');
+      const typeButton = document.querySelector('button[onclick="openNewTypeMaterielModal()"]');
+      const structureButton = document.querySelector('button[onclick="openNewStructureModal()"]');
+      if (paramButton) paramButton.classList.toggle('hidden', cat === 'types' || cat === 'structures' || cat === 'utilisateurs');
+      if (typeButton) typeButton.classList.toggle('hidden', cat !== 'types');
+      if (structureButton) structureButton.classList.toggle('hidden', cat !== 'structures');
+
+      renderParametres();
+    }
+
+    function openNewParamModal() {
+      document.getElementById('modal-parametre').classList.remove('hidden');
+    }
+
+    async function handleSaveParametre(e) {
+      e.preventDefault();
+      const payload = {
+        categorie: document.getElementById('param-cat').value,
+        valeur: document.getElementById('param-val').value.trim(),
+        description: document.getElementById('param-desc').value.trim(),
+        ordre: parseInt(document.getElementById('param-ordre').value) || 1
+      };
+
+      try {
+        const res = await fetch('/api/parametres', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          showToast('Paramètre matériel ajouté avec succès !');
+          closeModal('modal-parametre');
+          document.getElementById('param-val').value = '';
+          document.getElementById('param-desc').value = '';
+          const updated = await fetch('/api/parametres').then(r => r.json());
+          allParametres = updated;
+          references.parametres = updated;
+          renderParametres();
+          populateMaterielForm();
+        } else {
+          showToast('Erreur lors de l\'enregistrement', true);
+        }
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
+      }
+    }
+
+    async function deleteParametre(id) {
+      if (!confirm('Voulez-vous supprimer ce paramètre ?')) return;
+      try {
+        const res = await fetch('/api/parametres/' + id, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Paramètre supprimé');
+          allParametres = allParametres.filter(p => p.id_param !== id);
+          renderParametres();
+        }
+      } catch (err) {
+        showToast('Erreur lors de la suppression', true);
+      }
+    }
+
+    // GESTION DES TYPES DE MATÉRIEL
+    function renderTypesMateriel() {
+      const tbody = document.getElementById('types-table-body');
+      if (!tbody) return;
+      const types = allTypes || [];
+      if (!types.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun type de matériel configuré.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = types.map(t =>
+        '<tr class="hover:bg-slate-50 transition">' +
+          '<td class="p-3 font-mono font-bold text-indigo-700">' + escapeHtml(t.cod_typ_mat || '') + '</td>' +
+          '<td class="p-3 font-semibold text-slate-800">' + escapeHtml(t.lib_typ_mat || '') + '</td>' +
+          '<td class="p-3 text-center font-mono text-slate-500">' + (t.nb_materiels || 0) + '</td>' +
+          '<td class="p-3 text-center font-mono text-slate-400">' + t.id_typ_mat + '</td>' +
+          '<td class="p-3 text-right whitespace-nowrap">' +
+            '<button onclick="editTypeMateriel(' + t.id_typ_mat + ')" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button>' +
+            '<button onclick="deleteTypeMateriel(' + t.id_typ_mat + ')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver"><i class="fa-solid fa-trash-can"></i></button>' +
+          '</td>' +
+        '</tr>'
+      ).join('');
+    }
+
+    function openNewTypeMaterielModal() {
+      document.getElementById('type-materiel-id').value = '';
+      document.getElementById('type-materiel-code').value = '';
+      document.getElementById('type-materiel-libelle').value = '';
+      document.getElementById('type-materiel-modal-title').innerHTML = '<i class="fa-solid fa-desktop text-indigo-600"></i> Nouveau type de matériel';
+      document.getElementById('modal-type-materiel').classList.remove('hidden');
+    }
+
+    function editTypeMateriel(id) {
+      const t = (allTypes || []).find(x => String(x.id_typ_mat) === String(id));
+      if (!t) return;
+      document.getElementById('type-materiel-id').value = t.id_typ_mat;
+      document.getElementById('type-materiel-code').value = t.cod_typ_mat || '';
+      document.getElementById('type-materiel-libelle').value = t.lib_typ_mat || '';
+      document.getElementById('type-materiel-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-indigo-600"></i> Modifier le type de matériel';
+      document.getElementById('modal-type-materiel').classList.remove('hidden');
+    }
+
+    async function refreshTypesMateriel() {
+      const res = await fetch('/api/types-materiel');
+      if (!res.ok) throw new Error('Erreur lors du chargement des types');
+      allTypes = await res.json();
+      references.types = allTypes;
+      renderTypesMateriel();
+      populateMaterielForm();
+    }
+
+    async function handleSaveTypeMateriel(e) {
+      e.preventDefault();
+      const id = document.getElementById('type-materiel-id').value;
+      const payload = {
+        cod_typ_mat: document.getElementById('type-materiel-code').value.trim(),
+        lib_typ_mat: document.getElementById('type-materiel-libelle').value.trim()
+      };
+      try {
+        const res = await fetch(id ? '/api/types-materiel/' + id : '/api/types-materiel', {
+          method: id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(result.error || 'Erreur lors de l’enregistrement du type', true);
+          return;
+        }
+        showToast(id ? 'Type de matériel modifié avec succès !' : 'Type de matériel ajouté avec succès !');
+        closeModal('modal-type-materiel');
+        await refreshTypesMateriel();
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
+      }
+    }
+
+    async function deleteTypeMateriel(id) {
+      if (!confirm('Voulez-vous archiver ce type de matériel ?')) return;
+      try {
+        const res = await fetch('/api/types-materiel/' + id, { method: 'DELETE' });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(result.error || 'Impossible d’archiver ce type', true);
+          return;
+        }
+        showToast('Type de matériel archivé');
+        await refreshTypesMateriel();
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
+      }
+    }
+
+    // GESTION DES STRUCTURES
+    function openNewStructureModal() {
+      document.getElementById('structure-id').value = '';
+      document.getElementById('structure-code').value = '';
+      document.getElementById('structure-libelle').value = '';
+      populateStructureParents();
+      document.getElementById('structure-parent').value = '';
+      document.getElementById('structure-modal-title').innerHTML =
+        '<i class="fa-solid fa-sitemap text-indigo-600"></i> Nouvelle structure';
+      document.getElementById('modal-structure').classList.remove('hidden');
+    }
+
+    function populateStructureParents(excludeId = null) {
+      const select = document.getElementById('structure-parent');
+      if (!select) return;
+      const current = select.value;
+      select.innerHTML = '<option value="">Aucune — structure racine</option>' +
+        (allStructures || [])
+          .filter(s => !excludeId || String(s.id_str) !== String(excludeId))
+          .map(s => `<option value="${s.id_str}">${escapeHtml(s.cod_str || '')} — ${escapeHtml(s.lib_str || '')}</option>`)
+          .join('');
+      if (current) select.value = current;
+    }
+
+    function editStructure(id) {
+      const s = (allStructures || []).find(x => String(x.id_str) === String(id));
+      if (!s) return;
+      document.getElementById('structure-id').value = s.id_str;
+      document.getElementById('structure-code').value = s.cod_str || '';
+      document.getElementById('structure-libelle').value = s.lib_str || '';
+      populateStructureParents(s.id_str);
+      document.getElementById('structure-parent').value = s.id_str_mere || '';
+      document.getElementById('structure-modal-title').innerHTML =
+        '<i class="fa-solid fa-pen-to-square text-indigo-600"></i> Modifier la structure';
+      document.getElementById('modal-structure').classList.remove('hidden');
+    }
+
+    async function handleSaveStructure(e) {
+      e.preventDefault();
+      const id = document.getElementById('structure-id').value;
+      const payload = {
+        cod_str: document.getElementById('structure-code').value.trim(),
+        lib_str: document.getElementById('structure-libelle').value.trim(),
+        id_str_mere: document.getElementById('structure-parent').value || null
+      };
+
+      try {
+        const res = await fetch(id ? '/api/structures/' + id : '/api/structures', {
+          method: id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(data.error || 'Erreur lors de l’enregistrement de la structure', true);
+          return;
+        }
+
+        allStructures = await fetch('/api/structures').then(r => r.json());
+        references.structures = allStructures;
+        renderStructures();
+        populateStructureParents();
+        closeModal('modal-structure');
+        showToast(id ? 'Structure modifiée avec succès' : 'Structure ajoutée avec succès');
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
+      }
+    }
+
+    async function deleteStructure(id) {
+      const s = (allStructures || []).find(x => String(x.id_str) === String(id));
+      if (!s) return;
+      if (!confirm(`Archiver la structure « ${s.cod_str} — ${s.lib_str} » ?`)) return;
+
+      try {
+        const res = await fetch('/api/structures/' + id, { method: 'DELETE' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(data.error || 'Impossible d’archiver la structure', true);
+          return;
+        }
+        allStructures = await fetch('/api/structures').then(r => r.json());
+        references.structures = allStructures;
+        renderStructures();
+        showToast('Structure archivée');
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
+      }
+    }
+
+    // GESTION DU CONNECTEUR ORACLE
+    function renderOracleHistory() {
+      const histDiv = document.getElementById('oracle-history-list');
+      if (!histDiv) return;
+
+      if (allOracleHistory.length === 0) {
+        histDiv.innerHTML = '<div class="text-slate-400 py-3 text-center">Aucune synchronisation précédente enregistrée.</div>';
+        return;
+      }
+
+      histDiv.innerHTML = allOracleHistory.map(h => `
+        <div class="py-2.5 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-slate-800 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Oracle SID: ${h.sid || 'ORCL'} (${h.host || 'localhost'})
+            </div>
+            <div class="text-[11px] text-slate-400">${h.timestamp || '-'} &bull; ${h.total_rows || 0} lignes traitées</div>
+          </div>
+          <div class="text-right">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">${h.status || 'OK'}</span>
+            <div class="text-[10px] font-mono text-slate-400">${h.duration_ms || 0} ms</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function runTestOracleConnection() {
+      const btn = document.getElementById('btn-oracle-test');
+      const box = document.getElementById('oracle-logs-box');
+      const resDiv = document.getElementById('oracle-test-result');
+      
+      const payload = {
+        host: document.getElementById('ora-host').value.trim(),
+        port: parseInt(document.getElementById('ora-port').value) || 1521,
+        sid: document.getElementById('ora-sid').value.trim(),
+        username: document.getElementById('ora-schema').value.trim()
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Test en cours...';
+
+      box.innerHTML += `\n<div class="text-cyan-400">[${new Date().toLocaleTimeString()}] Test de connexion vers ${payload.host}:${payload.port} (SID=${payload.sid})...</div>`;
+      box.scrollTop = box.scrollHeight;
+
+      try {
+        const res = await fetch('/api/oracle-sync/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        resDiv.classList.remove('hidden');
+        resDiv.className = 'mt-4 p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900';
+        resDiv.innerHTML = `
+          <div class="flex items-center gap-2 font-bold">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i> ${data.message || 'Connexion Oracle établie avec succès !'}
+          </div>
+          <div class="text-xs text-emerald-700 mt-1 flex flex-wrap gap-4 font-mono">
+            <span>Bannière: ${data.oracleBanner || 'Oracle Database'}</span>
+            <span>Latence: ${data.latencyMs || 10} ms</span>
+            <span>Charset: ${data.characterSet || 'AL32UTF8'}</span>
+          </div>
+        `;
+
+        box.innerHTML += `<div class="text-emerald-400">[${new Date().toLocaleTimeString()}] SUCCÈS: Connecté à ${data.oracleBanner} (${data.latencyMs}ms)</div>`;
+        box.scrollTop = box.scrollHeight;
+        showToast('Connexion Oracle validée avec succès !');
+      } catch (err) {
+        resDiv.classList.remove('hidden');
+        resDiv.className = 'mt-4 p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900';
+        resDiv.innerHTML = `
+          <div class="flex items-center gap-2 font-bold">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i> Échec du test direct
+          </div>
+          <div class="text-xs text-rose-700 mt-1">Vérifiez que le listener Oracle est démarré sur le port spécifié.</div>
+        `;
+        showToast('Erreur de test Oracle', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Tester la connexion';
+      }
+    }
+
+    async function runExecuteOracleSync() {
+      const btn = document.getElementById('btn-oracle-exec');
+      const box = document.getElementById('oracle-logs-box');
+
+      const payload = {
+        host: document.getElementById('ora-host').value.trim(),
+        port: parseInt(document.getElementById('ora-port').value) || 1521,
+        sid: document.getElementById('ora-sid').value.trim(),
+        schema: document.getElementById('ora-schema').value.trim(),
+        strategy: document.getElementById('ora-strategy').value
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Synchronisation en cours...';
+
+      box.innerHTML += `\n<div class="text-amber-400 font-bold">[${new Date().toLocaleTimeString()}] DÉMARRAGE DE LA SYNCHRONISATION ORACLE (Mode ${payload.strategy})...</div>`;
+      box.scrollTop = box.scrollHeight;
+
+      try {
+        const res = await fetch('/api/oracle-sync/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          (data.logs || []).forEach(log => {
+            let color = 'text-slate-300';
+            if (log.level === 'success') color = 'text-emerald-400 font-semibold';
+            if (log.level === 'warn') color = 'text-amber-400';
+            if (log.level === 'error') color = 'text-rose-400';
+            box.innerHTML += `<div class="${color}">[${log.timestamp}] ${log.message}</div>`;
+          });
+          box.scrollTop = box.scrollHeight;
+
+          showToast(`Synchronisation Oracle réussie (+${data.totalRowsProcessed} lignes) !`);
+
+          // Recharger toutes les données pour rafraîchir la grille du parc
+          await loadAllData();
+        } else {
+          showToast('Erreur durant la synchronisation', true);
+        }
+      } catch (err) {
+        box.innerHTML += `<div class="text-rose-400">[${new Date().toLocaleTimeString()}] ERREUR: Impossible de joindre l'API de synchronisation.</div>`;
+        showToast('Erreur de synchronisation Oracle', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Démarrer l\'importation';
+      }
+    }
+
+    async function openOracleSqlModal() {
+      const schema = document.getElementById('ora-schema').value.trim() || 'GPARC_USER';
+      try {
+        const res = await fetch('/api/oracle-sync/sql-script', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ schema: schema })
+        });
+        const data = await res.json();
+        document.getElementById('oracle-sql-textarea').value = data.script || '';
+        document.getElementById('modal-oracle-sql').classList.remove('hidden');
+      } catch (err) {
+        showToast('Impossible de générer le script SQL', true);
+      }
+    }
+
+    function copyOracleSqlScript() {
+      const txt = document.getElementById('oracle-sql-textarea');
+      txt.select();
+      navigator.clipboard.writeText(txt.value).then(() => {
+        showToast('Script SQL copié dans le presse-papier !');
+      }).catch(() => {
+        showToast('Veuillez copier le texte manuellement');
+      });
+    }
+
+    // Exposer explicitement sur window pour tous les onclick HTML
+    window.switchView = switchView;
+    window.toggleView = toggleView;
+    window.setFilter = setFilter;
+    window.applyFilters = applyFilters;
+    window.loadAllData = loadAllData;
+    window.openNewMaterielModal = openNewMaterielModal;
+    window.openNewPanneModal = openNewPanneModal;
+    window.resetPanneForm = resetPanneForm;
+    window.openNewReformeModal = openNewReformeModal;
+    window.handleSaveReforme = handleSaveReforme;
+    window.updateReformeDeclarationFields = updateReformeDeclarationFields;
+    window.quickPanneFor = quickPanneFor;
+    window.closeModal = closeModal;
+    window.deleteMateriel = deleteMateriel;
+    window.handleSaveMateriel = handleSaveMateriel;
+    window.renderReformes = renderReformes;
+    window.openAffectationHistory = openAffectationHistory;
+    window.handleSavePanne = handleSavePanne;
+    window.markRepaired = markRepaired;
+    window.openRepairModal = openRepairModal;
+    window.updateRepairObservation = updateRepairObservation;
+    window.setRepairStateFields = setRepairStateFields;
+    window.handleRepairConfirmation = handleRepairConfirmation;
+    window.viewReport = viewReport;
+    window.resetData = resetData;
+    window.showToast = showToast;
+    window.filterParamCategory = filterParamCategory;
+    window.openNewParamModal = openNewParamModal;
+    window.handleSaveParametre = handleSaveParametre;
+    window.deleteParametre = deleteParametre;
+    window.runTestOracleConnection = runTestOracleConnection;
+    window.runExecuteOracleSync = runExecuteOracleSync;
+    window.openOracleSqlModal = openOracleSqlModal;
+    window.copyOracleSqlScript = copyOracleSqlScript;
+
+    // Déclenchement garanti du chargement
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadAllData);
+    } else {
+      loadAllData();
+    }
+  </script>
+</body>
+</html>
