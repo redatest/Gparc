@@ -2025,11 +2025,17 @@ def handle_pannes():
         return jsonify({"id": last_id, "message": "Panne enregistrée"}), 201
     else:
         rows = [dict(r) for r in cur.execute("""
-            SELECT p.*, m.num_inv, m.num_ser, mod.marque_mat, mod.model_mat, s.lib_str as structure_nom,
+            SELECT p.*, m.num_inv, m.num_ser, m.id_uti,
+                   mod.marque_mat, mod.model_mat,
+                   t.lib_typ_mat AS type_nom,
+                   u.nom_uti, u.pnom_uti,
+                   s.lib_str as structure_nom,
                    l.nom_lieu_rep as lieu_reparation, l.categorie_lieu as categorie_lieu_reparation
             FROM panne p
             JOIN materiel m ON p.id_mat = m.id_mat
             LEFT JOIN model_mat mod ON m.id_model_mat = mod.id_model_mat
+            LEFT JOIN type_mat t ON m.id_typ_mat = t.id_typ_mat
+            LEFT JOIN utilisateurs u ON m.id_uti = u.id_uti
             LEFT JOIN structures s ON p.id_str = s.id_str
             LEFT JOIN lieu_rep l ON p.id_lieu_rep = l.id_lieu_rep
             WHERE p.archiv = 'N' ORDER BY p.id_pan DESC
