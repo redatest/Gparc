@@ -2034,8 +2034,8 @@
         set('rpt-date-reparation', formatReportDate(rpt.intervention?.dateReparation));
         set('rpt-date-retour', formatReportDate(rpt.intervention?.dateRetour));
         set('rpt-lieu-reparation', rpt.intervention?.lieuReparation || '');
-        // La base ne possède pas de champ "code à barre" dédié : on laisse vide.
-        set('rpt-barcode', '');
+        // Le code à barre correspond au N° d'inventaire enregistré dans le parc.
+        set('rpt-barcode', rpt.equipement?.numInventaire || '');
 
         set('rpt-diag', rpt.intervention?.diagnostic || '');
         // Feedback utilisateur : champ volontairement vierge pour saisie manuelle après impression.
