@@ -1303,6 +1303,11 @@
               <button onclick="openRepairModal(${p.id_pan})" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold" title="Gérer le traitement de la panne">
                 <i class="fa-solid fa-screwdriver-wrench"></i> Traitement
               </button>
+              ${p.eta_pan !== 'RP' ? `
+                <button onclick="openReformeFromPanne(${p.id_pan})" class="px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold" title="Déclarer cet équipement à la réforme">
+                  <i class="fa-solid fa-recycle"></i> Réforme
+                </button>
+              ` : ''}
               ${p.eta_pan !== 'RP' && p.eta_pan !== 'IR' ? `
                 <button onclick="markRepaired(${p.id_pan})" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-semibold" title="Marquer comme réparé">
                   <i class="fa-solid fa-check"></i> Réparé
@@ -1415,6 +1420,24 @@
       document.getElementById('reforme-motif').value = mat?.motif_reforme || '';
       updateReformeDeclarationFields();
       document.getElementById('modal-reforme').classList.remove('hidden');
+    }
+
+    function openReformeFromPanne(panneId) {
+      const panne = allPannes.find(p => String(p.id_pan) === String(panneId));
+      if (!panne || !panne.id_mat) {
+        showToast('Équipement de la panne introuvable.', true);
+        return;
+      }
+
+      openNewReformeModal(panne.id_mat);
+
+      const state = document.getElementById('reforme-etat');
+      const date = document.getElementById('reforme-date');
+      const motif = document.getElementById('reforme-motif');
+      if (state) state.value = 'PROPOSEE';
+      if (date) date.value = '';
+      if (motif) motif.value = '';
+      updateReformeDeclarationFields();
     }
 
     async function handleSaveReforme(e) {
