@@ -1693,12 +1693,12 @@
                 '<div><span class="text-slate-400">Statut :</span> <strong class="text-slate-700">' + escapeHtml(p.statut || '-') + '</strong></div>' +
                 '<div><span class="text-slate-400">Type :</span> <strong class="text-slate-700">' + escapeHtml(p.type || '-') + '</strong></div>' +
                 '<div><span class="text-slate-400">Technicien :</span> <strong class="text-slate-700">' + escapeHtml(p.technicien || '-') + '</strong></div>' +
-                '<div><span class="text-slate-400">Coût :</span> <strong class="text-slate-700">' + (p.cout ? Number(p.cout).toLocaleString('fr-FR') + ' DA' : '-') + '</strong></div>' +
+                '<div><span class="text-slate-400">Coût :</span> <strong class="text-slate-700">' + '######' + '</strong></div>' +
               '</div>' +
               ((p.observation_reparation || p.pieces_remplacees || p.recommandations) ?
                 '<div class="mt-2 pt-2 border-t border-slate-200 text-[11px] text-slate-600">' +
                   (p.observation_reparation ? '<div><span class="font-semibold">Réparation :</span> ' + escapeHtml(p.observation_reparation) + '</div>' : '') +
-                  (p.pieces_remplacees ? '<div><span class="font-semibold">Pièces :</span> ' + escapeHtml(p.pieces_remplacees) + '</div>' : '') +
+                  (p.pieces_remplacees ? '<div><span class="font-semibold">Pièces :</span> ' + '#######' + '</div>' : '') +
                   (p.recommandations ? '<div><span class="font-semibold">Recommandations :</span> ' + escapeHtml(p.recommandations) + '</div>' : '') +
                 '</div>' : '');
           } else if (h.type_evenement === 'REFORME') {
