@@ -180,10 +180,10 @@
         <input type="text" id="search-input" oninput="applyFilters()" placeholder="Rechercher par N° inv, série, utilisateur, modèle..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
       <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-        <button onclick="setFilter('ALL')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition">Tous</button>
-        <button onclick="setFilter('BON')" id="filter-bon" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Bon</button>
-        <button onclick="setFilter('PANNE')" id="filter-panne" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">En panne</button>
-        <button onclick="setFilter('IRREPARABLE')" id="filter-irreparable" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Irréparable</button>
+        <button onclick="setFilter('ALL')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Tous</button>
+        <button onclick="setFilter('ES')" id="filter-es" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition">En service</button>
+        <button onclick="setFilter('PR')" id="filter-pr" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Proposé à la réforme</button>
+        <button onclick="setFilter('RF')" id="filter-rf" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Réformé</button>
       </div>
     </div>
 
@@ -222,7 +222,7 @@
                 <th class="p-3">N° Inventaire / Série</th>
                 <th class="p-3">Affectation (Utilisateur & Structure)</th>
                 <th class="p-3">Spécifications (CPU / RAM / Disque / SE)</th>
-                <th class="p-3">Réseau & IP</th>
+                <th class="p-3">Structure</th>
                 <th class="p-3">Statut</th>
                 <th class="p-3">État</th>
                 <th class="p-3 text-right">Actions</th>
@@ -734,6 +734,16 @@
         <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-indigo-600"></i> Traitement de la panne</h3>
         <button onclick="closeModal('modal-repair')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
+      <div id="repair-equipment-info" class="mt-4 rounded-lg border border-indigo-100 bg-indigo-50/50 px-4 py-3">
+        <div class="text-xs font-bold text-indigo-800 mb-2 flex items-center gap-2"><i class="fa-solid fa-desktop"></i> Équipement concerné</div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 text-xs">
+          <div><div class="text-slate-400">Type</div><div id="repair-info-type" class="font-semibold text-slate-800">-</div></div>
+          <div><div class="text-slate-400">Marque</div><div id="repair-info-brand" class="font-semibold text-slate-800">-</div></div>
+          <div><div class="text-slate-400">Modèle</div><div id="repair-info-model" class="font-semibold text-slate-800">-</div></div>
+          <div><div class="text-slate-400">N° de série</div><div id="repair-info-serial" class="font-semibold text-slate-800 font-mono">-</div></div>
+          <div><div class="text-slate-400">Utilisateur assigné</div><div id="repair-info-user" class="font-semibold text-slate-800">-</div></div>
+        </div>
+      </div>
       <form onsubmit="handleRepairConfirmation(event)" class="mt-4 space-y-4">
         <input type="hidden" id="repair-panne-id">
         <div class="grid grid-cols-2 gap-4">
@@ -995,7 +1005,7 @@
     let allTypes = [];
     let references = { structures: [], types: [], modeles: [], utilisateurs: [], parametres: [] };
     let allOracleHistory = [];
-    let currentFilter = 'ALL';
+    let currentFilter = 'ES';
     let currentView = 'materiels';
     let currentParamCat = 'all';
     let editingMaterielId = null;
@@ -1081,7 +1091,8 @@
       const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase().trim() : '';
 
       const filtered = allMateriels.filter(m => {
-        const matchFilter = currentFilter === 'ALL' || m.etat_mat === currentFilter;
+        const equipmentStatus = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
+        const matchFilter = currentFilter === 'ALL' || equipmentStatus === currentFilter;
         const text = `${m.num_inv || ''} ${m.num_ser || ''} ${m.model_mat || ''} ${m.marque_mat || ''} ${m.nom_uti || ''} ${m.structure_nom || ''} ${m.ip || ''} ${m.cpu || ''} ${m.se || ''} ${m.ordi || ''}`.toLowerCase();
         const matchSearch = !query || text.includes(query);
         return matchFilter && matchSearch;
@@ -1208,8 +1219,8 @@
                   <div class="text-slate-800 font-medium">${m.cpu || 'CPU Standard'}</div>
                   <div class="text-slate-500 text-[11px]">${m.ram || 16} Go RAM &bull; ${m.disk || 512} Go SSD &bull; ${m.se || 'Win 11'}</div>
                 </td>
-                <td class="p-3 font-mono text-slate-600">
-                  ${m.ip ? `<span class="px-2 py-0.5 bg-slate-100 rounded text-slate-700 border border-slate-200">${m.ip}</span>` : '<span class="text-slate-400 text-[11px]">DHCP / Non fixée</span>'}
+                <td class="p-3">
+                  <div class="font-semibold text-slate-800">${m.structure_nom || '<span class="text-slate-400 italic">Structure non spécifiée</span>'}</div>
                 </td>
                 <td class="p-3">${statusBadge}</td>
                 <td class="p-3">${etatBadge}</td>
@@ -1362,7 +1373,8 @@
         b.classList.remove('bg-slate-900', 'text-white');
         b.classList.add('bg-slate-100', 'text-slate-700');
       });
-      const activeBtn = document.getElementById('filter-' + filter.toLowerCase());
+      const filterButtonIds = { ALL: 'filter-all', ES: 'filter-es', PR: 'filter-pr', RF: 'filter-rf' };
+      const activeBtn = document.getElementById(filterButtonIds[filter] || 'filter-all');
       if (activeBtn) {
         activeBtn.classList.remove('bg-slate-100', 'text-slate-700');
         activeBtn.classList.add('bg-slate-900', 'text-white');
@@ -1824,6 +1836,17 @@
       }
 
       document.getElementById('repair-panne-id').value = panneId;
+
+      const setRepairInfo = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || '-';
+      };
+      setRepairInfo('repair-info-type', panne.type_nom);
+      setRepairInfo('repair-info-brand', panne.marque_mat);
+      setRepairInfo('repair-info-model', panne.model_mat);
+      setRepairInfo('repair-info-serial', panne.num_ser);
+      setRepairInfo('repair-info-user', panne.nom_uti ? ((panne.pnom_uti || '') + ' ' + panne.nom_uti).trim() : 'Non assigné');
+
       document.getElementById('repair-date-send').value = panne.dat_env_rep || '';
       document.getElementById('repair-date-return').value = panne.dat_ret_rep || '';
       document.getElementById('repair-detail').value = panne.obs_rep || '';
