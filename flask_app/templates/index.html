@@ -269,6 +269,8 @@
                 <th class="p-3">Structure / Utilisateur</th>
                 <th class="p-3">État de réforme</th>
                 <th class="p-3">Motif / Date de réforme</th>
+                <th class="p-3">Année de réforme</th>
+                <th class="p-3">N° de lot</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -1544,7 +1546,9 @@
           '<td class="p-3"><div class="font-mono font-bold text-blue-700">' + escapeHtml(m.num_inv || '-') + '</div><div class="font-mono text-slate-400 text-[11px]">SN: ' + escapeHtml(m.num_ser || '-') + '</div></td>' +
           '<td class="p-3"><div class="font-semibold text-slate-800">' + escapeHtml(m.nom_uti ? ((m.pnom_uti || '') + ' ' + m.nom_uti).trim() : 'Non assigné') + '</div><div class="text-slate-500 text-[11px]">' + escapeHtml(m.structure_nom || 'Direction Non Spécifiée') + '</div></td>' +
           '<td class="p-3">' + stateBadge + '</td>' +
-          '<td class="p-3"><div>' + escapeHtml(m.motif_reforme || '—') + '</div><div class="text-[10px] text-slate-400 mt-1">Date : ' + escapeHtml(m.date_reforme ? new Date(m.date_reforme + 'T00:00:00').toLocaleDateString('fr-FR') : '—') + '</div><div class="text-[10px] text-slate-400">Année : ' + escapeHtml(m.annee_reforme || '—') + ' · Lot : ' + escapeHtml(m.lot_reforme || '—') + '</div></td>' +
+          '<td class="p-3"><div>' + escapeHtml(m.motif_reforme || '—') + '</div><div class="text-[10px] text-slate-400 mt-1">Date : ' + escapeHtml(m.date_reforme ? new Date(m.date_reforme + 'T00:00:00').toLocaleDateString('fr-FR') : '—') + '</div></td>' +
+          '<td class="p-3 font-semibold text-slate-700">' + escapeHtml(m.annee_reforme || '—') + '</td>' +
+          '<td class="p-3 font-mono font-semibold text-slate-700">' + escapeHtml(m.lot_reforme || '—') + '</td>' +
           '<td class="p-3 text-right"><button onclick="openNewReformeModal(' + m.id_mat + ')" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-pen-to-square"></i> Modifier</button></td>' +
           '</tr>';
       }).join('');
