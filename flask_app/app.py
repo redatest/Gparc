@@ -37,9 +37,16 @@ if not os.path.exists(DATA_DIR):
 DB_PATH = os.path.join(DATA_DIR, 'gparc.db')
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    # timeout : si la base est momentanément verrouillée par une autre écriture,
+    # SQLite patiente jusqu'à 15s au lieu d'échouer immédiatement avec "database is locked".
+    conn = sqlite3.connect(DB_PATH, timeout=15)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    # WAL : autorise les lectures concurrentes pendant une écriture (au lieu de verrouiller
+    # tout le fichier). Essentiel dès que plusieurs postes utilisent l'app en même temps.
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA synchronous = NORMAL")
+    conn.execute("PRAGMA busy_timeout = 15000")
     return conn
 
 def init_db():
