@@ -233,6 +233,25 @@
             </tbody>
           </table>
         </div>
+        <div id="materiels-pagination-top" class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div id="materiels-pagination-info-top" class="text-xs text-slate-500"></div>
+          <div class="flex items-center gap-1.5">
+            <label for="materiels-page-size-top" class="text-xs text-slate-500 mr-1">Afficher</label>
+            <select id="materiels-page-size-top" onchange="changeMaterielsPageSize(this.value)" class="px-2 py-1.5 border border-slate-300 rounded-lg bg-white text-xs font-semibold text-slate-700">
+              <option value="10">10</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-xs text-slate-500 mr-2">par page</span>
+            <button onclick="changeMaterielsPage(-1)" class="px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span id="materiels-page-number-top" class="px-2 text-xs font-semibold text-slate-700"></span>
+            <button onclick="changeMaterielsPage(1)" class="px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
         <div id="materiels-pagination" class="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div id="materiels-pagination-info" class="text-xs text-slate-500"></div>
           <div class="flex items-center gap-1.5">
@@ -1311,7 +1330,9 @@
     function updateMaterielsPagination(totalItems) {
       const totalPages = Math.max(1, Math.ceil(totalItems / materielsPageSize));
       const info = document.getElementById('materiels-pagination-info');
+      const infoTop = document.getElementById('materiels-pagination-info-top');
       const number = document.getElementById('materiels-page-number');
+      const numberTop = document.getElementById('materiels-page-number-top');
       const prev = document.getElementById('materiels-page-prev');
       const next = document.getElementById('materiels-page-next');
       const start = totalItems === 0 ? 0 : ((materielsCurrentPage - 1) * materielsPageSize) + 1;
@@ -1321,6 +1342,8 @@
         ? 'Aucun équipement à afficher'
         : 'Affichage de ' + start + ' à ' + end + ' sur ' + totalItems + ' équipement' + (totalItems > 1 ? 's' : '');
       if (number) number.textContent = 'Page ' + materielsCurrentPage + ' / ' + totalPages;
+      if (numberTop) numberTop.textContent = 'Page ' + materielsCurrentPage + ' / ' + totalPages;
+      if (infoTop) infoTop.textContent = info ? info.textContent : '';
       if (prev) prev.disabled = materielsCurrentPage <= 1 || totalItems === 0;
       if (next) next.disabled = materielsCurrentPage >= totalPages || totalItems === 0;
     }
