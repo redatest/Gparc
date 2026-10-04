@@ -377,8 +377,8 @@
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">Configurez les marques, modèles, processeurs, capacités mémoires, disques et systèmes d'exploitation utilisés dans le parc.</p>
           </div>
-          <button onclick="openNewParamModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
-            <i class="fa-solid fa-plus"></i> Nouveau Paramètre
+          <button id="btn-new-param" onclick="openNewParamModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+            <i class="fa-solid fa-plus"></i> <span id="btn-new-param-label">Nouveau Paramètre</span>
           </button>
         </div>
 
@@ -2436,10 +2436,18 @@
         activeBtn.classList.add('bg-indigo-50', 'text-indigo-700', 'border', 'border-indigo-200');
       }
 
-      const paramButton = document.querySelector('button[onclick="openNewParamModal()"]');
+      const paramButton = document.getElementById('btn-new-param');
+      const paramButtonLabel = document.getElementById('btn-new-param-label');
       const typeButton = document.querySelector('button[onclick="openNewTypeMaterielModal()"]');
       const structureButton = document.querySelector('button[onclick="openNewStructureModal()"]');
-      if (paramButton) paramButton.classList.toggle('hidden', cat === 'types' || cat === 'structures' || cat === 'utilisateurs');
+
+      const isSpecialCategory = cat === 'types' || cat === 'structures' || cat === 'utilisateurs';
+      if (paramButton) paramButton.classList.toggle('hidden', isSpecialCategory);
+      if (paramButtonLabel) {
+        paramButtonLabel.textContent = cat === 'lot_reforme'
+          ? 'Nouveau Lot de réforme'
+          : 'Nouveau Paramètre';
+      }
       if (typeButton) typeButton.classList.toggle('hidden', cat !== 'types');
       if (structureButton) structureButton.classList.toggle('hidden', cat !== 'structures');
 
