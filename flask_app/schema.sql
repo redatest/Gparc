@@ -104,6 +104,8 @@ CREATE TABLE IF NOT EXISTS materiel (
   date_proposition_reforme DATE,
   date_validation_reforme DATE,
   date_reforme DATE,
+  annee_reforme INTEGER,
+  lot_reforme TEXT,
   decision_reforme TEXT,
   pv_reforme TEXT,
   FOREIGN KEY (id_str) REFERENCES structures (id_str),
