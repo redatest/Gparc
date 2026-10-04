@@ -672,6 +672,16 @@
             <input type="date" id="reforme-date" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
           </div>
         </div>
+        <div id="reforme-identification-fields" class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Année de réforme *</label>
+            <input type="number" id="reforme-annee" min="2000" max="2100" placeholder="ex. 2026" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">N° de lot *</label>
+            <input type="text" id="reforme-lot" maxlength="100" placeholder="ex. LOT-2026-001" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500">
+          </div>
+        </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Motif de réforme</label>
           <textarea id="reforme-motif" rows="4" placeholder="Saisissez le motif de la réforme..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-amber-500"></textarea>
@@ -1420,10 +1430,22 @@
       const state = document.getElementById('reforme-etat')?.value || 'AUCUNE';
       const date = document.getElementById('reforme-date');
       const motif = document.getElementById('reforme-motif');
+      const annee = document.getElementById('reforme-annee');
+      const lot = document.getElementById('reforme-lot');
+      const identification = document.getElementById('reforme-identification-fields');
       const isReforme = state === 'REFORME';
       if (date) date.required = isReforme;
       if (motif) motif.required = isReforme;
-      if (!isReforme) { if (date) date.value = ''; if (motif) motif.value = ''; }
+      if (annee) annee.required = isReforme;
+      if (lot) lot.required = isReforme;
+      if (identification) identification.classList.toggle('hidden', !isReforme);
+      if (isReforme && annee && !annee.value) annee.value = String(new Date().getFullYear());
+      if (!isReforme) {
+        if (date) date.value = '';
+        if (motif) motif.value = '';
+        if (annee) annee.value = '';
+        if (lot) lot.value = '';
+      }
     }
 
     function updateReformeMotif() {
@@ -1451,6 +1473,8 @@
       const mat = matId ? allMateriels.find(m => String(m.id_mat) === String(matId)) : null;
       document.getElementById('reforme-etat').value = mat?.etat_reforme || 'PROPOSEE';
       document.getElementById('reforme-date').value = mat?.date_reforme || '';
+      document.getElementById('reforme-annee').value = mat?.annee_reforme || '';
+      document.getElementById('reforme-lot').value = mat?.lot_reforme || '';
       document.getElementById('reforme-motif').value = mat?.motif_reforme || '';
       syncReformeMotifShortcuts(mat?.motif_reforme || '');
       updateReformeDeclarationFields();
@@ -1481,11 +1505,22 @@
       const id = parseInt(document.getElementById('reforme-mat-id').value);
       const state = document.getElementById('reforme-etat').value;
       const date = document.getElementById('reforme-date').value || null;
+      const annee = parseInt(document.getElementById('reforme-annee').value, 10) || null;
+      const lot = document.getElementById('reforme-lot').value.trim() || null;
       const motif = document.getElementById('reforme-motif').value.trim() || null;
       if (!id) { showToast('Sélectionnez un équipement.', true); return; }
-      if (state === 'REFORME' && (!date || !motif)) { showToast('La date de réforme et le motif sont obligatoires.', true); return; }
+      if (state === 'REFORME' && (!date || !annee || !lot || !motif)) {
+        showToast("La date, l'année, le N° de lot et le motif de réforme sont obligatoires.", true);
+        return;
+      }
       try {
-        const res = await fetch('/api/materiels/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ etat_reforme: state, date_reforme: state === 'REFORME' ? date : null, motif_reforme: state === 'REFORME' ? motif : null }) });
+        const res = await fetch('/api/materiels/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+          etat_reforme: state,
+          date_reforme: state === 'REFORME' ? date : null,
+          annee_reforme: state === 'REFORME' ? annee : null,
+          lot_reforme: state === 'REFORME' ? lot : null,
+          motif_reforme: state === 'REFORME' ? motif : null
+        }) });
         const result = await res.json().catch(() => ({}));
         if (!res.ok) { showToast(result.error || 'Erreur lors de la déclaration de réforme.', true); return; }
         closeModal('modal-reforme');
@@ -1509,7 +1544,7 @@
           '<td class="p-3"><div class="font-mono font-bold text-blue-700">' + escapeHtml(m.num_inv || '-') + '</div><div class="font-mono text-slate-400 text-[11px]">SN: ' + escapeHtml(m.num_ser || '-') + '</div></td>' +
           '<td class="p-3"><div class="font-semibold text-slate-800">' + escapeHtml(m.nom_uti ? ((m.pnom_uti || '') + ' ' + m.nom_uti).trim() : 'Non assigné') + '</div><div class="text-slate-500 text-[11px]">' + escapeHtml(m.structure_nom || 'Direction Non Spécifiée') + '</div></td>' +
           '<td class="p-3">' + stateBadge + '</td>' +
-          '<td class="p-3"><div>' + escapeHtml(m.motif_reforme || '—') + '</div><div class="text-[10px] text-slate-400 mt-1">Date : ' + escapeHtml(m.date_reforme ? new Date(m.date_reforme + 'T00:00:00').toLocaleDateString('fr-FR') : '—') + '</div></td>' +
+          '<td class="p-3"><div>' + escapeHtml(m.motif_reforme || '—') + '</div><div class="text-[10px] text-slate-400 mt-1">Date : ' + escapeHtml(m.date_reforme ? new Date(m.date_reforme + 'T00:00:00').toLocaleDateString('fr-FR') : '—') + '</div><div class="text-[10px] text-slate-400">Année : ' + escapeHtml(m.annee_reforme || '—') + ' · Lot : ' + escapeHtml(m.lot_reforme || '—') + '</div></td>' +
           '<td class="p-3 text-right"><button onclick="openNewReformeModal(' + m.id_mat + ')" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold"><i class="fa-solid fa-pen-to-square"></i> Modifier</button></td>' +
           '</tr>';
       }).join('');
@@ -2722,5 +2757,3 @@
       loadAllData();
     }
   </script>
-</body>
-</html>
