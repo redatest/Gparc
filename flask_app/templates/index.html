@@ -214,25 +214,6 @@
           </div>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
-              <tr>
-                <th class="p-3">Équipement</th>
-                <th class="p-3">N° Inventaire / Série</th>
-                <th class="p-3">Affectation (Utilisateur & Structure)</th>
-                <th class="p-3">Spécifications (CPU / RAM / Disque / SE)</th>
-                <th class="p-3">Structure</th>
-                <th class="p-3">Statut</th>
-                <th class="p-3">État</th>
-                <th class="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="materiels-table-body" class="divide-y divide-slate-100">
-              <!-- Rempli dynamiquement -->
-            </tbody>
-          </table>
-        </div>
         <div id="materiels-pagination-top" class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div id="materiels-pagination-info-top" class="text-xs text-slate-500"></div>
           <div class="flex items-center gap-1.5">
@@ -251,6 +232,26 @@
               <i class="fa-solid fa-chevron-right"></i>
             </button>
           </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Équipement</th>
+                <th class="p-3">N° Inventaire / Série</th>
+                <th class="p-3">Affectation (Utilisateur & Structure)</th>
+                <th class="p-3">Spécifications (CPU / RAM / Disque / SE)</th>
+                <th class="p-3">Structure</th>
+                <th class="p-3">Statut</th>
+                <th class="p-3">État</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="materiels-table-body" class="divide-y divide-slate-100">
+              <!-- Rempli dynamiquement -->
+            </tbody>
+          </table>
         </div>
         <div id="materiels-pagination" class="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div id="materiels-pagination-info" class="text-xs text-slate-500"></div>
