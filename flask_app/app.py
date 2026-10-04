@@ -35,7 +35,6 @@ if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR, exist_ok=True)
 
 DB_PATH = os.path.join(DATA_DIR, 'gparc.db')
-DIST_DIR = os.path.abspath(os.path.join(BASE_DIR, '../dist'))
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -1523,23 +1522,12 @@ def serve_logo_ss():
 
 @app.route('/')
 def index():
-    """Point d'entrée principal : sert le template HTML autonome ou le build React."""
+    """Point d'entrée principal : sert le template HTML autonome."""
     tpl_path = os.path.join(BASE_DIR, 'templates', 'index.html')
     if os.path.exists(tpl_path):
         with open(tpl_path, 'r', encoding='utf-8') as f:
             return Response(f.read(), mimetype='text/html')
-    dist_index = os.path.join(DIST_DIR, 'index.html')
-    if os.path.exists(dist_index):
-        return send_from_directory(DIST_DIR, 'index.html')
     return Response(STANDALONE_HTML, mimetype='text/html')
-
-@app.route('/assets/<path:path>')
-def send_assets(path):
-    """Sert les assets JS/CSS compilés si présents."""
-    assets_dir = os.path.join(DIST_DIR, 'assets')
-    if os.path.exists(os.path.join(assets_dir, path)):
-        return send_from_directory(assets_dir, path)
-    return ('', 404)
 
 # -----------------------------------------------------------------------------
 # ROUTES API REST
