@@ -1752,6 +1752,17 @@ def handle_single_materiel(mat_id):
                 conn.close()
                 return jsonify({"error": "Le motif de réforme est obligatoire."}), 400
             lot_reforme = str(lot_reforme).strip()
+            lot_ref = cur.execute("""
+                SELECT id_param
+                FROM parametres_materiel
+                WHERE categorie = 'lot_reforme'
+                  AND archiv = 'N'
+                  AND LOWER(TRIM(valeur)) = LOWER(TRIM(?))
+                LIMIT 1
+            """, (lot_reforme,)).fetchone()
+            if not lot_ref:
+                conn.close()
+                return jsonify({"error": "Le N° de lot sélectionné n'existe pas dans le référentiel des lots de réforme."}), 400
             date_proposition = existing['date_proposition_reforme'] or today
         elif etat_reforme == 'PROPOSEE':
             date_proposition = today
