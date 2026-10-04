@@ -998,6 +998,42 @@
     </div>
   </div>
 
+  <!-- MODAL : NOUVEAU LOT DE RÉFORME -->
+  <div id="modal-lot-reforme" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-boxes-stacked text-amber-600"></i> Nouveau lot de réforme
+        </h3>
+        <button onclick="closeModal('modal-lot-reforme')" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form onsubmit="handleSaveLotReforme(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">N° de lot *</label>
+          <input type="text" id="lot-reforme-val" required placeholder="Ex : LOT-2026-001"
+                 class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Observation</label>
+          <input type="text" id="lot-reforme-desc" placeholder="Description du lot"
+                 class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-lot-reforme')"
+                  class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">
+            Annuler
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-sm">
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL : AJOUT / MODIFICATION DE PARAMÈTRE -->
   <div id="modal-parametre" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
@@ -2442,7 +2478,12 @@
       const structureButton = document.querySelector('button[onclick="openNewStructureModal()"]');
 
       const isSpecialCategory = cat === 'types' || cat === 'structures' || cat === 'utilisateurs';
-      if (paramButton) paramButton.classList.toggle('hidden', isSpecialCategory);
+      if (paramButton) {
+        paramButton.classList.toggle('hidden', isSpecialCategory);
+        paramButton.onclick = cat === 'lot_reforme'
+          ? openNewLotReformeModal
+          : openNewParamModal;
+      }
       if (paramButtonLabel) {
         paramButtonLabel.textContent = cat === 'lot_reforme'
           ? 'Nouveau Lot de réforme'
@@ -2452,6 +2493,52 @@
       if (structureButton) structureButton.classList.toggle('hidden', cat !== 'structures');
 
       renderParametres();
+    }
+
+    function openNewLotReformeModal() {
+      document.getElementById('lot-reforme-val').value = '';
+      document.getElementById('lot-reforme-desc').value = '';
+      document.getElementById('modal-lot-reforme').classList.remove('hidden');
+    }
+
+    async function handleSaveLotReforme(e) {
+      e.preventDefault();
+      const valeur = document.getElementById('lot-reforme-val').value.trim();
+      const description = document.getElementById('lot-reforme-desc').value.trim();
+
+      if (!valeur) {
+        showToast('Le N° de lot est obligatoire.', true);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/parametres', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            categorie: 'lot_reforme',
+            valeur: valeur,
+            description: description,
+            ordre: 1
+          })
+        });
+        const result = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          showToast(result.error || 'Erreur lors de l’enregistrement du lot.', true);
+          return;
+        }
+
+        allParametres = await fetch('/api/parametres').then(r => r.json());
+        references.parametres = allParametres;
+        renderParametres();
+        populateMaterielForm();
+        populateReformeLotSelect();
+        closeModal('modal-lot-reforme');
+        showToast('Lot de réforme ajouté avec succès !');
+      } catch (err) {
+        showToast('Erreur serveur Flask', true);
+      }
     }
 
     function openNewParamModal() {
@@ -2879,6 +2966,8 @@
     window.resetData = resetData;
     window.showToast = showToast;
     window.filterParamCategory = filterParamCategory;
+    window.openNewLotReformeModal = openNewLotReformeModal;
+    window.handleSaveLotReforme = handleSaveLotReforme;
     window.openNewParamModal = openNewParamModal;
     window.handleSaveParametre = handleSaveParametre;
     window.deleteParametre = deleteParametre;
