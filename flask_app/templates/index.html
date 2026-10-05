@@ -1,4 +1,19 @@
 <!DOCTYPE html>
+
+    <!-- Barre de Recherche et Filtres -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div class="relative w-full sm:w-96">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" id="search-input" oninput="applyFilters()" placeholder="Rechercher par N° inv, série, utilisateur, modèle..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+        <button onclick="setFilter('ALL')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Tous</button>
+        <button onclick="setFilter('ES')" id="filter-es" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition">En service</button>
+        <button onclick="setFilter('PR')" id="filter-pr" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Proposé à la réforme</button>
+        <button onclick="setFilter('RF')" id="filter-rf" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Réformé</button>
+      </div>
+    </div>
+
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -170,20 +185,6 @@
           <div class="text-2xl font-bold text-amber-600" id="kpi-re">0</div>
           <div class="text-xs text-slate-500 font-medium">État : Irréparable</div>
         </div>
-      </div>
-    </div>
-
-    <!-- Barre de Recherche et Filtres -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
-      <div class="relative w-full sm:w-96">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-        <input type="text" id="search-input" oninput="applyFilters()" placeholder="Rechercher par N° inv, série, utilisateur, modèle..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      </div>
-      <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-        <button onclick="setFilter('ALL')" id="filter-all" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Tous</button>
-        <button onclick="setFilter('ES')" id="filter-es" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition">En service</button>
-        <button onclick="setFilter('PR')" id="filter-pr" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Proposé à la réforme</button>
-        <button onclick="setFilter('RF')" id="filter-rf" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Réformé</button>
       </div>
     </div>
 
