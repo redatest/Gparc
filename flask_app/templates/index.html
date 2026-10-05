@@ -1559,7 +1559,11 @@
             <td class="p-3 font-mono text-slate-500">${p.dat_pan || '-'}</td>
             <td class="p-3">
               <div class="font-bold text-slate-800">${p.marque_mat || ''} ${p.model_mat || ''}</div>
-              <div class="font-mono text-slate-400 text-[11px]">${p.num_inv || ''}</div>
+              <div class="text-[11px] text-slate-400">${p.type_nom || ''}</div>
+            </td>
+            <td class="p-3 font-mono text-[11px] text-slate-600">
+              <div><span class="text-slate-400">Inv:</span> ${p.num_inv || '-'}</div>
+              <div><span class="text-slate-400">Série:</span> ${p.num_ser || '-'}</div>
             </td>
             <td class="p-3 max-w-xs text-slate-700 leading-snug">${p.diag_pan || ''}</td>
             <td class="p-3 text-slate-700">
@@ -1570,10 +1574,9 @@
               <div class="text-[11px] text-slate-400 mt-1">${lieu}</div>
               <div class="text-[11px] text-slate-400 mt-1">${dates}</div>
             </td>
-            <td class="p-3">${statusBadge}</td>
-            <td class="p-3 text-slate-500 text-[11px] max-w-xs">
-              <div class="font-semibold text-slate-700">${state}</div>
-              <div>${p.obs_rep || ''}</div>
+            <td class="p-3">
+              ${statusBadge}
+              <div class="text-[11px] text-slate-500 mt-1">${p.obs_rep || ''}</div>
             </td>
             <td class="p-3 text-right min-w-[155px]">
               <div class="grid grid-cols-2 gap-1.5 w-full max-w-[150px] ml-auto">
