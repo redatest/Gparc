@@ -680,7 +680,7 @@
           <div class="grid grid-cols-2 gap-2">
             <select id="mat-cpu" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">Sélectionner un processeur...</option></select>
             <select id="mat-se" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">Sélectionner un système d'exploitation...</option></select>
-            <input type="number" id="mat-ram" placeholder="RAM Go (16)" class="px-2.5 py-1.5 border rounded-lg text-xs">
+            <select id="mat-ram" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">RAM (Go)...</option></select>
             <input type="number" id="mat-disk" placeholder="SSD Go (512)" class="px-2.5 py-1.5 border rounded-lg text-xs">
           </div>
         </div>
@@ -1841,7 +1841,8 @@
       const modelSel = document.getElementById('mat-model');
       const cpuSel = document.getElementById('mat-cpu');
       const seSel = document.getElementById('mat-se');
-      if (!brandSel || !typeSel || !strSel || !userSel || !modelSel || !cpuSel || !seSel) return;
+      const ramSel = document.getElementById('mat-ram');
+      if (!brandSel || !typeSel || !strSel || !userSel || !modelSel || !cpuSel || !seSel || !ramSel) return;
 
       const brands = (references.parametres || [])
         .filter(p => p.categorie === 'marque')
@@ -1860,7 +1861,9 @@
       const cpuParams = getParamsByCategory('cpu');
       cpuSel.innerHTML = '<option value="">Sélectionner un processeur...</option>' + cpuParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
       const seParams = getParamsByCategory('se');
-      seSel.innerHTML = '<option value="">Sélectionner un système d'exploitation...</option>' + seParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
+      seSel.innerHTML = '<option value="">Sélectionner un système d\'exploitation...</option>' + seParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
+      const ramParams = getParamsByCategory('ram');
+      ramSel.innerHTML = '<option value="">Sélectionner la RAM...</option>' + ramParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + ' Go</option>').join('');
       userSel.innerHTML = '<option value="">Aucun (En stock DSI)</option>' +
         (references.utilisateurs || []).map(u => `<option value="${u.id_uti}">${escapeHtml((u.nom_uti || '') + ' ' + (u.pnom_uti || ''))}</option>`).join('');
 
@@ -2693,7 +2696,7 @@
     function renderSeParams() {
       const tbody = document.getElementById('se-param-table-body'); if (!tbody) return;
       const rows = getParamsByCategory('se');
-      tbody.innerHTML = rows.length ? rows.map(p => '<tr class="hover:bg-slate-50 transition"><td class="p-3 font-semibold text-slate-800">' + escapeHtml(p.valeur) + '</td><td class="p-3 text-slate-500">' + escapeHtml(p.description || '—') + '</td><td class="p-3 text-center font-mono text-slate-500">' + (p.ordre || 1) + '</td><td class="p-3 text-right whitespace-nowrap"><button onclick="editSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver"><i class="fa-solid fa-trash-can"></i></button></td></tr>').join('') : '<tr><td colspan="4" class="p-6 text-center text-slate-400">Aucun système d'exploitation configuré.</td></tr>';
+      tbody.innerHTML = rows.length ? rows.map(p => '<tr class="hover:bg-slate-50 transition"><td class="p-3 font-semibold text-slate-800">' + escapeHtml(p.valeur) + '</td><td class="p-3 text-slate-500">' + escapeHtml(p.description || '—') + '</td><td class="p-3 text-center font-mono text-slate-500">' + (p.ordre || 1) + '</td><td class="p-3 text-right whitespace-nowrap"><button onclick="editSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver"><i class="fa-solid fa-trash-can"></i></button></td></tr>').join('') : '<tr><td colspan="4" class="p-6 text-center text-slate-400">Aucun système d\'exploitation configuré.</td></tr>';
     }
 
     function openNewCpuModal() {
