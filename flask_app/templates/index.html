@@ -1860,7 +1860,7 @@
       const cpuParams = getParamsByCategory('cpu');
       cpuSel.innerHTML = '<option value="">Sélectionner un processeur...</option>' + cpuParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
       const seParams = getParamsByCategory('se');
-      seSel.innerHTML = '<option value="">Sélectionner un système d'exploitation...</option>' + seParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
+      seSel.innerHTML = '<option value="">Sélectionner un système d’exploitation...</option>' + seParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
       userSel.innerHTML = '<option value="">Aucun (En stock DSI)</option>' +
         (references.utilisateurs || []).map(u => `<option value="${u.id_uti}">${escapeHtml((u.nom_uti || '') + ' ' + (u.pnom_uti || ''))}</option>`).join('');
 
@@ -2693,7 +2693,7 @@
     function renderSeParams() {
       const tbody = document.getElementById('se-param-table-body'); if (!tbody) return;
       const rows = getParamsByCategory('se');
-      tbody.innerHTML = rows.length ? rows.map(p => '<tr class="hover:bg-slate-50 transition"><td class="p-3 font-semibold text-slate-800">' + escapeHtml(p.valeur) + '</td><td class="p-3 text-slate-500">' + escapeHtml(p.description || '—') + '</td><td class="p-3 text-center font-mono text-slate-500">' + (p.ordre || 1) + '</td><td class="p-3 text-right whitespace-nowrap"><button onclick="editSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver"><i class="fa-solid fa-trash-can"></i></button></td></tr>').join('') : '<tr><td colspan="4" class="p-6 text-center text-slate-400">Aucun système d'exploitation configuré.</td></tr>';
+      tbody.innerHTML = rows.length ? rows.map(p => '<tr class="hover:bg-slate-50 transition"><td class="p-3 font-semibold text-slate-800">' + escapeHtml(p.valeur) + '</td><td class="p-3 text-slate-500">' + escapeHtml(p.description || '—') + '</td><td class="p-3 text-center font-mono text-slate-500">' + (p.ordre || 1) + '</td><td class="p-3 text-right whitespace-nowrap"><button onclick="editSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteSeParam(' + p.id_param + ')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver"><i class="fa-solid fa-trash-can"></i></button></td></tr>').join('') : '<tr><td colspan="4" class="p-6 text-center text-slate-400">Aucun système d’exploitation configuré.</td></tr>';
     }
 
     function openNewCpuModal() {
