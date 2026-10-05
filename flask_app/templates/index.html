@@ -680,7 +680,7 @@
           <div class="grid grid-cols-2 gap-2">
             <select id="mat-cpu" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">Sélectionner un processeur...</option></select>
             <select id="mat-se" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">Sélectionner un système d'exploitation...</option></select>
-            <input type="number" id="mat-ram" placeholder="RAM Go (16)" class="px-2.5 py-1.5 border rounded-lg text-xs">
+            <select id="mat-ram" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">RAM (Go)...</option></select>
             <input type="number" id="mat-disk" placeholder="SSD Go (512)" class="px-2.5 py-1.5 border rounded-lg text-xs">
           </div>
         </div>
@@ -1841,7 +1841,8 @@
       const modelSel = document.getElementById('mat-model');
       const cpuSel = document.getElementById('mat-cpu');
       const seSel = document.getElementById('mat-se');
-      if (!brandSel || !typeSel || !strSel || !userSel || !modelSel || !cpuSel || !seSel) return;
+      const ramSel = document.getElementById('mat-ram');
+      if (!brandSel || !typeSel || !strSel || !userSel || !modelSel || !cpuSel || !seSel || !ramSel) return;
 
       const brands = (references.parametres || [])
         .filter(p => p.categorie === 'marque')
@@ -1861,6 +1862,8 @@
       cpuSel.innerHTML = '<option value="">Sélectionner un processeur...</option>' + cpuParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
       const seParams = getParamsByCategory('se');
       seSel.innerHTML = '<option value="">Sélectionner un système d’exploitation...</option>' + seParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
+      const ramParams = getParamsByCategory('ram');
+      ramSel.innerHTML = '<option value="">Sélectionner la RAM...</option>' + ramParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + ' Go</option>').join('');
       userSel.innerHTML = '<option value="">Aucun (En stock DSI)</option>' +
         (references.utilisateurs || []).map(u => `<option value="${u.id_uti}">${escapeHtml((u.nom_uti || '') + ' ' + (u.pnom_uti || ''))}</option>`).join('');
 
