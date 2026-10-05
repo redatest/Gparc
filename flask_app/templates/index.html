@@ -1121,11 +1121,12 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-sliders text-indigo-600"></i> Ajouter un paramètre matériel
+          <i class="fa-solid fa-sliders text-indigo-600"></i> <span id="param-modal-title">Ajouter un paramètre matériel</span>
         </h3>
         <button onclick="closeModal('modal-parametre')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form onsubmit="handleSaveParametre(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="param-id">
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Catégorie de paramètre *</label>
           <select id="param-cat" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
@@ -2514,8 +2515,13 @@
             <td class="p-3 font-semibold text-slate-800">${escapeHtml(p.valeur || '')}</td>
             <td class="p-3 text-slate-500">${escapeHtml(p.description || '-')}</td>
             <td class="p-3 text-center font-mono text-slate-500">${p.ordre || 1}</td>
-            <td class="p-3 text-right">
-              <button onclick="deleteParametre(${p.id_param})" class="p-1 text-slate-400 hover:text-rose-600 rounded" title="Supprimer">
+            <td class="p-3 text-right whitespace-nowrap">
+              ${['marque', 'modele', 'ram', 'disk', 'lot_reforme'].includes((p.categorie || '').toLowerCase()) ? `
+                <button onclick="editParametre(${p.id_param})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              ` : ''}
+              <button onclick="deleteParametre(${p.id_param})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Supprimer">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </td>
@@ -2719,12 +2725,38 @@
       }
     }
 
+    function resetParametreModal() {
+      document.getElementById('param-id').value = '';
+      document.getElementById('param-cat').value = currentParamCat !== 'all' ? currentParamCat : 'marque';
+      document.getElementById('param-cat').disabled = false;
+      document.getElementById('param-val').value = '';
+      document.getElementById('param-desc').value = '';
+      document.getElementById('param-ordre').value = '1';
+      document.getElementById('param-modal-title').textContent = 'Ajouter un paramètre matériel';
+    }
+
     function openNewParamModal() {
+      resetParametreModal();
+      document.getElementById('modal-parametre').classList.remove('hidden');
+    }
+
+    function editParametre(id) {
+      const p = (allParametres || []).find(x => String(x.id_param) === String(id));
+      if (!p || !['marque', 'modele', 'ram', 'disk', 'lot_reforme'].includes((p.categorie || '').toLowerCase())) return;
+
+      document.getElementById('param-id').value = p.id_param;
+      document.getElementById('param-cat').value = p.categorie || '';
+      document.getElementById('param-cat').disabled = true;
+      document.getElementById('param-val').value = p.valeur || '';
+      document.getElementById('param-desc').value = p.description || '';
+      document.getElementById('param-ordre').value = p.ordre || 1;
+      document.getElementById('param-modal-title').textContent = 'Modifier le paramètre';
       document.getElementById('modal-parametre').classList.remove('hidden');
     }
 
     async function handleSaveParametre(e) {
       e.preventDefault();
+      const id = document.getElementById('param-id').value;
       const payload = {
         categorie: document.getElementById('param-cat').value,
         valeur: document.getElementById('param-val').value.trim(),
@@ -2732,26 +2764,34 @@
         ordre: parseInt(document.getElementById('param-ordre').value) || 1
       };
 
+      if (!payload.valeur) {
+        showToast('La valeur est obligatoire.', true);
+        return;
+      }
+
       try {
-        const res = await fetch('/api/parametres', {
-          method: 'POST',
+        const res = await fetch(id ? '/api/parametres/' + id : '/api/parametres', {
+          method: id ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-          showToast('Paramètre matériel ajouté avec succès !');
-          closeModal('modal-parametre');
-          document.getElementById('param-val').value = '';
-          document.getElementById('param-desc').value = '';
-          const updated = await fetch('/api/parametres').then(r => r.json());
-          allParametres = updated;
-          references.parametres = updated;
-          renderParametres();
-          populateMaterielForm();
-        } else {
-          showToast('Erreur lors de l\'enregistrement', true);
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast(result.error || "Erreur lors de l'enregistrement", true);
+          return;
         }
+
+        showToast(id ? 'Paramètre modifié avec succès !' : 'Paramètre matériel ajouté avec succès !');
+        closeModal('modal-parametre');
+        resetParametreModal();
+
+        const updated = await fetch('/api/parametres').then(r => r.json());
+        allParametres = updated;
+        references.parametres = updated;
+        renderParametres();
+        populateMaterielForm();
+        populateReformeLotSelect();
       } catch (err) {
         showToast('Erreur serveur Flask', true);
       }
