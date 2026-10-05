@@ -288,16 +288,20 @@
             </div>
             <p class="text-xs text-slate-500 mt-0.5">Suivi des équipements proposés à la réforme et déjà réformés, avec le motif de réforme.</p>
           </div>
-          <div class="flex items-center gap-2">
-            <select id="reforme-filter" onchange="renderReformes()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">
-              <option value="ALL">Tous</option>
-              <option value="PROPOSEE">Proposé à la réforme</option>
-              <option value="REFORME">Réformé</option>
-            </select>
-          
-            <button onclick="openNewReformeModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
-              <i class="fa-solid fa-recycle"></i> Déclarer une réforme
-            </button></div>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <div class="relative w-full sm:w-64">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="reforme-search-input" oninput="applyReformeFilters()" placeholder="Rechercher équipement, N° inventaire, série..." class="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button type="button" id="reforme-filter-all" onclick="setReformeFilter('ALL')" class="reforme-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-900 text-white">Tous</button>
+              <button type="button" id="reforme-filter-proposee" onclick="setReformeFilter('PROPOSEE')" class="reforme-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Proposé à la réforme</button>
+              <button type="button" id="reforme-filter-reforme" onclick="setReformeFilter('REFORME')" class="reforme-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Réformé</button>
+              <button onclick="openNewReformeModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-recycle"></i> Déclarer une réforme
+              </button>
+            </div>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
@@ -322,11 +326,24 @@
     <!-- VUE 2 : PANNES & INTERVENTIONS -->
     <div id="view-pannes" class="view-panel hidden">
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-slate-200 flex justify-between items-center">
+        <div class="p-4 border-b border-slate-200 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
           <h2 class="text-base font-bold text-slate-800">Historique et Suivi des Pannes Techniques</h2>
-          <button onclick="openNewPanneModal()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
-            <i class="fa-solid fa-plus"></i> Déclarer une nouvelle panne
-          </button>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+            <div class="relative w-full sm:w-64">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="pannes-search-input" oninput="applyPanneFilters()" placeholder="Rechercher équipement, panne, utilisateur..." class="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-500">
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button type="button" id="panne-filter-all" onclick="setPanneFilter('ALL')" class="panne-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-900 text-white">Tous</button>
+              <button type="button" id="panne-filter-EP" onclick="setPanneFilter('EP')" class="panne-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">En panne</button>
+              <button type="button" id="panne-filter-ER" onclick="setPanneFilter('ER')" class="panne-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">En réparation</button>
+              <button type="button" id="panne-filter-RP" onclick="setPanneFilter('RP')" class="panne-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Réparé</button>
+              <button type="button" id="panne-filter-IR" onclick="setPanneFilter('IR')" class="panne-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Irréparable</button>
+              <button onclick="openNewPanneModal()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Déclarer une nouvelle panne
+              </button>
+            </div>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-sm">
@@ -1184,6 +1201,7 @@
     let currentParamCat = 'all';
     let editingMaterielId = null;
     let currentReformeFilter = 'ALL';
+    let currentPanneFilter = 'ALL';
 
     // Chargement initial
     window.addEventListener('DOMContentLoaded', () => {
@@ -1471,12 +1489,49 @@
       renderMateriels();
     }
 
+    function getPanneFilterCode(eta) {
+      if (eta === 'EC') return 'EP';
+      if (eta === 'AT') return 'ER';
+      if (eta === 'NR') return 'IR';
+      return eta || 'EP';
+    }
+
+    function setPanneFilter(filter) {
+      currentPanneFilter = filter;
+      document.querySelectorAll('.panne-filter-btn').forEach(b => {
+        b.classList.remove('bg-slate-900', 'text-white');
+        b.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      const active = document.getElementById(filter === 'ALL' ? 'panne-filter-all' : 'panne-filter-' + filter);
+      if (active) {
+        active.classList.remove('bg-slate-100', 'text-slate-700');
+        active.classList.add('bg-slate-900', 'text-white');
+      }
+      renderPannes();
+    }
+
+    function applyPanneFilters() {
+      renderPannes();
+    }
+
     function renderPannes() {
       const tbody = document.getElementById('pannes-table-body');
       if (!tbody) return;
 
-      if (allPannes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 text-xs">Aucune panne enregistrée.</td></tr>';
+      const query = (document.getElementById('pannes-search-input')?.value || '').toLowerCase().trim();
+      const filteredPannes = allPannes.filter(p => {
+        const code = getPanneFilterCode(p.eta_pan);
+        const matchFilter = currentPanneFilter === 'ALL' || code === currentPanneFilter;
+        const text = [
+          p.dat_pan, p.num_inv, p.num_ser, p.marque_mat, p.model_mat,
+          p.type_nom, p.diag_pan, p.nom_uti, p.pnom_uti, p.technicien,
+          p.lieu_reparation, p.obs_rep, p.eta_pan
+        ].filter(Boolean).join(' ').toLowerCase();
+        return matchFilter && (!query || text.includes(query));
+      });
+
+      if (filteredPannes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 text-xs">Aucune panne ne correspond aux critères de recherche ou de filtre.</td></tr>';
         return;
       }
 
@@ -1485,7 +1540,7 @@
         EC: 'En panne', AT: 'En réparation', NR: 'Irréparable'
       };
 
-      tbody.innerHTML = allPannes.map(p => {
+      tbody.innerHTML = filteredPannes.map(p => {
         const state = panneLabels[p.eta_pan] || p.eta_pan || 'En panne';
         let statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">En panne</span>';
         if (p.eta_pan === 'ER' || p.eta_pan === 'AT') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">En réparation</span>';
@@ -1752,11 +1807,38 @@
       } catch (err) { showToast('Erreur serveur.', true); }
     }
 
+    function setReformeFilter(filter) {
+      currentReformeFilter = filter;
+      document.querySelectorAll('.reforme-filter-btn').forEach(b => {
+        b.classList.remove('bg-slate-900', 'text-white');
+        b.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      const active = document.getElementById(filter === 'ALL' ? 'reforme-filter-all' : 'reforme-filter-' + filter.toLowerCase());
+      if (active) {
+        active.classList.remove('bg-slate-100', 'text-slate-700');
+        active.classList.add('bg-slate-900', 'text-white');
+      }
+      renderReformes();
+    }
+
+    function applyReformeFilters() {
+      renderReformes();
+    }
+
     function renderReformes() {
       const tbody = document.getElementById('reformes-table-body');
       if (!tbody) return;
-      const filter = document.getElementById('reforme-filter')?.value || 'ALL';
-      const rows = allMateriels.filter(m => (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'REFORME') && (filter === 'ALL' || m.etat_reforme === filter));
+      const filter = currentReformeFilter;
+      const query = (document.getElementById('reforme-search-input')?.value || '').toLowerCase().trim();
+      const rows = allMateriels.filter(m => {
+        const matchState = (m.etat_reforme === 'PROPOSEE' || m.etat_reforme === 'REFORME') && (filter === 'ALL' || m.etat_reforme === filter);
+        const text = [
+          m.num_inv, m.num_ser, m.marque_mat, m.model_mat, m.type_nom,
+          m.nom_uti, m.pnom_uti, m.structure_nom, m.motif_reforme,
+          m.annee_reforme, m.lot_reforme
+        ].filter(Boolean).join(' ').toLowerCase();
+        return matchState && (!query || text.includes(query));
+      });
       const badge = document.getElementById('reformes-count-badge');
       if (badge) badge.innerText = rows.length + ' équipement' + (rows.length > 1 ? 's' : '');
       if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400">Aucun équipement dans cette sélection.</td></tr>'; return; }
