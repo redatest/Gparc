@@ -702,7 +702,7 @@
             <select id="mat-cpu" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">Sélectionner un processeur...</option></select>
             <select id="mat-se" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">Sélectionner un système d'exploitation...</option></select>
             <select id="mat-ram" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">RAM (Go)...</option></select>
-            <input type="number" id="mat-disk" placeholder="SSD Go (512)" class="px-2.5 py-1.5 border rounded-lg text-xs">
+            <select id="mat-disk" class="px-2.5 py-1.5 border rounded-lg text-xs"><option value="">Sélectionner le stockage...</option></select>
           </div>
         </div>
         <div class="flex justify-end gap-2 pt-3 border-t">
@@ -1905,7 +1905,12 @@
         document.getElementById('mat-cpu').value = mat.cpu || '';
         document.getElementById('mat-se').value = mat.se || '';
         document.getElementById('mat-ram').value = mat.ram ?? '';
-        document.getElementById('mat-disk').value = mat.disk ?? '';
+        const diskSel = document.getElementById('mat-disk');
+        const diskValue = mat.disk ?? '';
+        if (diskSel && diskValue !== '' && !Array.from(diskSel.options).some(o => String(o.value) === String(diskValue))) {
+          diskSel.insertAdjacentHTML('beforeend', '<option value="' + escapeHtml(String(diskValue)) + '">' + escapeHtml(String(diskValue)) + ' Go (valeur actuelle)</option>');
+        }
+        if (diskSel) diskSel.value = diskValue;
         document.getElementById('modal-materiel').classList.remove('hidden');
       } catch (err) {
         showToast("Impossible de charger l'équipement", true);
@@ -1932,7 +1937,8 @@
       const cpuSel = document.getElementById('mat-cpu');
       const seSel = document.getElementById('mat-se');
       const ramSel = document.getElementById('mat-ram');
-      if (!brandSel || !typeSel || !strSel || !userSel || !modelSel || !cpuSel || !seSel || !ramSel) return;
+      const diskSel = document.getElementById('mat-disk');
+      if (!brandSel || !typeSel || !strSel || !userSel || !modelSel || !cpuSel || !seSel || !ramSel || !diskSel) return;
 
       const brands = (references.parametres || [])
         .filter(p => p.categorie === 'marque')
@@ -1954,6 +1960,8 @@
       seSel.innerHTML = '<option value="">Sélectionner un système d’exploitation...</option>' + seParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + '</option>').join('');
       const ramParams = getParamsByCategory('ram');
       ramSel.innerHTML = '<option value="">Sélectionner la RAM...</option>' + ramParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + ' Go</option>').join('');
+      const diskParams = getParamsByCategory('disk');
+      diskSel.innerHTML = '<option value="">Sélectionner le stockage...</option>' + diskParams.map(p => '<option value="' + escapeHtml(p.valeur) + '">' + escapeHtml(p.valeur) + ' Go</option>').join('');
       userSel.innerHTML = '<option value="">Aucun (En stock DSI)</option>' +
         (references.utilisateurs || []).map(u => `<option value="${u.id_uti}">${escapeHtml((u.nom_uti || '') + ' ' + (u.pnom_uti || ''))}</option>`).join('');
 
