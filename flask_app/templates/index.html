@@ -316,7 +316,7 @@
                 <th class="p-3">État de réforme</th>
                 <th class="p-3">Motif / Date de réforme</th>
                 <th class="p-3">Année de réforme</th>
-                <th class="p-3">N° de lot</th>
+                <th class="p-3">N° de lot (Total)</th>
                 <th class="p-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -1880,7 +1880,7 @@
         const stateBadge = m.etat_reforme === 'REFORME' ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">Réformé</span>' : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Proposé à la réforme</span>';
         const lotVal = m.lot_reforme ? String(m.lot_reforme).trim() : '';
         const lotTotal = lotVal ? (lotEquipmentCounts[lotVal] || 1) : 0;
-        const lotDisplay = lotVal ? (escapeHtml(lotVal) + ' (' + lotTotal + ')') : '—';
+        const lotDisplay = lotVal ? (escapeHtml(lotVal) + ' (' + lotTotal + ')')  : '—';
 
         return '<tr class="hover:bg-slate-50 transition text-xs">' +
           '<td class="p-3"><div class="font-bold text-slate-900">' + escapeHtml((m.marque_mat || '') + ' ' + (m.model_mat || 'Équipement')) + '</div><div class="text-[11px] text-slate-500">' + escapeHtml(m.type_nom || 'Matériel') + '</div></td>' +
