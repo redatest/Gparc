@@ -2393,7 +2393,8 @@
         set('rpt-ref', '............/SSSI/2026');
         set('rpt-bon', '');
         set('rpt-dps', '');
-        set('rpt-date-dps', '');
+        // La date DPS correspond à la date saisie lors de la déclaration de la panne.
+        set('rpt-date-dps', formatReportDate(rpt.intervention?.datePanne));
         set('rpt-structure', rpt.utilisateur?.service || '');
         set('rpt-date-arrivee', '');
 
