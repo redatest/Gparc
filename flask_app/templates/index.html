@@ -2671,7 +2671,7 @@
       const typeButton = document.querySelector('button[onclick="openNewTypeMaterielModal()"]');
       const structureButton = document.querySelector('button[onclick="openNewStructureModal()"]');
 
-      const isSpecialCategory = cat === 'types' || cat === 'structures' || cat === 'utilisateurs';
+      const isSpecialCategory = cat === 'types' || cat === 'structures' || cat === 'utilisateurs' || cat === 'cpu' || cat === 'se';
       if (paramButton) {
         paramButton.classList.toggle('hidden', isSpecialCategory);
         if (cat === 'cpu') paramButton.onclick = openNewCpuModal;
