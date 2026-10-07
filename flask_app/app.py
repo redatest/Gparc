@@ -18,6 +18,11 @@ from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_cors import CORS
 
+try:
+    from .database import get_db, init_db
+except ImportError:  # Exécution directe de flask_app/app.py
+    from database import get_db, init_db
+
 app = Flask(__name__)
 CORS(app)
 
