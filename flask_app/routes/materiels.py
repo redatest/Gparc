@@ -30,81 +30,7 @@ def log_affectation(cur, id_mat, action, id_str, id_uti, ancien_id_str=None, anc
         ancien_id_str, ancien_id_uti
     ))
 
-
-# Initialiser la base dès le chargement du module
-init_db()
-
-# -----------------------------------------------------------------------------
-# ROUTES STATIQUES & INTERFACE WEB
-# -----------------------------------------------------------------------------
-
-@materiels_bp.route('/logoSS.jpg', methods=['GET'])
-def serve_logo_ss():
-    logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../logoSS.jpg'))
-    if os.path.isfile(logo_path):
-        return send_from_directory(os.path.dirname(logo_path), os.path.basename(logo_path))
-    return ('LogoSS.jpg introuvable', 404)
-
-@app.route('/')
-def index():
-    """Point d'entrée principal de l'application."""
-    return render_template('index.html')
-
-# -----------------------------------------------------------------------------
-# ROUTES API REST
-# -----------------------------------------------------------------------------
-
-@app.route('/api/health', methods=['GET'])
-def health():
-    return jsonify({"status": "ok", "backend": "Python Flask 3.0", "time": datetime.now().isoformat()})
-
-@app.route('/api/stats', methods=['GET'])
-def get_stats():
-    conn = get_db()
-    cur = conn.cursor()
-
-    total = cur.execute("SELECT COUNT(*) FROM materiel WHERE archiv = 'N'").fetchone()[0]
-    op = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'BON' AND archiv = 'N'").fetchone()[0]
-    pa = cur.execute("SELECT COUNT(*) FROM materiel WHERE etat_mat = 'PANNE' AND archiv = 'N'").fetchone()[0]
-    en_reparation = cur.execute("""
-        SELECT COUNT(DISTINCT id_mat)
-        FROM panne
-        WHERE eta_pan = 'ER'
-          AND archiv = 'N'
-    """).fetchone()[0]
-    so = cur.execute("SELECT COUNT(*) FROM materiel WHERE statut_mat = 'RF' AND archiv = 'N'").fetchone()[0]
-    pannes_actives = cur.execute("SELECT COUNT(*) FROM panne WHERE eta_pan IN ('EP', 'ER') AND archiv = 'N'").fetchone()[0]
-    pannes_resolues = cur.execute("SELECT COUNT(*) FROM panne WHERE eta_pan IN ('RP','IR') AND archiv = 'N'").fetchone()[0]
-
-    repart_type = [dict(row) for row in cur.execute("""
-        SELECT t.lib_typ_mat as type, COUNT(m.id_mat) as count
-        FROM type_mat t
-        LEFT JOIN materiel m ON t.id_typ_mat = m.id_typ_mat AND m.archiv = 'N'
-        GROUP BY t.id_typ_mat ORDER BY count DESC
-    """).fetchall()]
-
-    repart_str = [dict(row) for row in cur.execute("""
-        SELECT s.cod_str as code, s.lib_str as label, COUNT(m.id_mat) as count
-        FROM structures s
-        LEFT JOIN materiel m ON s.id_str = m.id_str AND m.archiv = 'N'
-        GROUP BY s.id_str ORDER BY count DESC
-    """).fetchall()]
-
-    conn.close()
-    return jsonify({
-        "totalEquipements": total,
-        "operationnels": op,
-        "enPanne": pa,
-        "enReparation": en_reparation,
-        "reformes": so,
-        "pannesActives": pannes_actives,
-        "pannesResolues": pannes_resolues,
-        "tauxDisponibilite": round((op / total * 100) if total > 0 else 100, 1),
-        "repartitionTypes": repart_type,
-        "repartitionStructures": repart_str
-    })
-
-@app.route('/api/materiels', methods=['GET', 'POST'])
+@materiels_bp.route('/api/materiels', methods=['GET', 'POST'])
 def handle_materiels():
     conn = get_db()
     cur = conn.cursor()
@@ -200,7 +126,7 @@ def handle_materiels():
     conn.close()
     return jsonify(rows)
 
-@app.route('/api/materiels/<int:mat_id>', methods=['GET', 'PUT', 'DELETE'])
+@materiels_bp.route('/api/materiels/<int:mat_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_single_materiel(mat_id):
     conn = get_db()
     cur = conn.cursor()
@@ -417,7 +343,7 @@ def log_reforme(cur, id_mat, etat_reforme, date_evenement, motif_reforme=None, a
     """, (id_mat, etat_reforme, date_evenement, motif_reforme, ancien_etat_reforme or 'AUCUNE'))
 
 
-@app.route('/api/materiels/<int:mat_id>/historique', methods=['GET'])
+@materiels_bp.route('/api/materiels/<int:mat_id>/historique', methods=['GET'])
 def get_materiel_historique(mat_id):
     """Historique chronologique complet : affectations, pannes et réformes."""
     conn = get_db()
