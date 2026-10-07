@@ -32,6 +32,26 @@ CORS(app)
 
 app.register_blueprint(materiels_bp)
 
+# Initialiser la base dès le chargement du module
+init_db()
+
+# -----------------------------------------------------------------------------
+# ROUTES STATIQUES & INTERFACE WEB
+# -----------------------------------------------------------------------------
+
+@app.route('/logoSS.jpg', methods=['GET'])
+def serve_logo_ss():
+    logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../logoSS.jpg'))
+    if os.path.isfile(logo_path):
+        return send_from_directory(os.path.dirname(logo_path), os.path.basename(logo_path))
+    return ('LogoSS.jpg introuvable', 404)
+
+@app.route('/')
+def index():
+    """Point d'entrée principal de l'application."""
+    return render_template('index.html')
+
+
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     conn = get_db()
