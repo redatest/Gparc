@@ -15,7 +15,6 @@ Compatible avec le mode bureau (type green-dz) :
 """
 
 import os
-import sqlite3
 from flask_cors import CORS
 
 
