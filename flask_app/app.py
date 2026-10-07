@@ -26,8 +26,6 @@ except ImportError:  # Exécution directe de flask_app/app.py
 app = Flask(__name__)
 CORS(app)
 
-from flask_app.database import get_db, init_db
-
 def log_affectation(cur, id_mat, action, id_str, id_uti, ancien_id_str=None, ancien_id_uti=None, obs=''):
     """Enregistre un événement dans l'historique d'affectation."""
     mat = cur.execute(
@@ -58,7 +56,7 @@ init_db()
 
 @app.route('/logoSS.jpg', methods=['GET'])
 def serve_logo_ss():
-    logo_path = os.path.abspath(os.path.join(BASE_DIR, '../logoSS.jpg'))
+    logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../logoSS.jpg'))
     if os.path.isfile(logo_path):
         return send_from_directory(os.path.dirname(logo_path), os.path.basename(logo_path))
     return ('LogoSS.jpg introuvable', 404)
