@@ -1,22 +1,7 @@
-"""Accès et initialisation de la base SQLite de GPARC.
-
-Cette couche conserve volontairement le schéma et les migrations existants.
-Les routes Flask ne doivent pas contenir de logique de connexion SQLite.
-"""
-
-"""
-GPARC - Application Flask autonome de Gestion du Parc Informatique
-Compatible avec le mode bureau (type green-dz) :
-- Démarrage direct avec 'python app.py'
-- Accès immédiat sur http://127.0.0.1:5000 sans configuration complexe
-- Base de données SQLite automatique (gparc.db) avec données d'exemple complètes
-- Interface web moderne intégrée (⚡ Interface Simple & Tableau de bord)
-- Fiches d'interventions imprimables & gestion des photos d'équipements
-"""
+"""Accès et initialisation de la base SQLite de GPARC."""
 
 import os
-from flask_cors import CORS
-
+import sqlite3
 
 # Définition du chemin de la base de données SQLite
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
