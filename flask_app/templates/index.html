@@ -114,6 +114,8 @@
         <button onclick="switchView('pannes')" id="tab-pannes" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
           <i class="fa-solid fa-wrench"></i> Pannes & Interventions
         </button>
+        <span id="panne-nav-count" title="Équipements en panne" class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-rose-600 text-white text-[11px] font-bold leading-none shadow-sm">0</span>
+        <span id="reparation-nav-count" title="Équipements en réparation" class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber-500 text-white text-[11px] font-bold leading-none shadow-sm">0</span>
         <button onclick="switchView('reformes')" id="tab-reformes" class="nav-tab px-3 py-1 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
           <i class="fa-solid fa-recycle"></i> Réforme
         </button>
@@ -1267,6 +1269,12 @@
         document.getElementById('kpi-op').innerText = statsRes.operationnels ?? allMateriels.filter(m => m.etat_mat === 'BON').length;
         document.getElementById('kpi-pa').innerText = statsRes.enPanne ?? allMateriels.filter(m => m.etat_mat === 'PANNE').length;
         document.getElementById('kpi-re').innerText = statsRes.enReparation ?? allMateriels.filter(m => m.etat_mat === 'IRREPARABLE').length;
+
+        // Compteurs rapides dans le menu "Pannes & Interventions"
+        const panneNavCount = document.getElementById('panne-nav-count');
+        const reparationNavCount = document.getElementById('reparation-nav-count');
+        if (panneNavCount) panneNavCount.textContent = String(statsRes.enPanne ?? allMateriels.filter(m => m.etat_mat === 'PANNE').length);
+        if (reparationNavCount) reparationNavCount.textContent = String(statsRes.enReparation ?? 0);
 
         // Rendu des vues
         renderMateriels();
