@@ -18,14 +18,17 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo [2/3] Verification et installation des dependances (Flask, Flask-CORS)...
-pip install flask flask-cors >nul 2>&1
+echo [2/3] Verification des dependances Python...
+python -c "import flask, flask_cors" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [ERREUR] Dependances manquantes. Executez : pip install -r requirements.txt
+    pause
+    exit /b 1
+)
 
 echo [3/3] Lancement du serveur GPARC sur http://127.0.0.1:5000 ...
 echo.
 echo Ouverture automatique de votre navigateur internet...
-start "" http://127.0.0.1:5000
-
 echo Serveur demarre avec succes ! Ne fermez pas cette fenetre noire pendant l'utilisation.
 echo.
 python app.py
