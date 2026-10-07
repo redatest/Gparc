@@ -17,6 +17,10 @@ from threading import Timer
 from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_cors import CORS
+try:
+    from .routes.materiels import materiels_bp
+except ImportError:  # Exécution directe de flask_app/app.py
+    from routes.materiels import materiels_bp
 
 try:
     from .database import get_db, init_db
@@ -26,53 +30,7 @@ except ImportError:  # Exécution directe de flask_app/app.py
 app = Flask(__name__)
 CORS(app)
 
-def log_affectation(cur, id_mat, action, id_str, id_uti, ancien_id_str=None, ancien_id_uti=None, obs=''):
-    """Enregistre un événement dans l'historique d'affectation."""
-    mat = cur.execute(
-        "SELECT id_model_mat, id_typ_mat, num_inv, num_ser FROM materiel WHERE id_mat = ?",
-        (id_mat,)
-    ).fetchone()
-    if not mat:
-        return
-
-    cur.execute("""
-        INSERT INTO affect_mat (
-            id_mat, id_str, id_model_mat, id_typ_mat, num_inv, num_ser,
-            dat_aff, obs_aff, id_uti, action_aff, ancien_id_str, ancien_id_uti
-        ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
-    """, (
-        id_mat, id_str, mat['id_model_mat'], mat['id_typ_mat'],
-        mat['num_inv'], mat['num_ser'], obs, id_uti, action,
-        ancien_id_str, ancien_id_uti
-    ))
-
-
-# Initialiser la base dès le chargement du module
-init_db()
-
-# -----------------------------------------------------------------------------
-# ROUTES STATIQUES & INTERFACE WEB
-# -----------------------------------------------------------------------------
-
-@app.route('/logoSS.jpg', methods=['GET'])
-def serve_logo_ss():
-    logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../logoSS.jpg'))
-    if os.path.isfile(logo_path):
-        return send_from_directory(os.path.dirname(logo_path), os.path.basename(logo_path))
-    return ('LogoSS.jpg introuvable', 404)
-
-@app.route('/')
-def index():
-    """Point d'entrée principal de l'application."""
-    return render_template('index.html')
-
-# -----------------------------------------------------------------------------
-# ROUTES API REST
-# -----------------------------------------------------------------------------
-
-@app.route('/api/health', methods=['GET'])
-def health():
-    return jsonify({"status": "ok", "backend": "Python Flask 3.0", "time": datetime.now().isoformat()})
+app.register_blueprint(materiels_bp)
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
