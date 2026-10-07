@@ -1047,10 +1047,23 @@
       <form onsubmit="handleSaveUtilisateur(event)" class="mt-4 space-y-4">
         <input type="hidden" id="utilisateur-id">
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Nom *</label><input type="text" id="utilisateur-nom" required maxlength="100" class="w-full px-3 py-2 border rounded-lg text-xs"></div>
-          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Prénom *</label><input type="text" id="utilisateur-prenom" required maxlength="100" class="w-full px-3 py-2 border rounded-lg text-xs"></div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nom *</label>
+            <input type="text" id="utilisateur-nom" list="utilisateurs-noms-list" oninput="checkUtilisateurAutocomplete('nom')" required maxlength="100" autocomplete="off" class="w-full px-3 py-2 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Prénom *</label>
+            <input type="text" id="utilisateur-prenom" list="utilisateurs-prenoms-list" oninput="checkUtilisateurAutocomplete('prenom')" required maxlength="100" autocomplete="off" class="w-full px-3 py-2 border rounded-lg text-xs">
+          </div>
         </div>
-        <div><label class="block text-xs font-semibold text-slate-700 mb-1">E-mail</label><input type="email" id="utilisateur-mail" maxlength="200" class="w-full px-3 py-2 border rounded-lg text-xs"></div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">E-mail</label>
+          <input type="email" id="utilisateur-mail" list="utilisateurs-emails-list" oninput="checkUtilisateurAutocomplete('email')" maxlength="200" autocomplete="off" class="w-full px-3 py-2 border rounded-lg text-xs">
+        </div>
+        <datalist id="utilisateurs-noms-list"></datalist>
+        <datalist id="utilisateurs-prenoms-list"></datalist>
+        <datalist id="utilisateurs-emails-list"></datalist>
+        <div id="utilisateur-duplicate-warning" class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800"></div>
         <div><label class="block text-xs font-semibold text-slate-700 mb-1">Structure de rattachement</label><select id="utilisateur-structure" class="w-full px-3 py-2 border rounded-lg text-xs"><option value="">Aucune structure</option></select></div>
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
           <button type="button" onclick="closeModal('modal-utilisateur')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700">Annuler</button>
@@ -2624,12 +2637,64 @@
       select.value = selectedId || '';
     }
 
+    function populateUtilisateurAutocomplete() {
+      const users = (references.utilisateurs || []).filter(u => u.archiv !== 'O');
+      const names = [...new Set(users.map(u => (u.nom_uti || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'fr'));
+      const firstNames = [...new Set(users.map(u => (u.pnom_uti || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'fr'));
+      const emails = [...new Set(users.map(u => (u.mail_uti || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'fr'));
+      const fill = (id, values) => {
+        const list = document.getElementById(id);
+        if (!list) return;
+        list.innerHTML = values.map(v => '<option value="' + escapeHtml(v) + '"></option>').join('');
+      };
+      fill('utilisateurs-noms-list', names);
+      fill('utilisateurs-prenoms-list', firstNames);
+      fill('utilisateurs-emails-list', emails);
+    }
+
+    function checkUtilisateurAutocomplete(field) {
+      const warning = document.getElementById('utilisateur-duplicate-warning');
+      if (!warning) return;
+      const inputId = field === 'nom' ? 'utilisateur-nom' : field === 'prenom' ? 'utilisateur-prenom' : 'utilisateur-mail';
+      const value = (document.getElementById(inputId)?.value || '').trim().toLowerCase();
+      const currentId = document.getElementById('utilisateur-id')?.value || '';
+      const users = (references.utilisateurs || []).filter(u => u.archiv !== 'O' && String(u.id_uti) !== String(currentId));
+      const matches = users.filter(u => field === 'nom'
+        ? String(u.nom_uti || '').trim().toLowerCase() === value
+        : field === 'prenom'
+          ? String(u.pnom_uti || '').trim().toLowerCase() === value
+          : String(u.mail_uti || '').trim().toLowerCase() === value);
+      const nom = (document.getElementById('utilisateur-nom')?.value || '').trim().toLowerCase();
+      const prenom = (document.getElementById('utilisateur-prenom')?.value || '').trim().toLowerCase();
+      const mail = (document.getElementById('utilisateur-mail')?.value || '').trim().toLowerCase();
+      const sameIdentity = users.some(u =>
+        nom && prenom &&
+        String(u.nom_uti || '').trim().toLowerCase() === nom &&
+        String(u.pnom_uti || '').trim().toLowerCase() === prenom &&
+        (!mail || String(u.mail_uti || '').trim().toLowerCase() === mail)
+      );
+      if (sameIdentity) {
+        warning.textContent = 'Cet utilisateur existe déjà dans la base de données. Vérifiez les informations saisies avant de continuer.';
+        warning.classList.remove('hidden');
+      } else if (value && matches.length) {
+        const label = field === 'nom' ? 'nom' : field === 'prenom' ? 'prénom' : 'adresse e-mail';
+        warning.textContent = 'Cette ' + label + ' existe déjà dans la base. Sélectionnez une valeur existante si elle correspond à la personne recherchée.';
+        warning.classList.remove('hidden');
+      } else {
+        warning.classList.add('hidden');
+        warning.textContent = '';
+      }
+    }
+
     function openNewUtilisateurModal() {
       document.getElementById('utilisateur-id').value = '';
       document.getElementById('utilisateur-nom').value = '';
       document.getElementById('utilisateur-prenom').value = '';
       document.getElementById('utilisateur-mail').value = '';
+      const warning = document.getElementById('utilisateur-duplicate-warning');
+      if (warning) { warning.classList.add('hidden'); warning.textContent = ''; }
       populateUtilisateurStructures();
+      populateUtilisateurAutocomplete();
       document.getElementById('utilisateur-modal-title').innerHTML = '<i class="fa-solid fa-user text-indigo-600"></i> Nouvel utilisateur';
       document.getElementById('modal-utilisateur').classList.remove('hidden');
     }
@@ -2641,7 +2706,10 @@
       document.getElementById('utilisateur-nom').value = u.nom_uti || '';
       document.getElementById('utilisateur-prenom').value = u.pnom_uti || '';
       document.getElementById('utilisateur-mail').value = u.mail_uti || '';
+      const warning = document.getElementById('utilisateur-duplicate-warning');
+      if (warning) { warning.classList.add('hidden'); warning.textContent = ''; }
       populateUtilisateurStructures(u.id_str_mere || '');
+      populateUtilisateurAutocomplete();
       document.getElementById('utilisateur-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-indigo-600"></i> Modifier l’utilisateur';
       document.getElementById('modal-utilisateur').classList.remove('hidden');
     }
@@ -2656,6 +2724,21 @@
     async function handleSaveUtilisateur(e) {
       e.preventDefault();
       const id = document.getElementById('utilisateur-id').value;
+      const nom = document.getElementById('utilisateur-nom').value.trim();
+      const prenom = document.getElementById('utilisateur-prenom').value.trim();
+      const mail = document.getElementById('utilisateur-mail').value.trim();
+      const users = (references.utilisateurs || []).filter(u => u.archiv !== 'O' && String(u.id_uti) !== String(id));
+      const duplicateEmail = mail && users.some(u => String(u.mail_uti || '').trim().toLowerCase() === mail.toLowerCase());
+      const duplicatePerson = users.some(u =>
+        String(u.nom_uti || '').trim().toLowerCase() === nom.toLowerCase() &&
+        String(u.pnom_uti || '').trim().toLowerCase() === prenom.toLowerCase() &&
+        (!mail || String(u.mail_uti || '').trim().toLowerCase() === mail.toLowerCase())
+      );
+      if (duplicateEmail || duplicatePerson) {
+        checkUtilisateurAutocomplete(duplicateEmail ? 'email' : 'nom');
+        showToast('Cet utilisateur existe déjà ou utilise une adresse e-mail déjà enregistrée.', true);
+        return;
+      }
       const payload = {
         nom_uti: document.getElementById('utilisateur-nom').value.trim(),
         pnom_uti: document.getElementById('utilisateur-prenom').value.trim(),
@@ -3324,6 +3407,8 @@
     window.filterParamCategory = filterParamCategory;
     window.openNewLotReformeModal = openNewLotReformeModal;
     window.handleSaveLotReforme = handleSaveLotReforme;
+    window.populateUtilisateurAutocomplete = populateUtilisateurAutocomplete;
+    window.checkUtilisateurAutocomplete = checkUtilisateurAutocomplete;
     window.openNewParamModal = openNewParamModal;
     window.handleSaveParametre = handleSaveParametre;
     window.deleteParametre = deleteParametre;
