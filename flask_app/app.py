@@ -13,41 +13,29 @@ from threading import Timer
 from flask import Flask
 from flask_cors import CORS
 try:
-    from .routes.utilisateurs import utilisateurs_bp
-except ImportError:
-    from routes.utilisateurs import utilisateurs_bp
-try:
-    from .routes.types_materiel import types_materiel_bp
-except ImportError:
-    from routes.types_materiel import types_materiel_bp
-try:
-    from .routes.structures import structures_bp
-except ImportError:
-    from routes.structures import structures_bp
-try:
-    from .routes.parametres import parametres_bp
-except ImportError:
-    from routes.parametres import parametres_bp
-try:
-    from .routes.pannes import pannes_bp
-except ImportError:
-    from routes.pannes import pannes_bp
-try:
-    from .routes.oracle import oracle_bp
-except ImportError:
-    from routes.oracle import oracle_bp
-try:
-    from .routes.materiels import materiels_bp
+    from .routes import (
+        materiels_bp,
+        pannes_bp,
+        parametres_bp,
+        utilisateurs_bp,
+        types_materiel_bp,
+        structures_bp,
+        oracle_bp,
+        system_bp,
+        web_bp,
+    )
 except ImportError:  # Exécution directe de flask_app/app.py
-    from routes.materiels import materiels_bp
-try:
-    from .routes.system import system_bp
-except ImportError:
-    from routes.system import system_bp
-try:
-    from .routes.web import web_bp
-except ImportError:
-    from routes.web import web_bp
+    from routes import (
+        materiels_bp,
+        pannes_bp,
+        parametres_bp,
+        utilisateurs_bp,
+        types_materiel_bp,
+        structures_bp,
+        oracle_bp,
+        system_bp,
+        web_bp,
+    )
 
 try:
     from .database import init_db
