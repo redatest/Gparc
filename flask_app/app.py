@@ -11,7 +11,7 @@ Compatible avec le mode bureau (type green-dz) :
 import os
 import webbrowser
 from threading import Timer
-from flask import Flask, jsonify, request, send_from_directory, render_template
+from flask import Flask, send_from_directory, render_template
 from flask_cors import CORS
 try:
     from .routes.utilisateurs import utilisateurs_bp
@@ -47,9 +47,9 @@ except ImportError:
     from routes.system import system_bp
 
 try:
-    from .database import get_db, init_db
+    from .database import init_db
 except ImportError:  # Exécution directe de flask_app/app.py
-    from database import get_db, init_db
+    from database import init_db
 
 app = Flask(__name__)
 CORS(app)
