@@ -30,7 +30,7 @@ def get_sample_oracle_data():
         "types": [
             {"cod_typ_mat": "PC_PORTABLE", "lib_typ_mat": "Ordinateur Portable (Laptop)"},
             {"cod_typ_mat": "PC_BUREAU", "lib_typ_mat": "Ordinateur de Bureau (Desktop / Tour)"},
-            {"cod_typ_mat": "SERVEUR", "lib_typ": "Serveur Rack / Datacenter"},
+            {"cod_typ_mat": "SERVEUR", "lib_typ_mat": "Serveur Rack / Datacenter"},
             {"cod_typ_mat": "ECRAN", "lib_typ_mat": "Moniteur / Écran d'affichage"},
             {"cod_typ_mat": "IMPRIMANTE", "lib_typ_mat": "Imprimante Réseau / Multifonction"},
             {"cod_typ_mat": "SWITCH", "lib_typ_mat": "Commutateur Réseau & Switch"}
