@@ -13,7 +13,8 @@ try:
     from ..services.equipment_references import validate_brand, resolve_model, validate_model
     from ..services.equipment_validation import validate_equipment_type, validate_equipment_state, validate_equipment_status
     from ..services.equipment_update import update_materiel
-    from ..services.equipment_assignment import resolve_assignment, record_assignment_changes
+    from ..services.equipment_update_workflow import prepare_equipment_update
+    from ..services.equipment_assignment import record_assignment_changes
     from ..services.equipment_reform import prepare_reform, status_for_reform
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_history import log_reforme
@@ -120,65 +121,30 @@ def handle_single_materiel(mat_id):
             conn.close()
             return jsonify({"error": "Matériel non trouvé"}), 404
 
-        marque = (data.get('marque_mat') if 'marque_mat' in data else existing['marque_mat'] or '').strip()
-        try:
-            validate_brand(cur, marque)
-        except ValueError as exc:
-            conn.close()
-            return jsonify({"error": str(exc)}), 400
-
-        id_typ = data.get('id_typ_mat') if 'id_typ_mat' in data else existing['id_typ_mat']
-        id_model = data.get('id_model_mat') if 'id_model_mat' in data else existing['id_model_mat']
-        model_name = (data.get('model_mat_name') or '').strip()
-        id_model = resolve_model(cur, marque, id_model, model_name, id_typ)
-        try:
-            id_str, id_uti = resolve_assignment(cur, data, existing)
-        except ValueError as exc:
-            conn.close()
-            return jsonify({"error": str(exc)}), 400
-
-        try:
-            validate_equipment_type(cur, id_typ)
-        except ValueError as exc:
-            conn.close()
-            return jsonify({"error": str(exc)}), 400
         today = datetime.now().strftime('%Y-%m-%d')
         try:
-            reform = prepare_reform(cur, data, existing, today)
+            prepared = prepare_equipment_update(cur, data, existing, today)
         except ValueError as exc:
             conn.close()
             return jsonify({"error": str(exc)}), 400
 
-        reforme_update = reform["reforme_update"]
-        etat_reforme = reform["etat_reforme"]
-        motif_reforme = reform["motif_reforme"]
-        date_reforme = reform["date_reforme"]
-        annee_reforme = reform["annee_reforme"]
-        lot_reforme = reform["lot_reforme"]
-        date_proposition = reform["date_proposition"]
-        date_validation = reform["date_validation"]
-        decision = reform["decision"]
-        pv_reforme = reform["pv_reforme"]
-        try:
-            validate_model(cur, id_model, marque, id_typ)
-        except ValueError as exc:
-            conn.close()
-            return jsonify({"error": str(exc)}), 400
-
-        statut_mat_update = status_for_reform(
-            etat_reforme,
-            reforme_update,
-            existing['statut_mat'],
-            data.get('statut_mat') if 'statut_mat' in data else None,
-        )
-        etat_mat_update = data.get('etat_mat') if 'etat_mat' in data else existing['etat_mat']
-
-        try:
-            validate_equipment_state(etat_mat_update)
-            validate_equipment_status(statut_mat_update)
-        except ValueError as exc:
-            conn.close()
-            return jsonify({"error": str(exc)}), 400
+        marque = prepared["marque"]
+        id_model = prepared["id_model"]
+        id_typ = prepared["id_typ"]
+        id_str = prepared["id_str"]
+        id_uti = prepared["id_uti"]
+        etat_mat_update = prepared["etat_mat"]
+        statut_mat_update = prepared["statut_mat"]
+        etat_reforme = prepared["etat_reforme"]
+        motif_reforme = prepared["motif_reforme"]
+        date_reforme = prepared["date_reforme"]
+        annee_reforme = prepared["annee_reforme"]
+        lot_reforme = prepared["lot_reforme"]
+        date_proposition = prepared["date_proposition"]
+        date_validation = prepared["date_validation"]
+        decision = prepared["decision"]
+        pv_reforme = prepared["pv_reforme"]
+        reforme_update = prepared["reforme_update"]
 
         update_materiel(
             cur,
