@@ -10,8 +10,10 @@ except ImportError:  # Exécution directe depuis flask_app/
 
 try:
     from ..services.equipment_history import log_affectation, log_reforme
+    from ..services.equipment_references import validate_brand, resolve_model, validate_model
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_history import log_affectation, log_reforme
+    from services.equipment_references import validate_brand, resolve_model, validate_model
 
 materiels_bp = Blueprint('materiels', __name__)
 
@@ -24,10 +26,11 @@ def handle_materiels():
         data = request.json or {}
         # Vérifier la marque et résoudre/créer le modèle sélectionné.
         marque = (data.get('marque_mat') or '').strip()
-        if marque:
-            brand_ref = cur.execute("SELECT id_param FROM parametres_materiel WHERE categorie = 'marque' AND archiv = 'N' AND LOWER(TRIM(valeur)) = LOWER(?)", (marque,)).fetchone()
-            if not brand_ref:
-                return jsonify({"error": "La marque sélectionnée n’existe pas dans le référentiel des marques."}), 400
+        try:
+            validate_brand(cur, marque)
+        except ValueError as exc:
+            conn.close()
+            return jsonify({"error": str(exc)}), 400
 
         id_model = data.get('id_model_mat') or None
         model_name = (data.get('model_mat_name') or '').strip()
@@ -38,19 +41,7 @@ def handle_materiels():
             conn.close()
             return jsonify({"error": "La réforme d'un équipement se déclare depuis la rubrique « Réforme »."}), 400
 
-        if model_name and marque:
-            model_row = cur.execute(
-                "SELECT id_model_mat FROM model_mat WHERE archiv = 'N' AND LOWER(TRIM(model_mat)) = LOWER(?) AND LOWER(TRIM(marque_mat)) = LOWER(?) AND (id_typ_mat = ? OR id_typ_mat IS NULL)",
-                (model_name, marque, id_typ)
-            ).fetchone()
-            if model_row:
-                id_model = model_row['id_model_mat']
-            else:
-                cur.execute(
-                    "INSERT INTO model_mat (marque_mat, model_mat, id_typ_mat) VALUES (?, ?, ?)",
-                    (marque, model_name, id_typ)
-                )
-                id_model = cur.lastrowid
+        id_model = resolve_model(cur, marque, id_model, model_name, id_typ)
 
         cur.execute("""
             INSERT INTO materiel (
@@ -124,28 +115,16 @@ def handle_single_materiel(mat_id):
             return jsonify({"error": "Matériel non trouvé"}), 404
 
         marque = (data.get('marque_mat') if 'marque_mat' in data else existing['marque_mat'] or '').strip()
-        if marque:
-            brand_ref = cur.execute("SELECT id_param FROM parametres_materiel WHERE categorie = 'marque' AND archiv = 'N' AND LOWER(TRIM(valeur)) = LOWER(?)", (marque,)).fetchone()
-            if not brand_ref:
-                conn.close()
-                return jsonify({"error": "La marque sélectionnée n'existe pas dans le référentiel des marques."}), 400
+        try:
+            validate_brand(cur, marque)
+        except ValueError as exc:
+            conn.close()
+            return jsonify({"error": str(exc)}), 400
 
         id_typ = data.get('id_typ_mat') if 'id_typ_mat' in data else existing['id_typ_mat']
         id_model = data.get('id_model_mat') if 'id_model_mat' in data else existing['id_model_mat']
         model_name = (data.get('model_mat_name') or '').strip()
-        if model_name and marque:
-            model_row = cur.execute(
-                "SELECT id_model_mat FROM model_mat WHERE archiv = 'N' AND LOWER(TRIM(model_mat)) = LOWER(?) AND LOWER(TRIM(marque_mat)) = LOWER(?) AND (id_typ_mat = ? OR id_typ_mat IS NULL)",
-                (model_name, marque, id_typ)
-            ).fetchone()
-            if model_row:
-                id_model = model_row['id_model_mat']
-            else:
-                cur.execute(
-                    "INSERT INTO model_mat (marque_mat, model_mat, id_typ_mat) VALUES (?, ?, ?)",
-                    (marque, model_name, id_typ)
-                )
-                id_model = cur.lastrowid
+        id_model = resolve_model(cur, marque, id_model, model_name, id_typ)
         id_str = data.get('id_str') if 'id_str' in data else existing['id_str']
         id_uti = data.get('id_uti') if 'id_uti' in data else existing['id_uti']
 
@@ -218,14 +197,11 @@ def handle_single_materiel(mat_id):
         decision = None
         pv_reforme = None
 
-        if id_model is not None:
-            model = cur.execute("SELECT marque_mat, id_typ_mat FROM model_mat WHERE id_model_mat = ? AND archiv = 'N'", (id_model,)).fetchone()
-            if not model:
-                conn.close(); return jsonify({"error": "Modèle invalide."}), 400
-            if marque and (model['marque_mat'] or '').strip().lower() != marque.lower():
-                conn.close(); return jsonify({"error": "Le modèle sélectionné ne correspond pas à la marque."}), 400
-            if id_typ is not None and model['id_typ_mat'] is not None and int(model['id_typ_mat']) != int(id_typ):
-                conn.close(); return jsonify({"error": "Le modèle sélectionné ne correspond pas au type."}), 400
+        try:
+            validate_model(cur, id_model, marque, id_typ)
+        except ValueError as exc:
+            conn.close()
+            return jsonify({"error": str(exc)}), 400
 
         statut_mat_update = ({'AUCUNE': 'ES', 'PROPOSEE': 'PR', 'REFORME': 'RF'}.get(etat_reforme, 'ES')) if reforme_update else (data.get('statut_mat') if 'statut_mat' in data else (existing['statut_mat'] or 'ES'))
         etat_mat_update = data.get('etat_mat') if 'etat_mat' in data else existing['etat_mat']
@@ -428,24 +404,3 @@ def get_materiel_historique(mat_id):
     reforme_labels = {
         'AUCUNE': 'Remise en service',
         'PROPOSEE': 'Proposé à la réforme',
-        'REFORME': 'Réformé'
-    }
-    for r in reformes:
-        d = dict(r)
-        events.append({
-            'type_evenement': 'REFORME',
-            'date_evenement': d['date_evenement'],
-            'libelle': reforme_labels.get(d['etat_reforme'], d['etat_reforme']),
-            'detail': d['motif_reforme'] or ('Changement vers : ' + reforme_labels.get(d['etat_reforme'], d['etat_reforme'])),
-            'obs': '',
-            'reforme': {
-                'etat': d['etat_reforme'],
-                'ancien_etat': d['ancien_etat_reforme'] or 'AUCUNE',
-                'motif': d['motif_reforme'] or ''
-            }
-        })
-
-    events.sort(key=lambda e: (e.get('date_evenement') or '', e.get('type_evenement') or ''), reverse=True)
-    conn.close()
-    return jsonify(events)
-
