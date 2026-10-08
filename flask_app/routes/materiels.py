@@ -10,17 +10,13 @@ except ImportError:  # Exécution directe depuis flask_app/
 
 try:
     from ..services.equipment_creation import create_materiel
-    from ..services.equipment_history import log_reforme
     from ..services.equipment_update_actions import apply_equipment_update
     from ..services.equipment_update_workflow import prepare_equipment_update
-    from ..services.equipment_assignment import record_assignment_changes
     from ..services.equipment_history_query import build_equipment_history
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_creation import create_materiel
-    from services.equipment_history import log_reforme
     from services.equipment_update_actions import apply_equipment_update
     from services.equipment_update_workflow import prepare_equipment_update
-    from services.equipment_assignment import record_assignment_changes
     from services.equipment_history_query import build_equipment_history
 
 materiels_bp = Blueprint('materiels', __name__)
