@@ -53,3 +53,12 @@ def update_parametre(id_param):
     return jsonify({"message": "Paramètre mis à jour"})
 
 
+
+@parametres_bp.route('/api/parametres/<int:id_param>', methods=['DELETE'])
+def delete_parametre(id_param):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE parametres_materiel SET archiv = 'O' WHERE id_param = ?", (id_param,))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Paramètre archivé"})
