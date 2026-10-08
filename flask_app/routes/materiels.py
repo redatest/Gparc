@@ -10,12 +10,14 @@ except ImportError:  # Exécution directe depuis flask_app/
 
 try:
     from ..services.equipment_history import log_reforme
+    from ..services.equipment_references import validate_brand, resolve_model
     from ..services.equipment_update import update_materiel
     from ..services.equipment_update_workflow import prepare_equipment_update
     from ..services.equipment_assignment import record_assignment_changes
     from ..services.equipment_history_query import build_equipment_history
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_history import log_reforme
+    from services.equipment_references import validate_brand, resolve_model
     from services.equipment_update import update_materiel
     from services.equipment_update_workflow import prepare_equipment_update
     from services.equipment_assignment import record_assignment_changes
