@@ -13,11 +13,13 @@ try:
     from ..services.equipment_update import update_materiel
     from ..services.equipment_update_workflow import prepare_equipment_update
     from ..services.equipment_assignment import record_assignment_changes
+    from ..services.equipment_history_query import build_equipment_history
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_history import log_reforme
     from services.equipment_update import update_materiel
     from services.equipment_update_workflow import prepare_equipment_update
     from services.equipment_assignment import record_assignment_changes
+    from services.equipment_history_query import build_equipment_history
 
 materiels_bp = Blueprint('materiels', __name__)
 
@@ -206,118 +208,6 @@ def get_materiel_historique(mat_id):
         conn.close()
         return jsonify({"error": "Matériel non trouvé"}), 404
 
-    events = []
-
-    # 1. Historique des affectations
-    rows = cur.execute("""
-        SELECT a.id_aff_mat, a.dat_aff, a.action_aff, a.obs_aff,
-               a.id_str, a.ancien_id_str, a.id_uti, a.ancien_id_uti,
-               s.lib_str AS structure_nom, os.lib_str AS ancienne_structure_nom,
-               u.nom_uti, u.pnom_uti, ou.nom_uti AS ancien_nom_uti,
-               ou.pnom_uti AS ancien_pnom_uti
-        FROM affect_mat a
-        LEFT JOIN structures s ON a.id_str = s.id_str
-        LEFT JOIN structures os ON a.ancien_id_str = os.id_str
-        LEFT JOIN utilisateurs u ON a.id_uti = u.id_uti
-        LEFT JOIN utilisateurs ou ON a.ancien_id_uti = ou.id_uti
-        WHERE a.id_mat = ? AND a.archiv = 'N'
-        ORDER BY a.dat_aff DESC, a.id_aff_mat DESC
-    """, (mat_id,)).fetchall()
-
-    for r in rows:
-        d = dict(r)
-        if d['action_aff'] == 'NOUVELLE_AFFECTATION':
-            libelle = 'Nouvelle affectation'
-            detail = d['structure_nom'] or 'Structure non précisée'
-            if d['nom_uti']:
-                detail += ' — ' + ((d['pnom_uti'] or '') + ' ' + (d['nom_uti'] or '')).strip()
-        elif d['action_aff'] == 'CHANGEMENT_STRUCTURE':
-            libelle = 'Changement de structure'
-            detail = f"{d['ancienne_structure_nom'] or 'Aucune structure'} → {d['structure_nom'] or 'Aucune structure'}"
-        else:
-            libelle = 'Changement d’utilisateur'
-            old_name = ((d['ancien_pnom_uti'] or '') + ' ' + (d['ancien_nom_uti'] or '')).strip() or 'Aucun utilisateur'
-            new_name = ((d['pnom_uti'] or '') + ' ' + (d['nom_uti'] or '')).strip() or 'Aucun utilisateur'
-            detail = f"{old_name} → {new_name}"
-        events.append({
-            'type_evenement': 'AFFECTATION',
-            'date_evenement': d['dat_aff'],
-            'libelle': libelle,
-            'detail': detail,
-            'obs': d['obs_aff'] or ''
-        })
-
-    # 2. Procédures de panne
-    pannes = cur.execute("""
-        SELECT id_pan, dat_pan, diag_pan, eta_pan, tp, technicien,
-               dat_env_rep, dat_ret_rep, obs_rep, pieces_remplacees,
-               recommandations, cout_rep
-        FROM panne
-        WHERE id_mat = ? AND archiv = 'N'
-        ORDER BY dat_pan DESC, id_pan DESC
-    """, (mat_id,)).fetchall()
-
-    panne_status = {
-        'EP': 'En panne',
-        'ER': 'En réparation',
-        'RP': 'Réparé',
-        'IR': 'Irréparable',
-        'EC': 'En panne',
-        'AT': 'En réparation',
-        'NR': 'Irréparable'
-    }
-    for p in pannes:
-        d = dict(p)
-        details = {
-            'diagnostic': d['diag_pan'] or '',
-            'type': d['tp'] or 'MAT',
-            'technicien': d['technicien'] or '',
-            'statut': panne_status.get(d['eta_pan'], d['eta_pan'] or ''),
-            'date_envoi': d['dat_env_rep'],
-            'date_retour': d['dat_ret_rep'],
-            'observation_reparation': d['obs_rep'] or '',
-            'pieces_remplacees': d['pieces_remplacees'] or '',
-            'recommandations': d['recommandations'] or '',
-            'cout': d['cout_rep'] or 0
-        }
-        events.append({
-            'type_evenement': 'PANNE',
-            'date_evenement': d['dat_pan'],
-            'libelle': 'Déclaration de panne',
-            'detail': d['diag_pan'] or 'Panne signalée',
-            'obs': '',
-            'procedure': details
-        })
-
-    # 3. Procédures de réforme
-    reformes = cur.execute("""
-        SELECT id_his_ref, etat_reforme, date_evenement, motif_reforme,
-               ancien_etat_reforme, dat_cre
-        FROM historique_reforme
-        WHERE id_mat = ?
-        ORDER BY date_evenement DESC, id_his_ref DESC
-    """, (mat_id,)).fetchall()
-
-    reforme_labels = {
-        'AUCUNE': 'Remise en service',
-        'PROPOSEE': 'Proposé à la réforme',
-        'REFORME': 'Réformé'
-    }
-    for r in reformes:
-        d = dict(r)
-        events.append({
-            'type_evenement': 'REFORME',
-            'date_evenement': d['date_evenement'],
-            'libelle': reforme_labels.get(d['etat_reforme'], d['etat_reforme']),
-            'detail': d['motif_reforme'] or ('Changement vers : ' + reforme_labels.get(d['etat_reforme'], d['etat_reforme'])),
-            'obs': '',
-            'reforme': {
-                'etat': d['etat_reforme'],
-                'ancien_etat': d['ancien_etat_reforme'] or 'AUCUNE',
-                'motif': d['motif_reforme'] or ''
-            }
-        })
-
-    events.sort(key=lambda e: (e.get('date_evenement') or '', e.get('type_evenement') or ''), reverse=True)
+    events = build_equipment_history(cur, mat_id)
     conn.close()
     return jsonify(events)
