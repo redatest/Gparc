@@ -11,14 +11,14 @@ except ImportError:  # Exécution directe depuis flask_app/
 try:
     from ..services.equipment_creation import create_materiel
     from ..services.equipment_history import log_reforme
-    from ..services.equipment_update import update_materiel
+    from ..services.equipment_update_actions import apply_equipment_update
     from ..services.equipment_update_workflow import prepare_equipment_update
     from ..services.equipment_assignment import record_assignment_changes
     from ..services.equipment_history_query import build_equipment_history
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_creation import create_materiel
     from services.equipment_history import log_reforme
-    from services.equipment_update import update_materiel
+    from services.equipment_update_actions import apply_equipment_update
     from services.equipment_update_workflow import prepare_equipment_update
     from services.equipment_assignment import record_assignment_changes
     from services.equipment_history_query import build_equipment_history
@@ -83,57 +83,7 @@ def handle_single_materiel(mat_id):
             conn.close()
             return jsonify({"error": str(exc)}), 400
 
-        marque = prepared["marque"]
-        id_model = prepared["id_model"]
-        id_typ = prepared["id_typ"]
-        id_str = prepared["id_str"]
-        id_uti = prepared["id_uti"]
-        etat_mat_update = prepared["etat_mat"]
-        statut_mat_update = prepared["statut_mat"]
-        etat_reforme = prepared["etat_reforme"]
-        motif_reforme = prepared["motif_reforme"]
-        date_reforme = prepared["date_reforme"]
-        annee_reforme = prepared["annee_reforme"]
-        lot_reforme = prepared["lot_reforme"]
-        date_proposition = prepared["date_proposition"]
-        date_validation = prepared["date_validation"]
-        decision = prepared["decision"]
-        pv_reforme = prepared["pv_reforme"]
-        reforme_update = prepared["reforme_update"]
-
-        update_materiel(
-            cur,
-            mat_id,
-            data,
-            marque,
-            id_model,
-            id_typ,
-            id_str,
-            id_uti,
-            etat_mat_update,
-            statut_mat_update,
-            etat_reforme,
-            motif_reforme,
-            date_proposition,
-            date_validation,
-            date_reforme,
-            annee_reforme,
-            lot_reforme,
-            decision,
-            pv_reforme,
-        )
-        old_str = existing['id_str']
-        old_uti = existing['id_uti']
-
-        record_assignment_changes(cur, mat_id, old_str, old_uti, id_str, id_uti)
-
-        if reforme_update and etat_reforme != (existing['etat_reforme'] or 'AUCUNE'):
-            log_reforme(
-                cur, mat_id, etat_reforme,
-                date_reforme if etat_reforme == 'REFORME' and date_reforme else today,
-                motif_reforme,
-                existing['etat_reforme'] or 'AUCUNE'
-            )
+        apply_equipment_update(cur, mat_id, data, existing, prepared, today)
 
         conn.commit()
         conn.close()
