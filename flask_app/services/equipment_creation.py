@@ -1,6 +1,5 @@
 """Services métier pour la création des équipements."""
 
-
 from datetime import datetime
 
 from .equipment_assignment import record_assignment_changes
@@ -15,10 +14,7 @@ REFORM_CREATION_ERROR = (
 def create_materiel(cur, data):
     """Crée un équipement et retourne son identifiant."""
     marque = (data.get("marque_mat") or "").strip()
-    try:
-        validate_brand(cur, marque)
-    except ValueError:
-        raise
+    validate_brand(cur, marque)
 
     id_model = data.get("id_model_mat") or None
     model_name = (data.get("model_mat_name") or "").strip()

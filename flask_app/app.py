@@ -9,7 +9,6 @@ Compatible avec le mode bureau (type green-dz) :
 """
 
 import webbrowser
-from threading import Timer
 from flask import Flask
 from flask_cors import CORS
 try:
