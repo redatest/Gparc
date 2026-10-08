@@ -9,12 +9,14 @@ except ImportError:  # Exécution directe depuis flask_app/
     from database import get_db
 
 try:
-    from ..services.equipment_history import log_affectation, log_reforme
+    from ..services.equipment_history import log_reforme
     from ..services.equipment_references import validate_brand, resolve_model, validate_model
+    from ..services.equipment_assignment import resolve_assignment, record_assignment_changes
     from ..services.equipment_reform import prepare_reform, status_for_reform
 except ImportError:  # Exécution directe depuis flask_app/
-    from services.equipment_history import log_affectation, log_reforme
+    from services.equipment_history import log_reforme
     from services.equipment_references import validate_brand, resolve_model, validate_model
+    from services.equipment_assignment import resolve_assignment, record_assignment_changes
     from services.equipment_reform import prepare_reform, status_for_reform
 
 materiels_bp = Blueprint('materiels', __name__)
@@ -72,10 +74,9 @@ def handle_materiels():
         last_id = cur.lastrowid
 
         if data.get('id_str') or data.get('id_uti'):
-            log_affectation(
-                cur, last_id, 'NOUVELLE_AFFECTATION',
-                data.get('id_str') or None, data.get('id_uti') or None,
-                obs='Nouvelle affectation lors de la création de l’équipement'
+            record_assignment_changes(
+                cur, last_id, None, None,
+                data.get('id_str') or None, data.get('id_uti') or None
             )
 
         conn.commit()
@@ -127,15 +128,14 @@ def handle_single_materiel(mat_id):
         id_model = data.get('id_model_mat') if 'id_model_mat' in data else existing['id_model_mat']
         model_name = (data.get('model_mat_name') or '').strip()
         id_model = resolve_model(cur, marque, id_model, model_name, id_typ)
-        id_str = data.get('id_str') if 'id_str' in data else existing['id_str']
-        id_uti = data.get('id_uti') if 'id_uti' in data else existing['id_uti']
+        try:
+            id_str, id_uti = resolve_assignment(cur, data, existing)
+        except ValueError as exc:
+            conn.close()
+            return jsonify({"error": str(exc)}), 400
 
         if id_typ is not None and not cur.execute("SELECT 1 FROM type_mat WHERE id_typ_mat = ? AND archiv = 'N'", (id_typ,)).fetchone():
             conn.close(); return jsonify({"error": "Type d'équipement invalide."}), 400
-        if id_str is not None and not cur.execute("SELECT 1 FROM structures WHERE id_str = ? AND archiv = 'N'", (id_str,)).fetchone():
-            conn.close(); return jsonify({"error": "Structure invalide."}), 400
-        if id_uti is not None and not cur.execute("SELECT 1 FROM utilisateurs WHERE id_uti = ? AND archiv = 'N'", (id_uti,)).fetchone():
-            conn.close(); return jsonify({"error": "Utilisateur assigné invalide."}), 400
         try:
             reform = prepare_reform(cur, data, existing, datetime.now().strftime('%Y-%m-%d'))
         except ValueError as exc:
@@ -211,25 +211,7 @@ def handle_single_materiel(mat_id):
         old_str = existing['id_str']
         old_uti = existing['id_uti']
 
-        if (old_str is None and old_uti is None) and (id_str is not None or id_uti is not None):
-            log_affectation(
-                cur, mat_id, 'NOUVELLE_AFFECTATION', id_str, id_uti,
-                ancien_id_str=old_str, ancien_id_uti=old_uti,
-                obs='Nouvelle affectation de l’équipement'
-            )
-        else:
-            if old_str != id_str:
-                log_affectation(
-                    cur, mat_id, 'CHANGEMENT_STRUCTURE', id_str, id_uti,
-                    ancien_id_str=old_str, ancien_id_uti=old_uti,
-                    obs='Changement de structure / direction'
-                )
-            if old_uti != id_uti:
-                log_affectation(
-                    cur, mat_id, 'CHANGEMENT_UTILISATEUR', id_str, id_uti,
-                    ancien_id_str=old_str, ancien_id_uti=old_uti,
-                    obs='Changement d’utilisateur assigné'
-                )
+        record_assignment_changes(cur, mat_id, old_str, old_uti, id_str, id_uti)
 
         if reforme_update and etat_reforme != (existing['etat_reforme'] or 'AUCUNE'):
             log_reforme(
