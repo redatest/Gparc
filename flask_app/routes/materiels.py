@@ -12,7 +12,7 @@ try:
     from ..services.equipment_history import log_reforme
     from ..services.equipment_references import validate_brand, resolve_model, validate_model
     from ..services.equipment_validation import validate_equipment_type, validate_equipment_state, validate_equipment_status
-from ..services.equipment_update import update_materiel
+    from ..services.equipment_update import update_materiel
     from ..services.equipment_assignment import resolve_assignment, record_assignment_changes
     from ..services.equipment_reform import prepare_reform, status_for_reform
 except ImportError:  # Exécution directe depuis flask_app/
@@ -144,7 +144,7 @@ def handle_single_materiel(mat_id):
             return jsonify({"error": str(exc)}), 400
         today = datetime.now().strftime('%Y-%m-%d')
         try:
-            reform = prepare_reform(cur, data, existing, datetime.now().strftime('%Y-%m-%d'))
+            reform = prepare_reform(cur, data, existing, today)
         except ValueError as exc:
             conn.close()
             return jsonify({"error": str(exc)}), 400
