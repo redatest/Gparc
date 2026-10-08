@@ -11,11 +11,13 @@ except ImportError:  # Exécution directe depuis flask_app/
 try:
     from ..services.equipment_history import log_reforme
     from ..services.equipment_references import validate_brand, resolve_model, validate_model
+    from ..services.equipment_validation import validate_equipment_type, validate_equipment_state, validate_equipment_status
     from ..services.equipment_assignment import resolve_assignment, record_assignment_changes
     from ..services.equipment_reform import prepare_reform, status_for_reform
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_history import log_reforme
     from services.equipment_references import validate_brand, resolve_model, validate_model
+    from services.equipment_validation import validate_equipment_type, validate_equipment_state, validate_equipment_status
     from services.equipment_assignment import resolve_assignment, record_assignment_changes
     from services.equipment_reform import prepare_reform, status_for_reform
 
@@ -134,8 +136,11 @@ def handle_single_materiel(mat_id):
             conn.close()
             return jsonify({"error": str(exc)}), 400
 
-        if id_typ is not None and not cur.execute("SELECT 1 FROM type_mat WHERE id_typ_mat = ? AND archiv = 'N'", (id_typ,)).fetchone():
-            conn.close(); return jsonify({"error": "Type d'équipement invalide."}), 400
+        try:
+            validate_equipment_type(cur, id_typ)
+        except ValueError as exc:
+            conn.close()
+            return jsonify({"error": str(exc)}), 400
         try:
             reform = prepare_reform(cur, data, existing, datetime.now().strftime('%Y-%m-%d'))
         except ValueError as exc:
@@ -166,12 +171,12 @@ def handle_single_materiel(mat_id):
         )
         etat_mat_update = data.get('etat_mat') if 'etat_mat' in data else existing['etat_mat']
 
-        if etat_mat_update not in ('BON', 'PANNE', 'IRREPARABLE'):
+        try:
+            validate_equipment_state(etat_mat_update)
+            validate_equipment_status(statut_mat_update)
+        except ValueError as exc:
             conn.close()
-            return jsonify({"error": "État de l'équipement invalide. Valeurs autorisées : Bon, En panne, Irréparable."}), 400
-        if statut_mat_update not in ('ES', 'PR', 'RF'):
-            conn.close()
-            return jsonify({"error": "Statut de l'équipement invalide. Valeurs autorisées : En service, Proposé à la réforme, Réformé."}), 400
+            return jsonify({"error": str(exc)}), 400
 
         cur.execute("""
             UPDATE materiel SET
@@ -203,70 +208,3 @@ def handle_single_materiel(mat_id):
             WHERE id_mat = ?
         """, (
             data.get('num_inv'), data.get('num_ser'), marque or None,
-            id_model, id_typ, id_str, id_uti, etat_mat_update, statut_mat_update, data.get('obs_mat'),
-            data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'),
-            etat_reforme, motif_reforme, date_proposition, date_validation, date_reforme,
-            annee_reforme, lot_reforme, decision, pv_reforme, mat_id
-        ))
-        old_str = existing['id_str']
-        old_uti = existing['id_uti']
-
-        record_assignment_changes(cur, mat_id, old_str, old_uti, id_str, id_uti)
-
-        if reforme_update and etat_reforme != (existing['etat_reforme'] or 'AUCUNE'):
-            log_reforme(
-                cur, mat_id, etat_reforme,
-                date_reforme if etat_reforme == 'REFORME' and date_reforme else today,
-                motif_reforme,
-                existing['etat_reforme'] or 'AUCUNE'
-            )
-
-        conn.commit()
-        conn.close()
-        return jsonify({"message": "Matériel mis à jour avec succès"})
-
-    elif request.method == 'DELETE':
-        cur.execute("UPDATE materiel SET archiv = 'O' WHERE id_mat = ?", (mat_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({"message": "Matériel archivé"})
-
-    row = cur.execute("SELECT * FROM materiel WHERE id_mat = ?", (mat_id,)).fetchone()
-    conn.close()
-    if not row:
-        return jsonify({"error": "Matériel non trouvé"}), 404
-    return jsonify(dict(row))
-
-@materiels_bp.route('/api/materiels/<int:mat_id>/historique', methods=['GET'])
-def get_materiel_historique(mat_id):
-    """Historique chronologique complet : affectations, pannes et réformes."""
-    conn = get_db()
-    cur = conn.cursor()
-
-    exists = cur.execute(
-        "SELECT id_mat FROM materiel WHERE id_mat = ? AND archiv = 'N'",
-        (mat_id,)
-    ).fetchone()
-    if not exists:
-        conn.close()
-        return jsonify({"error": "Matériel non trouvé"}), 404
-
-    events = []
-
-    # 1. Historique des affectations
-    rows = cur.execute("""
-        SELECT a.id_aff_mat, a.dat_aff, a.action_aff, a.obs_aff,
-               a.id_str, a.ancien_id_str, a.id_uti, a.ancien_id_uti,
-               s.lib_str AS structure_nom, os.lib_str AS ancienne_structure_nom,
-               u.nom_uti, u.pnom_uti, ou.nom_uti AS ancien_nom_uti,
-               ou.pnom_uti AS ancien_pnom_uti
-        FROM affect_mat a
-        LEFT JOIN structures s ON a.id_str = s.id_str
-        LEFT JOIN structures os ON a.ancien_id_str = os.id_str
-        LEFT JOIN utilisateurs u ON a.id_uti = u.id_uti
-        LEFT JOIN utilisateurs ou ON a.ancien_id_uti = ou.id_uti
-        WHERE a.id_mat = ? AND a.archiv = 'N'
-        ORDER BY a.dat_aff DESC, a.id_aff_mat DESC
-    """, (mat_id,)).fetchall()
-
-    for r in rows:
