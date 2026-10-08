@@ -561,15 +561,6 @@ def delete_structure(id_str):
     conn.close()
     return jsonify({"message": "Structure archivée"})
 
-@app.route('/api/parametres/<int:id_param>', methods=['DELETE'])
-def delete_parametre(id_param):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE parametres_materiel SET archiv = 'O' WHERE id_param = ?", (id_param,))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Paramètre archivé"})
-
 # -----------------------------------------------------------------------------
 # SYNCHRONISATION ET IMPORTATION ORACLE (LIVE & FICHIER SCRIPT)
 # -----------------------------------------------------------------------------
@@ -848,31 +839,3 @@ SELECT json_object(
       json_object(
         'num_inv' VALUE NUM_INV,
         'num_ser' VALUE NUM_SER,
-        'etat_mat' VALUE NVL(ETAT_MAT, 'OP'),
-        'ram' VALUE RAM,
-        'disk' VALUE DISK,
-        'cpu' VALUE CPU,
-        'se' VALUE SE,
-        'ip' VALUE IP
-      )
-    ) FROM {schema}.MATERIEL WHERE NVL(ARCHIV, 'N') = 'N'
-  )
-) FROM DUAL;
-"""
-    return jsonify({"script": script})
-
-def open_browser():
-    try:
-        webbrowser.open_new('http://127.0.0.1:5000')
-    except Exception:
-        pass
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    print("=" * 65)
-    print("  GPARC - Application de Gestion du Parc Informatique")
-    print(f"  Serveur Flask actif sur : http://127.0.0.1:{port}")
-    print("=" * 65)
-    # Ouvrir automatiquement le navigateur après 1.2 seconde sur bureau
-    Timer(1.2, open_browser).start()
-    app.run(host='0.0.0.0', port=port, debug=True)
