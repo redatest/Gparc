@@ -7,7 +7,7 @@ import os
 from threading import Timer
 
 try:
-    from flask_app.app import app, init_db, open_browser
+    from flask_app.app import app, open_browser
 except ImportError as exc:
     print("\n[ERREUR] Les dépendances Python ne sont pas installées.")
     print("Installez-les avec :")
