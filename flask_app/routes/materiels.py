@@ -12,6 +12,7 @@ try:
     from ..services.equipment_history import log_reforme
     from ..services.equipment_references import validate_brand, resolve_model, validate_model
     from ..services.equipment_validation import validate_equipment_type, validate_equipment_state, validate_equipment_status
+from ..services.equipment_update import update_materiel
     from ..services.equipment_assignment import resolve_assignment, record_assignment_changes
     from ..services.equipment_reform import prepare_reform, status_for_reform
 except ImportError:  # Exécution directe depuis flask_app/
@@ -179,41 +180,27 @@ def handle_single_materiel(mat_id):
             conn.close()
             return jsonify({"error": str(exc)}), 400
 
-        cur.execute("""
-            UPDATE materiel SET
-                num_inv = COALESCE(?, num_inv),
-                num_ser = COALESCE(?, num_ser),
-                marque_mat = COALESCE(?, marque_mat),
-                id_model_mat = ?,
-                id_typ_mat = ?,
-                id_str = ?,
-                id_uti = ?,
-                etat_mat = COALESCE(?, etat_mat),
-                statut_mat = COALESCE(?, statut_mat),
-                obs_mat = COALESCE(?, obs_mat),
-                cpu = COALESCE(?, cpu),
-                ram = COALESCE(?, ram),
-                disk = COALESCE(?, disk),
-                ip = COALESCE(?, ip),
-                image_url = COALESCE(?, image_url),
-                etat_reforme = ?,
-                motif_reforme = ?,
-                date_proposition_reforme = ?,
-                date_validation_reforme = ?,
-                date_reforme = ?,
-                annee_reforme = ?,
-                lot_reforme = ?,
-                decision_reforme = ?,
-                pv_reforme = ?,
-                dat_mod = CURRENT_TIMESTAMP
-            WHERE id_mat = ?
-        """, (
-            data.get('num_inv'), data.get('num_ser'), marque or None,
-            id_model, id_typ, id_str, id_uti, etat_mat_update, statut_mat_update, data.get('obs_mat'),
-            data.get('cpu'), data.get('ram'), data.get('disk'), data.get('ip'), data.get('image_url'),
-            etat_reforme, motif_reforme, date_proposition, date_validation, date_reforme,
-            annee_reforme, lot_reforme, decision, pv_reforme, mat_id
-        ))
+        update_materiel(
+            cur,
+            mat_id,
+            data,
+            marque,
+            id_model,
+            id_typ,
+            id_str,
+            id_uti,
+            etat_mat_update,
+            statut_mat_update,
+            etat_reforme,
+            motif_reforme,
+            date_proposition,
+            date_validation,
+            date_reforme,
+            annee_reforme,
+            lot_reforme,
+            decision,
+            pv_reforme,
+        )
         old_str = existing['id_str']
         old_uti = existing['id_uti']
 
