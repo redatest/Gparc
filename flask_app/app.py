@@ -18,6 +18,10 @@ from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_cors import CORS
 try:
+    from .routes.parametres import parametres_bp
+except ImportError:
+    from routes.parametres import parametres_bp
+try:
     from .routes.pannes import pannes_bp
 except ImportError:
     from routes.pannes import pannes_bp
@@ -36,6 +40,7 @@ CORS(app)
 
 app.register_blueprint(materiels_bp)
 app.register_blueprint(pannes_bp)
+app.register_blueprint(parametres_bp)
 
 # Initialiser la base dès le chargement du module
 init_db()
@@ -147,54 +152,6 @@ def reset_data_endpoint():
         conn.close()
     init_db()
     return jsonify({"message": "Base réinitialisée avec succès"})
-
-# -----------------------------------------------------------------------------
-# GESTION DES PARAMÈTRES MATÉRIELS (CPU, RAM, SE, Disque)
-# -----------------------------------------------------------------------------
-
-@app.route('/api/parametres', methods=['GET'])
-def get_parametres():
-    conn = get_db()
-    cur = conn.cursor()
-    params = [dict(r) for r in cur.execute("SELECT * FROM parametres_materiel WHERE archiv = 'N' ORDER BY categorie, ordre, id_param").fetchall()]
-    conn.close()
-    return jsonify(params)
-
-@app.route('/api/parametres', methods=['POST'])
-def create_parametre():
-    data = request.json or {}
-    categorie = data.get('categorie', '').strip().lower()
-    valeur = data.get('valeur', '').strip()
-    description = data.get('description', '').strip() or None
-    ordre = int(data.get('ordre', 0))
-
-    if not categorie or not valeur:
-        return jsonify({"error": "Catégorie et valeur requises"}), 400
-
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO parametres_materiel (categorie, valeur, description, ordre) VALUES (?, ?, ?, ?)",
-                (categorie, valeur, description, ordre))
-    conn.commit()
-    pid = cur.lastrowid
-    conn.close()
-    return jsonify({"id": pid, "message": "Paramètre créé avec succès"}), 201
-
-@app.route('/api/parametres/<int:id_param>', methods=['PUT'])
-def update_parametre(id_param):
-    data = request.json or {}
-    valeur = data.get('valeur', '').strip()
-    description = data.get('description', '').strip() or None
-    ordre = int(data.get('ordre', 0))
-
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE parametres_materiel SET valeur = ?, description = ?, ordre = ? WHERE id_param = ?",
-                (valeur, description, ordre, id_param))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Paramètre mis à jour"})
-
 
 # -----------------------------------------------------------------------------
 # GESTION DES UTILISATEURS (depuis Paramètres)
@@ -604,15 +561,6 @@ def delete_structure(id_str):
     conn.close()
     return jsonify({"message": "Structure archivée"})
 
-@app.route('/api/parametres/<int:id_param>', methods=['DELETE'])
-def delete_parametre(id_param):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("UPDATE parametres_materiel SET archiv = 'O' WHERE id_param = ?", (id_param,))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Paramètre archivé"})
-
 # -----------------------------------------------------------------------------
 # SYNCHRONISATION ET IMPORTATION ORACLE (LIVE & FICHIER SCRIPT)
 # -----------------------------------------------------------------------------
@@ -891,31 +839,3 @@ SELECT json_object(
       json_object(
         'num_inv' VALUE NUM_INV,
         'num_ser' VALUE NUM_SER,
-        'etat_mat' VALUE NVL(ETAT_MAT, 'OP'),
-        'ram' VALUE RAM,
-        'disk' VALUE DISK,
-        'cpu' VALUE CPU,
-        'se' VALUE SE,
-        'ip' VALUE IP
-      )
-    ) FROM {schema}.MATERIEL WHERE NVL(ARCHIV, 'N') = 'N'
-  )
-) FROM DUAL;
-"""
-    return jsonify({"script": script})
-
-def open_browser():
-    try:
-        webbrowser.open_new('http://127.0.0.1:5000')
-    except Exception:
-        pass
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    print("=" * 65)
-    print("  GPARC - Application de Gestion du Parc Informatique")
-    print(f"  Serveur Flask actif sur : http://127.0.0.1:{port}")
-    print("=" * 65)
-    # Ouvrir automatiquement le navigateur après 1.2 seconde sur bureau
-    Timer(1.2, open_browser).start()
-    app.run(host='0.0.0.0', port=port, debug=True)
