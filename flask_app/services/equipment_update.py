@@ -32,28 +32,11 @@ UPDATE_MATERIEL_SQL = """
 """
 
 
-def update_materiel(
-    cur,
-    mat_id,
-    data,
-    marque,
-    id_model,
-    id_typ,
-    id_str,
-    id_uti,
-    etat_mat,
-    statut_mat,
-    etat_reforme,
-    motif_reforme,
-    date_proposition,
-    date_validation,
-    date_reforme,
-    annee_reforme,
-    lot_reforme,
-    decision,
-    pv_reforme,
-):
-    """Applique la mise à jour SQL sans gérer la transaction."""
+def update_materiel(cur, mat_id, data, marque, id_model, id_typ, id_str, id_uti,
+                    etat_mat, statut_mat, etat_reforme, motif_reforme,
+                    date_proposition, date_validation, date_reforme,
+                    annee_reforme, lot_reforme, decision, pv_reforme):
+    """Applique la mise à jour SQL du matériel sans gérer la transaction."""
     cur.execute(
         UPDATE_MATERIEL_SQL,
         (
