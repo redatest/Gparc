@@ -11,9 +11,11 @@ except ImportError:  # Exécution directe depuis flask_app/
 try:
     from ..services.equipment_history import log_affectation, log_reforme
     from ..services.equipment_references import validate_brand, resolve_model, validate_model
+    from ..services.equipment_reform import prepare_reform, status_for_reform
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_history import log_affectation, log_reforme
     from services.equipment_references import validate_brand, resolve_model, validate_model
+    from services.equipment_reform import prepare_reform, status_for_reform
 
 materiels_bp = Blueprint('materiels', __name__)
 
@@ -134,76 +136,34 @@ def handle_single_materiel(mat_id):
             conn.close(); return jsonify({"error": "Structure invalide."}), 400
         if id_uti is not None and not cur.execute("SELECT 1 FROM utilisateurs WHERE id_uti = ? AND archiv = 'N'", (id_uti,)).fetchone():
             conn.close(); return jsonify({"error": "Utilisateur assigné invalide."}), 400
-        reforme_update = 'etat_reforme' in data
-        etat_reforme = data.get('etat_reforme') if reforme_update else (existing['etat_reforme'] or 'AUCUNE')
-        motif_reforme = data.get('motif_reforme') if reforme_update else existing['motif_reforme']
-        date_reforme = data.get('date_reforme') if reforme_update else existing['date_reforme']
-        annee_reforme = data.get('annee_reforme') if reforme_update else existing['annee_reforme']
-        lot_reforme = data.get('lot_reforme') if reforme_update else existing['lot_reforme']
-        today = datetime.now().strftime('%Y-%m-%d')
-
-        if etat_reforme not in ('AUCUNE', 'PROPOSEE', 'REFORME'):
+        try:
+            reform = prepare_reform(cur, data, existing, datetime.now().strftime('%Y-%m-%d'))
+        except ValueError as exc:
             conn.close()
-            return jsonify({"error": "État de réforme invalide."}), 400
+            return jsonify({"error": str(exc)}), 400
 
-        if etat_reforme == 'REFORME':
-            if not date_reforme:
-                conn.close()
-                return jsonify({"error": "La date de réforme est obligatoire."}), 400
-            if not annee_reforme:
-                conn.close()
-                return jsonify({"error": "L'année de réforme est obligatoire."}), 400
-            try:
-                annee_reforme = int(annee_reforme)
-            except (TypeError, ValueError):
-                conn.close()
-                return jsonify({"error": "L'année de réforme doit être un nombre valide."}), 400
-            if annee_reforme < 2000 or annee_reforme > 2100:
-                conn.close()
-                return jsonify({"error": "L'année de réforme doit être comprise entre 2000 et 2100."}), 400
-            if not lot_reforme or not str(lot_reforme).strip():
-                conn.close()
-                return jsonify({"error": "Le N° de lot de réforme est obligatoire."}), 400
-            if not motif_reforme or not str(motif_reforme).strip():
-                conn.close()
-                return jsonify({"error": "Le motif de réforme est obligatoire."}), 400
-            lot_reforme = str(lot_reforme).strip()
-            lot_ref = cur.execute("""
-                SELECT id_param
-                FROM parametres_materiel
-                WHERE categorie = 'lot_reforme'
-                  AND archiv = 'N'
-                  AND LOWER(TRIM(valeur)) = LOWER(TRIM(?))
-                LIMIT 1
-            """, (lot_reforme,)).fetchone()
-            if not lot_ref:
-                conn.close()
-                return jsonify({"error": "Le N° de lot sélectionné n'existe pas dans le référentiel des lots de réforme."}), 400
-            date_proposition = existing['date_proposition_reforme'] or today
-        elif etat_reforme == 'PROPOSEE':
-            date_proposition = today
-            date_reforme = None
-            annee_reforme = None
-            lot_reforme = None
-            motif_reforme = None
-        else:
-            date_proposition = None
-            date_reforme = None
-            annee_reforme = None
-            lot_reforme = None
-            motif_reforme = None
-
-        date_validation = None
-        decision = None
-        pv_reforme = None
-
+        reforme_update = reform["reforme_update"]
+        etat_reforme = reform["etat_reforme"]
+        motif_reforme = reform["motif_reforme"]
+        date_reforme = reform["date_reforme"]
+        annee_reforme = reform["annee_reforme"]
+        lot_reforme = reform["lot_reforme"]
+        date_proposition = reform["date_proposition"]
+        date_validation = reform["date_validation"]
+        decision = reform["decision"]
+        pv_reforme = reform["pv_reforme"]
         try:
             validate_model(cur, id_model, marque, id_typ)
         except ValueError as exc:
             conn.close()
             return jsonify({"error": str(exc)}), 400
 
-        statut_mat_update = ({'AUCUNE': 'ES', 'PROPOSEE': 'PR', 'REFORME': 'RF'}.get(etat_reforme, 'ES')) if reforme_update else (data.get('statut_mat') if 'statut_mat' in data else (existing['statut_mat'] or 'ES'))
+        statut_mat_update = status_for_reform(
+            etat_reforme,
+            reforme_update,
+            existing['statut_mat'],
+            data.get('statut_mat') if 'statut_mat' in data else None,
+        )
         etat_mat_update = data.get('etat_mat') if 'etat_mat' in data else existing['etat_mat']
 
         if etat_mat_update not in ('BON', 'PANNE', 'IRREPARABLE'):
@@ -328,79 +288,3 @@ def get_materiel_historique(mat_id):
     """, (mat_id,)).fetchall()
 
     for r in rows:
-        d = dict(r)
-        if d['action_aff'] == 'NOUVELLE_AFFECTATION':
-            libelle = 'Nouvelle affectation'
-            detail = d['structure_nom'] or 'Structure non précisée'
-            if d['nom_uti']:
-                detail += ' — ' + ((d['pnom_uti'] or '') + ' ' + (d['nom_uti'] or '')).strip()
-        elif d['action_aff'] == 'CHANGEMENT_STRUCTURE':
-            libelle = 'Changement de structure'
-            detail = f"{d['ancienne_structure_nom'] or 'Aucune structure'} → {d['structure_nom'] or 'Aucune structure'}"
-        else:
-            libelle = 'Changement d’utilisateur'
-            old_name = ((d['ancien_pnom_uti'] or '') + ' ' + (d['ancien_nom_uti'] or '')).strip() or 'Aucun utilisateur'
-            new_name = ((d['pnom_uti'] or '') + ' ' + (d['nom_uti'] or '')).strip() or 'Aucun utilisateur'
-            detail = f"{old_name} → {new_name}"
-        events.append({
-            'type_evenement': 'AFFECTATION',
-            'date_evenement': d['dat_aff'],
-            'libelle': libelle,
-            'detail': detail,
-            'obs': d['obs_aff'] or ''
-        })
-
-    # 2. Procédures de panne
-    pannes = cur.execute("""
-        SELECT id_pan, dat_pan, diag_pan, eta_pan, tp, technicien,
-               dat_env_rep, dat_ret_rep, obs_rep, pieces_remplacees,
-               recommandations, cout_rep
-        FROM panne
-        WHERE id_mat = ? AND archiv = 'N'
-        ORDER BY dat_pan DESC, id_pan DESC
-    """, (mat_id,)).fetchall()
-
-    panne_status = {
-        'EP': 'En panne',
-        'ER': 'En réparation',
-        'RP': 'Réparé',
-        'IR': 'Irréparable',
-        'EC': 'En panne',
-        'AT': 'En réparation',
-        'NR': 'Irréparable'
-    }
-    for p in pannes:
-        d = dict(p)
-        details = {
-            'diagnostic': d['diag_pan'] or '',
-            'type': d['tp'] or 'MAT',
-            'technicien': d['technicien'] or '',
-            'statut': panne_status.get(d['eta_pan'], d['eta_pan'] or ''),
-            'date_envoi': d['dat_env_rep'],
-            'date_retour': d['dat_ret_rep'],
-            'observation_reparation': d['obs_rep'] or '',
-            'pieces_remplacees': d['pieces_remplacees'] or '',
-            'recommandations': d['recommandations'] or '',
-            'cout': d['cout_rep'] or 0
-        }
-        events.append({
-            'type_evenement': 'PANNE',
-            'date_evenement': d['dat_pan'],
-            'libelle': 'Déclaration de panne',
-            'detail': d['diag_pan'] or 'Panne signalée',
-            'obs': '',
-            'procedure': details
-        })
-
-    # 3. Procédures de réforme
-    reformes = cur.execute("""
-        SELECT id_his_ref, etat_reforme, date_evenement, motif_reforme,
-               ancien_etat_reforme, dat_cre
-        FROM historique_reforme
-        WHERE id_mat = ?
-        ORDER BY date_evenement DESC, id_his_ref DESC
-    """, (mat_id,)).fetchall()
-
-    reforme_labels = {
-        'AUCUNE': 'Remise en service',
-        'PROPOSEE': 'Proposé à la réforme',
