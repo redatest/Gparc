@@ -1132,32 +1132,7 @@
     </div>
   </div>
 
-  <!-- MODAL : SCRIPT SQL D'EXPORT ORACLE -->
-  <div id="modal-oracle-sql" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 my-8">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-        <div>
-          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-code text-rose-600"></i> Script SQL d'extraction Oracle
-          </h3>
-          <p class="text-xs text-slate-500 mt-0.5">Exécutez ce script dans SQL*Plus ou SQL Developer pour extraire les données en JSON direct.</p>
-        </div>
-        <button onclick="closeModal('modal-oracle-sql')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="mt-4">
-        <textarea id="oracle-sql-textarea" readonly class="w-full h-72 font-mono text-xs p-3 bg-slate-900 text-emerald-300 rounded-xl border border-slate-800 focus:outline-none"></textarea>
-      </div>
-      <div class="mt-4 flex justify-between items-center pt-3 border-t border-slate-100">
-        <span class="text-xs text-slate-500">Copiez ce script et collez-le dans SQL Developer</span>
-        <div class="flex gap-2">
-          <button onclick="copyOracleSqlScript()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow">
-            <i class="fa-solid fa-copy"></i> Copier le script SQL
-          </button>
-          <button onclick="closeModal('modal-oracle-sql')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Fermer</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  {% include 'partials/modal_oracle_sql.html' %}
 
   <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
     GPARC - Gestion du Parc Informatique & SQLite Intégrée &bull; Prêt pour Windows, Linux & Mac
