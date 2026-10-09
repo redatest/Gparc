@@ -53,3 +53,10 @@
         if (refreshIcon) refreshIcon.classList.remove('fa-spin');
       }
     }
+
+    // Déclenchement garanti du chargement
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadAllData);
+    } else {
+      loadAllData();
+    }
