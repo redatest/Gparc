@@ -1,0 +1,46 @@
+  <!-- MODAL : SIGNALER UNE PANNE -->
+  <div id="modal-panne" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Déclarer un incident / Panne
+        </h3>
+        <button onclick="closeModal('modal-panne')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSavePanne(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Équipement concerné *</label>
+          <select id="panne-mat-id" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500">
+            <!-- Rempli par JavaScript -->
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date de la panne *</label>
+            <input type="date" id="panne-date" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Type d'anomalie</label>
+            <select id="panne-type" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500">
+              <option value="MAT">Panne Matérielle (Composant / Pièce)</option>
+              <option value="ALIM">Alimentation / Énergie</option>
+              <option value="LOG">Système & Logiciel</option>
+              <option value="RES">Réseau & Connectivité</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Technicien assigné</label>
+            <input type="text" id="panne-tech" value="Support DSI Interne" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Diagnostic & Description de l'anomalie *</label>
+          <textarea id="panne-diag" rows="3" required placeholder="Détaillez le problème constaté..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-rose-500"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="closeModal('modal-panne')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm">Créer la fiche de panne</button>
+        </div>
+      </form>
+    </div>
+  </div>
