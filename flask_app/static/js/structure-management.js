@@ -87,3 +87,31 @@
         showToast('Erreur serveur Flask', true);
       }
     }
+
+    // RENDU DE LA LISTE DES STRUCTURES
+    function renderStructures() {
+      const tbody = document.getElementById('structures-table-body');
+      if (!tbody) return;
+
+      if (!allStructures || allStructures.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucune structure configurée.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allStructures.map(s => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 font-mono font-bold text-indigo-700">${escapeHtml(s.cod_str || '')}</td>
+          <td class="p-3 font-semibold text-slate-800">${escapeHtml(s.lib_str || '')}</td>
+          <td class="p-3 text-slate-500">${escapeHtml(s.structure_mere_nom || '—')}</td>
+          <td class="p-3 text-center font-mono text-slate-400">${s.id_str}</td>
+          <td class="p-3 text-right whitespace-nowrap">
+            <button onclick="editStructure(${s.id_str})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteStructure(${s.id_str})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Archiver">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
