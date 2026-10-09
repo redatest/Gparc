@@ -1,0 +1,42 @@
+  <!-- MODAL : AJOUT / MODIFICATION DE PARAMÈTRE -->
+  <div id="modal-parametre" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-indigo-600"></i> <span id="param-modal-title">Ajouter un paramètre matériel</span>
+        </h3>
+        <button onclick="closeModal('modal-parametre')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveParametre(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="param-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Catégorie de paramètre *</label>
+          <select id="param-cat" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+            <option value="marque">Marque</option>
+            <option value="cpu">Processeur (CPU)</option>
+            <option value="ram">Mémoire Vive (RAM en Go)</option>
+            <option value="disk">Capacité Disque (SSD/HDD en Go)</option>
+            <option value="se">Système d'Exploitation (SE)</option>
+            <option value="modele">Modèle d'équipement</option>
+            <option value="lot_reforme">Lot de réforme</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Valeur / Dénomination *</label>
+          <input type="text" id="param-val" required placeholder="ex: Intel Core Ultra 9 ou 32 ou Windows 11" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Rôle</label>
+          <input type="text" id="param-desc" placeholder="ex: Pour postes cadres ou serveurs" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Ordre d'affichage</label>
+          <input type="number" id="param-ordre" value="1" min="1" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-parametre')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50">Annuler</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Enregistrer le paramètre</button>
+        </div>
+      </form>
+    </div>
+  </div>
