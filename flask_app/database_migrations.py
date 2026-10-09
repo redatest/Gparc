@@ -1,6 +1,11 @@
 """Migrations de compatibilité pour les bases SQLite GPARC existantes."""
 
 try:
+    from .database_migration_repair_locations import migrate_repair_locations
+except ImportError:  # Exécution directe depuis flask_app/
+    from database_migration_repair_locations import migrate_repair_locations
+
+try:
     from .database_migration_materiel import migrate_materiel
 except ImportError:  # Exécution directe depuis flask_app/
     from database_migration_materiel import migrate_materiel
@@ -10,17 +15,7 @@ def run_migrations(cur):
     """Ajoute les colonnes manquantes et harmonise les anciens codes."""
     migrate_materiel(cur)
 
-    # Migration légère des lieux de réparation.
-    lieu_columns = {row[1] for row in cur.execute("PRAGMA table_info(lieu_rep)").fetchall()}
-    if 'categorie_lieu' not in lieu_columns:
-        cur.execute("ALTER TABLE lieu_rep ADD COLUMN categorie_lieu TEXT DEFAULT 'EXTERIEUR'")
-        cur.execute("""
-            UPDATE lieu_rep
-            SET categorie_lieu = CASE
-                WHEN LOWER(nom_lieu_rep) LIKE '%atelier%' OR LOWER(nom_lieu_rep) LIKE '%interne%' THEN 'LOCAL'
-                ELSE 'EXTERIEUR'
-            END
-        """)
+    migrate_repair_locations(cur)
 
     # Migration légère de la procédure de panne.
     # Les anciennes bases peuvent ne pas contenir les colonnes ajoutées
