@@ -55,7 +55,15 @@ def get_db():
     return conn
 
 def init_db():
-    """Initialise le schéma SQLite et les données de démonstration si la bas    sync_reference_data(cur)
+    """Initialise le schéma SQLite et les données de démonstration si la base est neuve."""
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.executescript(SCHEMA_SQL)
+    run_migrations(cur)
+    seed_default_parameters(cur)
+    seed_demo_data(conn, cur)
+    sync_reference_data(cur)
 
     conn.commit()
     conn.close()
