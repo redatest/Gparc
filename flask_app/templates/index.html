@@ -66,9 +66,7 @@
 
   {% include 'partials/modal_oracle_sql.html' %}
 
-  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
-    GPARC - Gestion du Parc Informatique & SQLite Intégrée &bull; Prêt pour Windows, Linux & Mac
-  </footer>
+  {% include 'partials/footer.html' %}
 
   <!-- Code JavaScript applicatif -->
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
