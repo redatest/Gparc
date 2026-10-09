@@ -13,11 +13,13 @@ try:
     from ..services.equipment_update_actions import apply_equipment_update
     from ..services.equipment_update_workflow import prepare_equipment_update
     from ..services.equipment_history_query import build_equipment_history
+    from ..services.equipment_detail_query import get_materiel_by_id
 except ImportError:  # Exécution directe depuis flask_app/
     from services.equipment_creation import create_materiel
     from services.equipment_update_actions import apply_equipment_update
     from services.equipment_update_workflow import prepare_equipment_update
     from services.equipment_history_query import build_equipment_history
+    from services.equipment_detail_query import get_materiel_by_id
 
 materiels_bp = Blueprint('materiels', __name__)
 
@@ -91,7 +93,7 @@ def handle_single_materiel(mat_id):
         conn.close()
         return jsonify({"message": "Matériel archivé"})
 
-    row = cur.execute("SELECT * FROM materiel WHERE id_mat = ?", (mat_id,)).fetchone()
+    row = get_materiel_by_id(cur, mat_id)
     conn.close()
     if not row:
         return jsonify({"error": "Matériel non trouvé"}), 404
