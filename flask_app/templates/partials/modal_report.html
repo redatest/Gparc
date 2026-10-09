@@ -1,0 +1,65 @@
+    <!-- MODAL : FICHE D'INTERVENTION IMPRIMABLE -->
+  <div id="modal-report" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 my-8">
+      <div class="flex items-center justify-between px-6 py-3 border-b no-print">
+        <h3 class="text-base font-bold text-slate-800"><i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i>Fiche d'Intervention Technique</h3>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold"><i class="fa-solid fa-print mr-1"></i>Imprimer / PDF</button>
+          <button onclick="closeModal('modal-report')" class="text-slate-400 hover:text-slate-600 text-lg px-2"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div id="printable-report" class="fir-model">
+        <div class="fir-logo-wrap"><img src="/logoSS.jpg" class="fir-logo" alt="Sonelgaz Services"></div>
+        <div class="fir-top">
+          <div class="fir-company">REGION SONELGAZ SERVICES CONSTANTINE<br>Département Digitalisation et Sécurité<br>Service Support SI Guelma</div>
+          <div class="fir-guelma">Guelma le : <span id="rpt-date-generation"></span></div>
+        </div>
+
+        <div class="fir-number">N°<span id="rpt-ref">............/SSSI/2026</span></div>
+        <div class="fir-title">PV d’intervention</div>
+
+        <div class="fir-info-row">
+          <div class="fir-left">
+            <div>Bon n°: <span id="rpt-bon"></span></div>
+            <div>DPS n°: <span id="rpt-dps"></span></div>
+            <div>Date DPS: <span id="rpt-date-dps"></span></div>
+          </div>
+          <div class="fir-right">
+            <div>Structure : <span id="rpt-structure"></span></div>
+            <div>Date d’arrivée : <span id="rpt-date-arrivee"></span></div>
+          </div>
+        </div>
+
+        <div class="fir-rule"></div>
+        <div class="fir-heading">MATERIEL</div>
+        <div class="fir-material-grid">
+          <div>N° de série : <span id="rpt-ser"></span></div><div>Type : <span id="rpt-type"></span></div>
+          <div>Code à barre : <span id="rpt-barcode"></span></div><div>Marque : <span id="rpt-brand"></span></div>
+          <div>Nouveau Code à barre : <span id="rpt-new-barcode"></span></div><div>Modèle : <span id="rpt-model"></span></div>
+        </div>
+
+        <div class="fir-rule"></div>
+        <div class="fir-heading">COMPTE RENDU</div>
+        <div class="fir-cr-grid">
+          <div>Date de réparation : <span id="rpt-date-reparation"></span></div><div>Lieu de réparation : <span id="rpt-lieu-reparation"></span></div>
+          <div>Date de retour : <span id="rpt-date-retour"></span></div><div>Intervenant : <span id="rpt-tech"></span></div>
+        </div>
+
+        <div class="fir-labelbox">Constat:</div>
+        <div id="rpt-diag" class="fir-box fir-constat"></div>
+
+        <div class="fir-labelbox">Détail de la réparation :</div>
+        <div id="rpt-travaux" class="fir-box fir-travaux"></div>
+
+        <div class="fir-labelbox">Feedback de l'utilisateur :</div>
+        <div id="rpt-observation" class="fir-box fir-observation" aria-disabled="true"></div>
+
+        <div class="fir-sign-row">
+          <div><b>Accusé de réception</b><div class="fir-sign-space"></div></div>
+          <div><b>Le chef SSSI</b><div class="fir-sign-space"></div></div>
+        </div>
+
+        <div class="fir-pv-area"><b>PV d’intervention</b><div></div></div>
+      </div>
+    </div>
+  </div>
