@@ -63,7 +63,7 @@ def init_db():
         cur.executescript(SCHEMA_SQL)
         run_migrations(cur)
         seed_default_parameters(cur)
-        seed_demo_data(conn, cur)
+        seed_demo_data(cur)
         sync_reference_data(cur)
 
         conn.commit()
