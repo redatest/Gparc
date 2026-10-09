@@ -14,10 +14,6 @@
     let currentReformeFilter = 'ALL';
     let currentPanneFilter = 'ALL';
 
-    function escapeHtml(value) {
-      return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;',"\"":'&quot;'}[c]));
-    }
-
     async function deleteMateriel(matId) {
       if (!confirm('Êtes-vous sûr de vouloir retirer cet équipement du parc ?')) return;
       try {
