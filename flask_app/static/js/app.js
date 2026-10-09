@@ -74,10 +74,6 @@
       return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;',"\"":'&quot;'}[c]));
     }
 
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
-
     async function deleteMateriel(matId) {
       if (!confirm('Êtes-vous sûr de vouloir retirer cet équipement du parc ?')) return;
       try {
@@ -99,21 +95,6 @@
         showToast('Base SQLite réinitialisée avec succès !');
         loadAllData();
       }
-    }
-
-    function showToast(text, isError = false) {
-      const toast = document.getElementById('toast');
-      const toastText = document.getElementById('toast-text');
-      toastText.innerText = text;
-      toast.classList.remove('translate-y-16', 'opacity-0');
-      if (isError) {
-        toast.classList.add('border-rose-500');
-      } else {
-        toast.classList.remove('border-rose-500');
-      }
-      setTimeout(() => {
-        toast.classList.add('translate-y-16', 'opacity-0');
-      }, 3500);
     }
 
     // Exposer explicitement sur window pour tous les onclick HTML
