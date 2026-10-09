@@ -121,11 +121,7 @@
     </div>
 
     <!-- VUE 1 : INTERFACE SIMPLE (Grille d'équipements & Cartes d'action) -->
-    <div id="view-simple" class="view-panel hidden">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="materiels-grid">
-        <!-- Rempli dynamiquement en JavaScript -->
-      </div>
-    </div>
+    {% include 'partials/view_simple.html' %}
 
     {% include 'partials/view_materiels.html' %}
 
