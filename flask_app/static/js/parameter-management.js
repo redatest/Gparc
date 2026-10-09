@@ -198,3 +198,91 @@
         showToast('Erreur lors de la suppression', true);
       }
     }
+
+    function renderParametres() {
+      const tbody = document.getElementById('parametres-table-body');
+      const typePanel = document.getElementById('types-param-panel');
+      const structurePanel = document.getElementById('structures-param-panel');
+      const utilisateurPanel = document.getElementById('utilisateurs-param-panel');
+      const cpuPanel = document.getElementById('cpu-param-panel');
+      const sePanel = document.getElementById('se-param-panel');
+      const isTypes = currentParamCat === 'types';
+      const isStructures = currentParamCat === 'structures';
+      const isUtilisateurs = currentParamCat === 'utilisateurs';
+      const isCpu = currentParamCat === 'cpu';
+      const isSe = currentParamCat === 'se';
+
+      if (typePanel) typePanel.classList.toggle('hidden', !isTypes);
+      if (structurePanel) structurePanel.classList.toggle('hidden', !isStructures);
+      if (utilisateurPanel) utilisateurPanel.classList.toggle('hidden', !isUtilisateurs);
+      if (cpuPanel) cpuPanel.classList.toggle('hidden', !isCpu);
+      if (sePanel) sePanel.classList.toggle('hidden', !isSe);
+      if (tbody) {
+        const paramTable = tbody.closest('table');
+        const paramContainer = paramTable ? paramTable.parentElement : null;
+        if (paramContainer) paramContainer.classList.toggle('hidden', isTypes || isStructures || isUtilisateurs || isCpu || isSe);
+      }
+
+      if (isTypes) {
+        renderTypesMateriel();
+        return;
+      }
+
+      if (isStructures) {
+        renderStructures();
+        return;
+      }
+      if (isUtilisateurs) {
+        renderUtilisateurs();
+        return;
+      }
+      if (isCpu) {
+        renderCpuParams();
+        return;
+      }
+      if (isSe) {
+        renderSeParams();
+        return;
+      }
+
+      if (!tbody) return;
+
+      const filtered = allParametres.filter(p => {
+        if (currentParamCat === 'all') return true;
+        return (p.categorie || '').toLowerCase() === currentParamCat.toLowerCase();
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun paramètre configuré pour cette sélection.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => {
+        let catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800">CPU</span>';
+        if (p.categorie === 'marque') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800">Marque</span>';
+        if (p.categorie === 'ram') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">RAM</span>';
+        if (p.categorie === 'disk') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">Disque</span>';
+        if (p.categorie === 'se') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-800">Système (SE)</span>';
+        if (p.categorie === 'modele') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">Modèle</span>';
+        if (p.categorie === 'lot_reforme') catBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">Lot de réforme</span>';
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3">${catBadge}</td>
+            <td class="p-3 font-semibold text-slate-800">${escapeHtml(p.valeur || '')}</td>
+            <td class="p-3 text-slate-500">${escapeHtml(p.description || '-')}</td>
+            <td class="p-3 text-center font-mono text-slate-500">${p.ordre || 1}</td>
+            <td class="p-3 text-right whitespace-nowrap">
+              ${['marque', 'modele', 'ram', 'disk', 'lot_reforme'].includes((p.categorie || '').toLowerCase()) ? `
+                <button onclick="editParametre(${p.id_param})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded" title="Modifier">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              ` : ''}
+              <button onclick="deleteParametre(${p.id_param})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded" title="Supprimer">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
