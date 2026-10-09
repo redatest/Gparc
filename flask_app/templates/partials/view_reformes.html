@@ -1,0 +1,47 @@
+        <!-- VUE RÉFORME : SUIVI DES ÉQUIPEMENTS PROPOSÉS / RÉFORMÉS -->
+    <div id="view-reformes" class="view-panel hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-recycle text-amber-600"></i> Suivi des Réformes
+              </h2>
+              <span id="reformes-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">0 équipement</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Suivi des équipements proposés à la réforme et déjà réformés, avec le motif de réforme.</p>
+          </div>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <div class="relative w-full sm:w-64">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="reforme-search-input" oninput="applyReformeFilters()" placeholder="Rechercher équipement, N° inventaire, série..." class="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button type="button" id="reforme-filter-all" onclick="setReformeFilter('ALL')" class="reforme-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-900 text-white">Tous</button>
+              <button type="button" id="reforme-filter-proposee" onclick="setReformeFilter('PROPOSEE')" class="reforme-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Proposé à la réforme</button>
+              <button type="button" id="reforme-filter-reforme" onclick="setReformeFilter('REFORME')" class="reforme-filter-btn px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Réformé</button>
+              <button onclick="openNewReformeModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-recycle"></i> Déclarer une réforme
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Équipement</th>
+                <th class="p-3">N° Inventaire / Série</th>
+                <th class="p-3">Structure / Utilisateur</th>
+                <th class="p-3">État de réforme</th>
+                <th class="p-3">Motif / Date de réforme</th>
+                <th class="p-3">Année de réforme</th>
+                <th class="p-3">N° de lot (Total)</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reformes-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
