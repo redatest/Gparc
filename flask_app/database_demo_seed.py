@@ -1,7 +1,7 @@
 """Amorçage des données de démonstration pour une base GPARC neuve."""
 
 
-def seed_demo_data(conn, cur):
+def seed_demo_data(cur):
     """Insère les données initiales uniquement si aucun matériel n'existe."""
     # Vérification et amorçage des données de test
     count_mats = cur.execute("SELECT COUNT(*) FROM materiel").fetchone()[0]
@@ -114,6 +114,5 @@ def seed_demo_data(conn, cur):
             END
         """)
     
-        conn.commit()
         print("[GPARC] Base SQLite initialisée avec succès.")
     
