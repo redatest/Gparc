@@ -11,6 +11,11 @@ except ImportError:  # Exécution directe depuis flask_app/
     from database_migration_panne import migrate_panne
 
 try:
+    from .database_migration_affectations import migrate_affectations
+except ImportError:  # Exécution directe depuis flask_app/
+    from database_migration_affectations import migrate_affectations
+
+try:
     from .database_migration_materiel import migrate_materiel
 except ImportError:  # Exécution directe depuis flask_app/
     from database_migration_materiel import migrate_materiel
@@ -24,12 +29,5 @@ def run_migrations(cur):
 
     migrate_panne(cur)
 
-    # Migration légère de l'historique d'affectation.
-    affect_columns = {row[1] for row in cur.execute("PRAGMA table_info(affect_mat)").fetchall()}
-    if 'action_aff' not in affect_columns:
-        cur.execute("ALTER TABLE affect_mat ADD COLUMN action_aff TEXT DEFAULT 'NOUVELLE_AFFECTATION'")
-    if 'ancien_id_str' not in affect_columns:
-        cur.execute("ALTER TABLE affect_mat ADD COLUMN ancien_id_str INTEGER")
-    if 'ancien_id_uti' not in affect_columns:
-        cur.execute("ALTER TABLE affect_mat ADD COLUMN ancien_id_uti INTEGER")
+    migrate_affectations(cur)
 
