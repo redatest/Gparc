@@ -9,64 +9,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    .fir-model {
-      width: 620px;
-      min-height: 827px;
-      margin: 0 auto;
-      padding: 18px 39px 24px 69px;
-      box-sizing: border-box;
-      background:#fff;
-      color:#000;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size:11px;
-      line-height:1.2;
-    }
-    .fir-logo-wrap { width:100%; height:61px; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
-    .fir-logo { width:425px; height:60px; object-fit:contain; object-position:center top; display:block; }
-    .fir-top { position:relative; height:74px; text-align:center; }
-    .fir-company { font-weight:700; font-size:12px; line-height:1.45; padding-top:0; }
-    .fir-guelma { position:absolute; right:0; bottom:0; font-size:11px; font-weight:400; }
-    .fir-number { margin-top:0; font-size:11px; height:25px; }
-    .fir-title { width:338px; height:43px; margin:0 auto 31px; border:2px solid #777; box-shadow: inset 0 0 6px #aaa; display:flex; align-items:center; justify-content:center; font-size:17px; }
-    .fir-info-row { display:grid; grid-template-columns:1fr 1fr; column-gap:38px; min-height:55px; font-size:11px; }
-    .fir-info-row > div > div { margin-bottom:5px; }
-    .fir-left { padding-left:3px; }
-    .fir-right { padding-left:0; }
-    .fir-rule { height:1px; background:#111; margin:0; }
-    .fir-heading { text-align:center; font-weight:700; text-decoration:underline; font-size:13px; padding:5px 0 9px; }
-    .fir-material-grid { display:grid; grid-template-columns:1fr 1fr; row-gap:8px; min-height:78px; padding:0 3px 7px; }
-    .fir-cr-grid { display:grid; grid-template-columns:1fr 1fr; row-gap:8px; min-height:75px; padding:0 3px 4px; }
-    .fir-labelbox { font-weight:700; text-decoration:underline; margin-top:3px; margin-bottom:0; }
-    .fir-box { border:1px solid #111; width:100%; box-sizing:border-box; padding:5px; white-space:pre-wrap; overflow:hidden; }
-    .fir-constat { height:35px; margin-bottom:11px; }
-    .fir-travaux { height:51px; margin-bottom:5px; }
-    .fir-observation { height:36px; }
-    .fir-sign-row { display:grid; grid-template-columns:1fr 1fr; margin-top:12px; font-size:11px; }
-    .fir-sign-row > div:last-child { text-align:right; }
-    .fir-sign-space { height:34px; }
-    .fir-pv-area { display:none; }
-    @page { size:A4 portrait; margin:0; }
-    @media print {
-      body { background:#fff !important; }
-      body * { visibility:hidden !important; }
-      #printable-report, #printable-report * { visibility:visible !important; }
-      #printable-report { position:absolute; left:0; top:0; width:210mm; height:297mm; min-height:297mm; margin:0; padding:5.5mm 10.5mm 8mm 23.5mm; box-sizing:border-box; }
-      .fir-logo { width:155mm; height:15.9mm; }
-      .fir-logo-wrap { height:15.9mm; }
-      .fir-top { height:19mm; }
-      .fir-company { font-size:9pt; }
-      .fir-number,.fir-info-row,.fir-material-grid,.fir-cr-grid,.fir-labelbox,.fir-box,.fir-sign-row { font-size:8.2pt; }
-      .fir-title { width:114mm; height:11.5mm; margin-bottom:8mm; font-size:13pt; }
-      .fir-material-grid { min-height:20mm; }
-      .fir-cr-grid { min-height:19mm; }
-      .fir-constat { height:11mm; }
-      .fir-travaux { height:16mm; }
-      .fir-observation { height:11mm; }
-      .fir-sign-space { height:8mm; }
-    }
-    .no-print { }
-  </style>/head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/intervention-print.css') }}">
+</head>
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col font-sans">
 
   <!-- En-tête de navigation -->
