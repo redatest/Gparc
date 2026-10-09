@@ -57,13 +57,15 @@ def get_db():
 def init_db():
     """Initialise le schéma SQLite et les données de démonstration si la base est neuve."""
     conn = get_db()
-    cur = conn.cursor()
+    try:
+        cur = conn.cursor()
 
-    cur.executescript(SCHEMA_SQL)
-    run_migrations(cur)
-    seed_default_parameters(cur)
-    seed_demo_data(conn, cur)
-    sync_reference_data(cur)
+        cur.executescript(SCHEMA_SQL)
+        run_migrations(cur)
+        seed_default_parameters(cur)
+        seed_demo_data(conn, cur)
+        sync_reference_data(cur)
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        conn.close()
