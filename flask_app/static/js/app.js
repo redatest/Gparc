@@ -81,9 +81,3 @@
     window.openOracleSqlModal = openOracleSqlModal;
     window.copyOracleSqlScript = copyOracleSqlScript;
 
-    // Déclenchement garanti du chargement
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', loadAllData);
-    } else {
-      loadAllData();
-    }
