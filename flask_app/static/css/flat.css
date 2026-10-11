@@ -181,11 +181,32 @@ code, kbd, samp, pre {
   display: flex !important;
   align-items: center !important;
   gap: 14px !important;
-  transition: border-color 0.15s ease, background-color 0.15s ease !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease !important;
 }
 
 .flat-kpi-card:hover {
-  border-color: #64748b !important;
+  border-color: #475569 !important;
+}
+
+/* Liserés d'accentuation couleur pour cartes KPI */
+.flat-kpi-card-blue {
+  border-left: 4px solid var(--flat-primary) !important;
+}
+
+.flat-kpi-card-emerald {
+  border-left: 4px solid var(--flat-success) !important;
+}
+
+.flat-kpi-card-rose {
+  border-left: 4px solid var(--flat-danger) !important;
+}
+
+.flat-kpi-card-slate {
+  border-left: 4px solid #64748b !important;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums !important;
 }
 
 .flat-kpi-icon {
@@ -298,8 +319,9 @@ button:active, .btn:active {
   color: #0f172a !important;
 }
 
-/* Filtres de vue (ALL, ES, PR, RF) */
-.filter-btn {
+/* Filtres de vue (ALL, ES, PR, RF, pannes) */
+.filter-btn,
+.panne-filter-btn {
   border-radius: var(--flat-radius) !important;
   font-weight: 600 !important;
   border: 1px solid #cbd5e1 !important;
@@ -309,14 +331,17 @@ button:active, .btn:active {
   transition: all 0.15s ease !important;
 }
 
-.filter-btn:hover {
+.filter-btn:hover,
+.panne-filter-btn:hover {
   background-color: #f8fafc !important;
   color: #0f172a !important;
   border-color: #94a3b8 !important;
 }
 
 .filter-btn.bg-slate-900,
-.filter-btn[class*="bg-slate-900"] {
+.filter-btn[class*="bg-slate-900"],
+.panne-filter-btn.bg-slate-900,
+.panne-filter-btn[class*="bg-slate-900"] {
   background-color: #0f172a !important;
   color: #ffffff !important;
   border-color: #0f172a !important;
@@ -424,9 +449,27 @@ span[class*="rounded-md"] {
 }
 
 /* Badges état matériel */
+.flat-status-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 2px 8px !important;
+  border-radius: var(--flat-radius-pill) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+
+.status-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 9999px !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+}
+
 .badge-service,
 .badge-es,
-span:contains("En service"),
 .status-es {
   background-color: #ecfdf5 !important;
   color: #065f46 !important;
@@ -453,6 +496,19 @@ span:contains("En service"),
   background-color: #f1f5f9 !important;
   color: #475569 !important;
   border: 1px solid #cbd5e1 !important;
+}
+
+/* Badge monospace inventaire & num série */
+.flat-inv-tag {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  padding: 2px 7px !important;
+  border-radius: var(--flat-radius-sm) !important;
+  border: 1px solid #cbd5e1 !important;
+  letter-spacing: -0.02em !important;
 }
 
 /* ==========================================================================

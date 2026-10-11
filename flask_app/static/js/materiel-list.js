@@ -12,16 +12,16 @@
 
     function equipmentStatusBadge(m) {
       const status = m.statut_mat || 'ES';
-      if (status === 'PR') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800">Proposé à la réforme</span>';
-      if (status === 'RF') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700">Réformé</span>';
-      return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">En service</span>';
+      if (status === 'PR') return '<span class="flat-status-pill bg-amber-50 text-amber-800 border border-amber-200"><span class="status-dot bg-amber-500"></span>Proposé réforme</span>';
+      if (status === 'RF') return '<span class="flat-status-pill bg-slate-100 text-slate-700 border border-slate-300"><span class="status-dot bg-slate-400"></span>Réformé</span>';
+      return '<span class="flat-status-pill bg-blue-50 text-blue-700 border border-blue-200"><span class="status-dot bg-blue-600"></span>En service</span>';
     }
 
     function equipmentEtatBadge(m) {
       const etat = m.etat_mat || 'BON';
-      if (etat === 'PANNE') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">En panne</span>';
-      if (etat === 'IRREPARABLE') return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700">Irréparable</span>';
-      return '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Bon</span>';
+      if (etat === 'PANNE') return '<span class="flat-status-pill bg-rose-50 text-rose-700 border border-rose-200"><span class="status-dot bg-rose-600 animate-pulse"></span>En panne</span>';
+      if (etat === 'IRREPARABLE') return '<span class="flat-status-pill bg-slate-100 text-slate-700 border border-slate-300"><span class="status-dot bg-slate-500"></span>Irréparable</span>';
+      return '<span class="flat-status-pill bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="status-dot bg-emerald-500"></span>Bon état</span>';
     }
 
     function renderMateriels() {
@@ -140,50 +140,50 @@
             else if (typeLabel.includes('portable')) equipmentIcon = 'fa-laptop';
 
             return `
-              <tr class="hover:bg-slate-50 transition text-xs">
+              <tr class="hover:bg-slate-50/80 transition-colors duration-150 text-xs">
                 <td class="p-3">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
-                      <i class="fa-solid ${equipmentIcon} text-lg"></i>
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
+                      <i class="fa-solid ${equipmentIcon} text-base"></i>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-900">${m.marque_mat || ''} ${m.model_mat || 'Équipement'}</div>
-                      <div class="text-[11px] text-slate-500">${m.type_nom || 'Matériel'} ${m.ordi ? `&bull; <span class="font-mono text-indigo-600">${m.ordi}</span>` : ''}</div>
+                      <div class="font-bold text-slate-900 leading-snug">${m.marque_mat || ''} ${m.model_mat || 'Équipement'}</div>
+                      <div class="text-[11px] text-slate-500 mt-0.5">${m.type_nom || 'Matériel'} ${m.ordi ? `&bull; <span class="font-mono text-indigo-700 bg-indigo-50 px-1 rounded">${m.ordi}</span>` : ''}</div>
                     </div>
                   </div>
                 </td>
                 <td class="p-3">
-                  <div class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded w-max">${m.num_inv || '-'}</div>
-                  <div class="font-mono text-slate-400 text-[11px] mt-0.5">SN: ${m.num_ser || '-'}</div>
+                  <span class="flat-inv-tag">${m.num_inv || 'SANS-INV'}</span>
+                  <div class="font-mono text-slate-500 text-[11px] mt-1 tracking-tight">SN: ${m.num_ser || '-'}</div>
                 </td>
                 <td class="p-3">
-                  <div class="font-semibold text-slate-800">${m.nom_uti ? (m.pnom_uti || '') + ' ' + m.nom_uti : '<span class="text-slate-400 italic">Non assigné</span>'}</div>
-                  <div class="text-slate-500 text-[11px]">${m.structure_nom || 'Direction Non Spécifiée'}</div>
+                  <div class="font-semibold text-slate-900">${m.nom_uti ? (m.pnom_uti || '') + ' ' + m.nom_uti : '<span class="text-slate-400 italic">Non assigné</span>'}</div>
+                  <div class="text-slate-500 text-[11px] mt-0.5">${m.structure_nom || 'Direction non spécifiée'}</div>
                 </td>
                 <td class="p-3">
                   <div class="text-slate-800 font-medium">${m.cpu || 'CPU Standard'}</div>
-                  <div class="text-slate-500 text-[11px]">${m.ram || 16} Go RAM &bull; ${m.disk || 512} Go SSD &bull; ${m.se || 'Win 11'}</div>
+                  <div class="text-slate-500 text-[11px] mt-0.5 tabular-nums">${m.ram || 16} Go RAM &bull; ${m.disk || 512} Go SSD &bull; ${m.se || 'Win 11'}</div>
                 </td>
                 <td class="p-3">
                   <div class="font-semibold text-slate-800">${m.structure_nom || '<span class="text-slate-400 italic">Structure non spécifiée</span>'}</div>
                 </td>
-                <td class="p-3">${statusBadge}</td>
-                <td class="p-3">${etatBadge}</td>
-                <td class="p-3 text-right">
+                <td class="p-3 whitespace-nowrap">${statusBadge}</td>
+                <td class="p-3 whitespace-nowrap">${etatBadge}</td>
+                <td class="p-3 text-right whitespace-nowrap">
                   <div class="flex items-center justify-end gap-1.5">
-                    <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Modifier l'équipement">
-                      <i class="fa-solid fa-pen-to-square"></i> Modifier
+                    <button onclick="openEditMaterielModal(${m.id_mat})" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Modifier l'équipement">
+                      <i class="fa-solid fa-pen-to-square text-blue-600"></i> Modifier
                     </button>
-                    <button onclick="openAffectationHistory(${m.id_mat})" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Historique des affectations">
-                       <i class="fa-solid fa-clock-rotate-left"></i> Historique
+                    <button onclick="openAffectationHistory(${m.id_mat})" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Historique des affectations">
+                       <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Historique
                      </button>
-                     <button onclick="quickPanneFor(${m.id_mat})" ${m.etat_mat === 'PANNE' ? 'disabled title="Équipement déjà en panne" aria-disabled="true" class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded text-[11px] font-semibold flex items-center gap-1 opacity-50 cursor-not-allowed"' : 'title="Déclarer une panne" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition"'}>
+                     <button onclick="quickPanneFor(${m.id_mat})" ${m.etat_mat === 'PANNE' ? 'disabled title="Équipement déjà en panne" aria-disabled="true" class="px-2.5 py-1 bg-slate-100 text-slate-400 border border-slate-200 rounded text-[11px] font-semibold flex items-center gap-1 opacity-50 cursor-not-allowed"' : 'title="Déclarer une panne" class="px-2.5 py-1 bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 rounded text-[11px] font-semibold flex items-center gap-1 transition"'}>
                       <i class="fa-solid fa-triangle-exclamation"></i> Panne
                     </button>
-                    <button onclick="openReformeActionModal(${m.id_mat})" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Proposer ou confirmer la réforme">
+                    <button onclick="openReformeActionModal(${m.id_mat})" class="px-2.5 py-1 bg-white hover:bg-amber-50 text-amber-700 border border-amber-200 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Proposer ou confirmer la réforme">
                       <i class="fa-solid fa-recycle"></i> Réforme
                     </button>
-                    <button onclick="deleteMateriel(${m.id_mat})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded transition" title="Supprimer du parc">
+                    <button onclick="deleteMateriel(${m.id_mat})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded border border-transparent hover:border-slate-200 transition" title="Supprimer du parc">
                       <i class="fa-solid fa-trash-can"></i>
                     </button>
                   </div>
