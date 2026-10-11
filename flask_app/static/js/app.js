@@ -9,7 +9,7 @@
     let materielsCurrentPage = 1;
     let materielsPageSize = 10;
     let currentView = 'materiels';
-    let currentParamCat = 'all';
+    let currentParamCat = 'marque';
     let editingMaterielId = null;
     let currentReformeFilter = 'ALL';
     let currentPanneFilter = 'ALL';
