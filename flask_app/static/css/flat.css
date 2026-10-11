@@ -1,0 +1,522 @@
+/* ==========================================================================
+   GPARC - FLAT DESIGN SYSTEM (Flat UI 2.0 / Modern Swiss Minimal Flat)
+   Principes : Pure 2D, Zéro ombres portées, Couleurs franches et aplats parfaits,
+   Lisibilité maximale, Typographie nette, Bordures chirurgicales (1px).
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Nuances de surface Flat */
+  --flat-bg: #f8fafc;
+  --flat-surface: #ffffff;
+  --flat-surface-alt: #f1f5f9;
+  --flat-surface-hover: #f8fafc;
+  
+  /* Bordures nettes, plus sombres et plus apparentes */
+  --flat-border: #94a3b8;        /* Slate-400 : net, franc, visible */
+  --flat-border-subtle: #cbd5e1; /* Slate-300 pour délimitations intérieures */
+  --flat-border-input: #94a3b8;
+  --flat-border-focus: #2563eb;
+  
+  /* Textes & contrastes */
+  --flat-text-main: #0f172a;
+  --flat-text-muted: #64748b;
+  --flat-text-light: #94a3b8;
+  
+  /* Palette de couleurs primaires Flat franches */
+  --flat-primary: #2563eb;       /* Flat Blue */
+  --flat-primary-hover: #1d4ed8;
+  --flat-primary-light: #eff6ff;
+  
+  --flat-secondary: #475569;     /* Flat Slate */
+  --flat-secondary-hover: #334155;
+  
+  --flat-success: #10b981;       /* Flat Emerald */
+  --flat-success-hover: #059669;
+  --flat-success-light: #ecfdf5;
+  --flat-success-text: #065f46;
+  
+  --flat-danger: #ef4444;        /* Flat Crimson / Red */
+  --flat-danger-hover: #dc2626;
+  --flat-danger-light: #fef2f2;
+  --flat-danger-text: #991b1b;
+  
+  --flat-warning: #f59e0b;       /* Flat Amber */
+  --flat-warning-hover: #d97706;
+  --flat-warning-light: #fffbeb;
+  --flat-warning-text: #92400e;
+  
+  --flat-info: #0284c7;          /* Flat Cyan / Sky */
+  --flat-info-hover: #0369a1;
+  --flat-info-light: #f0f9ff;
+  --flat-info-text: #075985;
+  
+  --flat-purple: #8b5cf6;        /* Flat Purple */
+  --flat-purple-hover: #7c3aed;
+  
+  --flat-dark: #1e293b;          /* Flat Dark Slate */
+  --flat-dark-header: #0f172a;
+  
+  /* Rayons de courbure modérés et constants */
+  --flat-radius-sm: 4px;
+  --flat-radius: 6px;
+  --flat-radius-lg: 8px;
+  --flat-radius-pill: 9999px;
+}
+
+/* ==========================================================================
+   RÉINITIALISATION FLAT ABSOLUE : ZÉRO OMBRES, ZÉRO DÉGRADÉS COMPLEXES
+   ========================================================================== */
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html {
+  background-color: var(--flat-bg) !important;
+}
+
+body {
+  background-color: var(--flat-bg) !important;
+  color: var(--flat-text-main) !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, kbd, samp, pre {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* ==========================================================================
+   EN-TÊTE FLAT PRO (Header épuré avec bandeau de statut franc)
+   ========================================================================== */
+.flat-header {
+  background-color: #ffffff !important;
+  border-bottom: 2px solid var(--flat-border) !important;
+  box-shadow: none !important;
+}
+
+.flat-logo-box {
+  width: 38px;
+  height: 38px;
+  background-color: var(--flat-primary) !important;
+  border-radius: var(--flat-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.flat-brand-title {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  color: #0f172a !important;
+}
+
+.flat-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: var(--flat-radius-sm);
+  background-color: var(--flat-success-light) !important;
+  color: var(--flat-success-text) !important;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+}
+
+/* Onglets de navigation Flat */
+.nav-tab {
+  border-radius: var(--flat-radius) !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  padding: 6px 14px !important;
+  color: #64748b !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  transition: all 0.15s ease !important;
+}
+
+.nav-tab:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.nav-tab.bg-blue-600,
+.nav-tab[class*="bg-blue-600"],
+.nav-tab.active {
+  background-color: var(--flat-primary) !important;
+  color: #ffffff !important;
+  border-color: var(--flat-primary) !important;
+}
+
+/* Badges de compteurs dans la barre de navigation */
+#panne-nav-count {
+  background-color: var(--flat-danger) !important;
+  color: #ffffff !important;
+  border-radius: var(--flat-radius-pill) !important;
+  font-weight: 700 !important;
+}
+
+#reparation-nav-count {
+  background-color: var(--flat-warning) !important;
+  color: #ffffff !important;
+  border-radius: var(--flat-radius-pill) !important;
+  font-weight: 700 !important;
+}
+
+/* ==========================================================================
+   CARTES STATISTIQUES KPI FLAT (Aplats nets, 1px border, zéro ombres)
+   ========================================================================== */
+.flat-kpi-card {
+  background-color: #ffffff !important;
+  border: 1px solid var(--flat-border) !important;
+  border-radius: var(--flat-radius-lg) !important;
+  padding: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease !important;
+}
+
+.flat-kpi-card:hover {
+  border-color: #64748b !important;
+}
+
+.flat-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--flat-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.flat-kpi-icon-blue {
+  background-color: var(--flat-primary-light) !important;
+  color: var(--flat-primary) !important;
+}
+
+.flat-kpi-icon-green {
+  background-color: var(--flat-success-light) !important;
+  color: var(--flat-success) !important;
+}
+
+.flat-kpi-icon-red {
+  background-color: var(--flat-danger-light) !important;
+  color: var(--flat-danger) !important;
+}
+
+.flat-kpi-icon-slate {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+.flat-kpi-val {
+  font-size: 1.75rem !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.03em !important;
+}
+
+.flat-kpi-label {
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #64748b !important;
+  margin-top: 2px !important;
+}
+
+/* ==========================================================================
+   BOUTONS FLAT (Aplats pleins, nets, réactifs au clic)
+   ========================================================================== */
+button, .btn {
+  box-shadow: none !important;
+  border-radius: var(--flat-radius) !important;
+  font-weight: 600 !important;
+  transition: all 0.12s ease !important;
+}
+
+button:active, .btn:active {
+  transform: translateY(1px) !important;
+}
+
+.btn-flat-primary,
+.btn-bauhaus-blue {
+  background-color: var(--flat-primary) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--flat-primary) !important;
+}
+
+.btn-flat-primary:hover,
+.btn-bauhaus-blue:hover {
+  background-color: var(--flat-primary-hover) !important;
+  border-color: var(--flat-primary-hover) !important;
+}
+
+.btn-flat-danger,
+.btn-bauhaus-red {
+  background-color: var(--flat-danger) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--flat-danger) !important;
+}
+
+.btn-flat-danger:hover,
+.btn-bauhaus-red:hover {
+  background-color: var(--flat-danger-hover) !important;
+  border-color: var(--flat-danger-hover) !important;
+}
+
+.btn-flat-success {
+  background-color: var(--flat-success) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--flat-success) !important;
+}
+
+.btn-flat-success:hover {
+  background-color: var(--flat-success-hover) !important;
+  border-color: var(--flat-success-hover) !important;
+}
+
+.btn-flat-secondary {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.btn-flat-secondary:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Filtres de vue (ALL, ES, PR, RF) */
+.filter-btn {
+  border-radius: var(--flat-radius) !important;
+  font-weight: 600 !important;
+  border: 1px solid #cbd5e1 !important;
+  background-color: #ffffff !important;
+  color: #475569 !important;
+  padding: 6px 14px !important;
+  transition: all 0.15s ease !important;
+}
+
+.filter-btn:hover {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+.filter-btn.bg-slate-900,
+.filter-btn[class*="bg-slate-900"] {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+}
+
+/* ==========================================================================
+   SURFACES, CONTENEURS & PANNEAUX (Flat Clean Cards)
+   ========================================================================== */
+.bg-white,
+.panel,
+.card,
+.view-panel > div {
+  box-shadow: none !important;
+  border: 1px solid var(--flat-border) !important;
+  border-radius: var(--flat-radius-lg) !important;
+}
+
+/* Bordures spécifiques pour boîtes et conteneurs Tailwind */
+.border-slate-200,
+.border-slate-300 {
+  border-color: var(--flat-border) !important;
+}
+
+/* ==========================================================================
+   CHAMPS DE FORMULAIRE, RECHERCHE & SÉLECTEURS
+   ========================================================================== */
+input[type="text"],
+input[type="search"],
+input[type="date"],
+input[type="number"],
+input[type="password"],
+input[type="email"],
+select,
+textarea {
+  background-color: #ffffff !important;
+  border: 1px solid var(--flat-border-input) !important;
+  border-radius: var(--flat-radius) !important;
+  color: var(--flat-text-main) !important;
+  font-size: 0.875rem !important;
+  padding: 8px 12px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transition: border-color 0.15s ease !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--flat-primary) !important;
+  box-shadow: 0 0 0 1px var(--flat-primary) !important;
+}
+
+/* ==========================================================================
+   TABLEAUX FLAT DE HAUTE PRÉCISION
+   ========================================================================== */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+}
+
+thead {
+  background-color: #f8fafc !important;
+  border-bottom: 2px solid var(--flat-border) !important;
+}
+
+thead th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 14px !important;
+  border-bottom: 2px solid var(--flat-border) !important;
+  border-top: none !important;
+}
+
+tbody tr {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid var(--flat-border-subtle) !important;
+  transition: background-color 0.1s ease !important;
+}
+
+tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+tbody td {
+  padding: 11px 14px !important;
+  font-size: 0.8125rem !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid var(--flat-border-subtle) !important;
+}
+
+/* ==========================================================================
+   BADGES FLAT & ÉTIQUETTES D'ÉTAT
+   ========================================================================== */
+.badge,
+span[class*="rounded-full"],
+span[class*="rounded-md"] {
+  box-shadow: none !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+}
+
+/* Badges état matériel */
+.badge-service,
+.badge-es,
+span:contains("En service"),
+.status-es {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+.badge-panne,
+.badge-pr,
+.status-pr {
+  background-color: #fef2f2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fecaca !important;
+}
+
+.badge-reparation {
+  background-color: #fffbeb !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
+}
+
+.badge-reforme,
+.badge-rf,
+.status-rf {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* ==========================================================================
+   FENÊTRES MODALES FLAT
+   ========================================================================== */
+.modal-overlay,
+div[id$="-modal"],
+div[id^="modal-"] {
+  backdrop-filter: none !important;
+}
+
+.modal-content,
+div[id$="-modal"] > div > div,
+div[id^="modal-"] > div > div {
+  background-color: #ffffff !important;
+  border: 1px solid var(--flat-border) !important;
+  border-radius: var(--flat-radius-lg) !important;
+  box-shadow: none !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--flat-border) !important;
+  padding: 16px 20px !important;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--flat-border) !important;
+  padding: 14px 20px !important;
+  background-color: #f8fafc !important;
+}
+
+/* ==========================================================================
+   FOOTER FLAT
+   ========================================================================== */
+.flat-footer {
+  border-top: 1px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
+  color: #64748b !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   ÉCRAN DE STATS & GRAPHIQUES FLAT
+   ========================================================================== */
+.stat-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: var(--flat-radius-lg) !important;
+  box-shadow: none !important;
+}
+
+/* Scrollbars personnalisées ultra plates */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
