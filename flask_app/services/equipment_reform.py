@@ -36,6 +36,35 @@ def prepare_reform(cur, data, existing, today):
     if etat_reforme not in VALID_REFORM_STATES:
         raise ValueError("État de réforme invalide.")
 
+    if etat_reforme in ("PROPOSEE", "REFORME"):
+        if not annee_reforme:
+            raise ValueError("L'année de réforme est obligatoire.")
+        try:
+            annee_reforme = int(annee_reforme)
+        except (TypeError, ValueError):
+            raise ValueError("L'année de réforme doit être un nombre valide.")
+        if annee_reforme < 2000 or annee_reforme > 2100:
+            raise ValueError(
+                "L'année de réforme doit être comprise entre 2000 et 2100."
+            )
+        if not lot_reforme or not str(lot_reforme).strip():
+            raise ValueError("Le N° de lot de réforme est obligatoire.")
+
+        lot_reforme = str(lot_reforme).strip()
+        lot_ref = cur.execute(
+            """SELECT id_param
+               FROM parametres_materiel
+               WHERE categorie = 'lot_reforme'
+                 AND archiv = 'N'
+                 AND LOWER(TRIM(valeur)) = LOWER(TRIM(?))
+               LIMIT 1""",
+            (lot_reforme,),
+        ).fetchone()
+        if not lot_ref:
+            raise ValueError(
+                "Le N° de lot sélectionné n'existe pas dans le référentiel des lots de réforme."
+            )
+
     if etat_reforme == "REFORME":
         if not date_reforme:
             raise ValueError("La date de réforme est obligatoire.")
@@ -72,10 +101,9 @@ def prepare_reform(cur, data, existing, today):
         date_proposition = existing["date_proposition_reforme"] or today
 
     elif etat_reforme == "PROPOSEE":
+        # L'année et le lot sont affectés dès la proposition et doivent être conservés.
         date_proposition = today
         date_reforme = None
-        annee_reforme = None
-        lot_reforme = None
         motif_reforme = None
 
     else:
