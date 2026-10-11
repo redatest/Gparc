@@ -138,6 +138,17 @@
       document.getElementById('modal-reforme').classList.remove('hidden');
     }
 
+    // Depuis le parc : un équipement déjà proposé passe à l'étape de réforme définitive.
+    function openReformeActionModal(matId) {
+      const mat = (allMateriels || []).find(m => String(m.id_mat) === String(matId));
+      openNewReformeModal(matId);
+      if (mat?.etat_reforme === 'PROPOSEE') {
+        const state = document.getElementById('reforme-etat');
+        if (state) state.value = 'REFORME';
+        updateReformeDeclarationFields();
+      }
+    }
+
     function openReformeFromPanne(panneId) {
       const panne = allPannes.find(p => String(p.id_pan) === String(panneId));
       if (!panne || !panne.id_mat) {
