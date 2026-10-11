@@ -103,7 +103,7 @@
                       <button onclick="openAffectationHistory(${m.id_mat})" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer" title="Historique de l’équipement">
                         <i class="fa-solid fa-clock-rotate-left"></i> Historique
                       </button>
-                      <button onclick="quickPanneFor(${m.id_mat})" class="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer">
+                      <button onclick="quickPanneFor(${m.id_mat})" ${m.etat_mat === 'PANNE' ? 'disabled title="Équipement déjà en panne" aria-disabled="true" class="text-xs font-semibold text-rose-600 flex items-center gap-1 opacity-50 cursor-not-allowed"' : 'title="Déclarer une panne" class="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"'}>
                         <i class="fa-solid fa-triangle-exclamation"></i> Panne
                       </button>
                     </div>
@@ -177,7 +177,7 @@
                     <button onclick="openAffectationHistory(${m.id_mat})" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Historique des affectations">
                        <i class="fa-solid fa-clock-rotate-left"></i> Historique
                      </button>
-                     <button onclick="quickPanneFor(${m.id_mat})" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une panne">
+                     <button onclick="quickPanneFor(${m.id_mat})" ${m.etat_mat === 'PANNE' ? 'disabled title="Équipement déjà en panne" aria-disabled="true" class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded text-[11px] font-semibold flex items-center gap-1 opacity-50 cursor-not-allowed"' : 'title="Déclarer une panne" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition"'}>
                       <i class="fa-solid fa-triangle-exclamation"></i> Panne
                     </button>
                     <button onclick="openNewReformeModal(${m.id_mat})" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une réforme">
