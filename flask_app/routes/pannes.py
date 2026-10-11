@@ -40,7 +40,7 @@ def handle_pannes():
         return jsonify({"id": last_id, "message": "Panne enregistrée"}), 201
     else:
         rows = [dict(r) for r in cur.execute("""
-            SELECT p.*, m.num_inv, m.num_ser, m.id_uti,
+            SELECT p.*, m.num_inv, m.num_ser, m.id_uti, m.etat_reforme,
                    mod.marque_mat, mod.model_mat,
                    t.lib_typ_mat AS type_nom,
                    u.nom_uti, u.pnom_uti,
