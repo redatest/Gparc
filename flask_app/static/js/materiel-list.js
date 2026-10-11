@@ -180,7 +180,7 @@
                      <button onclick="quickPanneFor(${m.id_mat})" ${m.etat_mat === 'PANNE' ? 'disabled title="Équipement déjà en panne" aria-disabled="true" class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded text-[11px] font-semibold flex items-center gap-1 opacity-50 cursor-not-allowed"' : 'title="Déclarer une panne" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold flex items-center gap-1 transition"'}>
                       <i class="fa-solid fa-triangle-exclamation"></i> Panne
                     </button>
-                    <button onclick="openNewReformeModal(${m.id_mat})" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Déclarer une réforme">
+                    <button onclick="openReformeActionModal(${m.id_mat})" class="px-2.5 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded text-[11px] font-semibold flex items-center gap-1 transition" title="Proposer ou confirmer la réforme">
                       <i class="fa-solid fa-recycle"></i> Réforme
                     </button>
                     <button onclick="deleteMateriel(${m.id_mat})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded transition" title="Supprimer du parc">
