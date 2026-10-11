@@ -5,8 +5,10 @@ from flask import Blueprint, jsonify, request
 
 try:
     from ..database import get_db
+    from ..services.equipment_history import log_reforme
 except ImportError:
     from database import get_db
+    from services.equipment_history import log_reforme
 
 pannes_bp = Blueprint('pannes', __name__)
 
@@ -114,6 +116,39 @@ def update_panne(panne_id):
         'IR': 'IRREPARABLE'
     }[eta_pan]
     cur.execute("UPDATE materiel SET etat_mat = ?, dat_mod = CURRENT_TIMESTAMP WHERE id_mat = ?", (etat_mat, panne_row['id_mat']))
+
+    # Si un matériel proposé à la réforme est réparé, annuler la proposition
+    # et rétablir son statut de cycle de vie à « En service ».
+    if eta_pan == 'RP':
+        materiel = cur.execute(
+            "SELECT etat_reforme FROM materiel WHERE id_mat = ?",
+            (panne_row['id_mat'],)
+        ).fetchone()
+        if materiel and (materiel['etat_reforme'] or 'AUCUNE') == 'PROPOSEE':
+            today = datetime.now().strftime('%Y-%m-%d')
+            cur.execute("""
+                UPDATE materiel
+                SET statut_mat = 'ES',
+                    etat_reforme = 'AUCUNE',
+                    motif_reforme = NULL,
+                    date_proposition_reforme = NULL,
+                    date_validation_reforme = NULL,
+                    date_reforme = NULL,
+                    annee_reforme = NULL,
+                    lot_reforme = NULL,
+                    decision_reforme = NULL,
+                    pv_reforme = NULL,
+                    dat_mod = CURRENT_TIMESTAMP
+                WHERE id_mat = ?
+            """, (panne_row['id_mat'],))
+            log_reforme(
+                cur,
+                panne_row['id_mat'],
+                'AUCUNE',
+                today,
+                'Proposition de réforme annulée après réparation de l’équipement.',
+                'PROPOSEE',
+            )
 
     conn.commit()
     conn.close()
