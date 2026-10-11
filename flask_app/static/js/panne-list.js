@@ -37,7 +37,7 @@
         const text = [
           p.dat_pan, p.num_inv, p.num_ser, p.marque_mat, p.model_mat,
           p.type_nom, p.diag_pan, p.nom_uti, p.pnom_uti, p.technicien,
-          p.lieu_reparation, p.obs_rep, p.eta_pan
+          p.lieu_reparation, p.obs_rep, p.eta_pan, p.etat_reforme
         ].filter(Boolean).join(' ').toLowerCase();
         return matchFilter && (!query || text.includes(query));
       });
@@ -58,6 +58,13 @@
         if (p.eta_pan === 'ER' || p.eta_pan === 'AT') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">En réparation</span>';
         if (p.eta_pan === 'RP') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Réparé</span>';
         if (p.eta_pan === 'IR' || p.eta_pan === 'NR') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">Irréparable</span>';
+
+        let reformBadge = '';
+        if (p.etat_reforme === 'PROPOSEE') {
+          reformBadge = '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Équipement proposé à la réforme"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Proposé à la réforme</span>';
+        } else if (p.etat_reforme === 'REFORME') {
+          reformBadge = '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300" title="Équipement réformé"><i class="fa-solid fa-ban mr-1"></i>Réformé</span>';
+        }
 
         const lieu = p.lieu_reparation || '-';
         const dates = [
@@ -86,7 +93,10 @@
               <div class="text-[11px] text-slate-400 mt-1">${dates}</div>
             </td>
             <td class="p-3">
-              ${statusBadge}
+              <div class="flex flex-col items-start gap-1">
+                ${statusBadge}
+                ${reformBadge}
+              </div>
               <div class="text-[11px] text-slate-500 mt-1">${p.obs_rep || ''}</div>
             </td>
             <td class="p-3 text-right min-w-[155px]">
