@@ -80,15 +80,24 @@
       const motif = document.getElementById('reforme-motif');
       const annee = document.getElementById('reforme-annee');
       const lot = document.getElementById('reforme-lot');
+      const lotField = document.getElementById('reforme-lot-field');
       const identification = document.getElementById('reforme-identification-fields');
+      const isProposee = state === 'PROPOSEE';
       const isReforme = state === 'REFORME';
+      const isActive = isProposee || isReforme;
+
       if (date) date.required = isReforme;
       if (motif) motif.required = isReforme;
-      if (annee) annee.required = isReforme;
-      if (lot) lot.required = isReforme;
-      if (identification) identification.classList.toggle('hidden', !isReforme);
-      if (isReforme && annee && !annee.value) annee.value = String(new Date().getFullYear());
-      if (!isReforme) {
+      if (annee) annee.required = isActive;
+      if (lot) lot.required = isProposee;
+      if (identification) identification.classList.toggle('hidden', !isActive);
+      if (lotField) lotField.classList.toggle('hidden', isReforme || !isProposee);
+
+      if (isActive && annee && !annee.value) {
+        annee.value = String(new Date().getFullYear());
+      }
+
+      if (state === 'AUCUNE') {
         if (date) date.value = '';
         if (motif) motif.value = '';
         if (annee) annee.value = '';
@@ -157,11 +166,15 @@
       const lot = document.getElementById('reforme-lot').value.trim() || null;
       const motif = document.getElementById('reforme-motif').value.trim() || null;
       if (!id) { showToast('Sélectionnez un équipement.', true); return; }
-      if (state === 'REFORME' && (!date || !annee || !lot || !motif)) {
-        showToast("La date, l'année, le N° de lot et le motif de réforme sont obligatoires.", true);
+      if (state === 'PROPOSEE' && (!annee || !lot)) {
+        showToast("L'année et le N° de lot sont obligatoires pour proposer un équipement à la réforme.", true);
         return;
       }
-      if (state === 'REFORME') {
+      if (state === 'REFORME' && (!date || !annee || !motif)) {
+        showToast("La date, l'année et le motif de réforme sont obligatoires.", true);
+        return;
+      }
+      if (state === 'PROPOSEE') {
         const lotExists = (allParametres || []).some(p =>
           (p.categorie || '').toLowerCase() === 'lot_reforme' &&
           String(p.valeur || '').trim() === lot
@@ -171,12 +184,13 @@
           return;
         }
       }
+      const materielActuel = (allMateriels || []).find(m => Number(m.id_mat) === id);
       try {
         const res = await fetch('/api/materiels/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
           etat_reforme: state,
           date_reforme: state === 'REFORME' ? date : null,
-          annee_reforme: state === 'REFORME' ? annee : null,
-          lot_reforme: state === 'REFORME' ? lot : null,
+          annee_reforme: state === 'AUCUNE' ? null : annee,
+          lot_reforme: state === 'PROPOSEE' ? lot : state === 'REFORME' ? (materielActuel?.lot_reforme || null) : null,
           motif_reforme: state === 'REFORME' ? motif : null
         }) });
         const result = await res.json().catch(() => ({}));
