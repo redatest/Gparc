@@ -5,7 +5,7 @@ champs sans équivalent fonctionnel dans GPARC ne soient jamais perdus.
 """
 import json
 import os
-import shutil
+import re
 import sqlite3
 import uuid
 from datetime import date, datetime
@@ -340,6 +340,26 @@ def import_source(data):
             row = char_by_id.get(value)
             return _text(row.get("LIB_CARA_MAT")) if row else ("" if value is None else str(value))
 
+        def character_number(value):
+            # RAM/DISK are legacy NUMBER references in many installations; resolve
+            # them through CARA_MAT before treating a number as a literal capacity.
+            row = char_by_id.get(value)
+            label = _text(row.get("LIB_CARA_MAT")) if row else ""
+            if label:
+                match = re.search(r"(\d+(?:[.,]\d+)?)\s*(ko|mo|go|to|kb|mb|gb|tb)?", label, re.IGNORECASE)
+                if not match:
+                    return None
+                amount = float(match.group(1).replace(",", "."))
+                unit = (match.group(2) or "").lower()
+                if unit in {"to", "tb"}:
+                    amount *= 1000
+                elif unit in {"ko", "kb"}:
+                    amount = amount / 1000000
+                elif unit in {"mo", "mb"}:
+                    amount = amount / 1000
+                return int(round(amount))
+            return _int_or_none(value)
+
         for r in equipment:
             item = next((x for x in by_inventory.values() if x.get("ID_MAT") == r.get("ID_MAT")), None)
             if item is None:
@@ -358,12 +378,12 @@ def import_source(data):
                 cpu_text = char_value(r.get("CPU2"))
             se_text = char_value(r.get("SE")) or char_value(r.get("SE2"))
             net_text = char_value(r.get("NET")) or char_value(r.get("NET2"))
-            ram_value = _int_or_none(r.get("RAM"))
+            ram_value = character_number(r.get("RAM"))
             if ram_value is None:
-                ram_value = _int_or_none(r.get("RAM2"))
-            disk_value = _int_or_none(r.get("DISK"))
+                ram_value = character_number(r.get("RAM2"))
+            disk_value = character_number(r.get("DISK"))
             if disk_value is None:
-                disk_value = _int_or_none(r.get("DISK2"))
+                disk_value = character_number(r.get("DISK2"))
             cur.execute("""INSERT INTO materiel
                 (id_mat, id_str, id_typ_mat, id_model_mat, marque_mat, num_inv, num_ser,
                  dat_acq, dat_mes, etat_mat, obs_mat, dat_sortie, motif_sortie,
