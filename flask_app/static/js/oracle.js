@@ -75,10 +75,89 @@
       }
     }
 
+    function escapeOracleHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    async function inspectOracleSchema() {
+      const btn = document.getElementById('btn-oracle-schema');
+      const result = document.getElementById('oracle-schema-result');
+      const summary = document.getElementById('oracle-schema-summary');
+      const tables = document.getElementById('oracle-schema-tables');
+      const payload = {
+        host: document.getElementById('ora-host').value.trim(),
+        port: parseInt(document.getElementById('ora-port').value, 10) || 1521,
+        sid: document.getElementById('ora-sid').value.trim(),
+        connectType: document.getElementById('ora-connect-type').value,
+        username: document.getElementById('ora-schema').value.trim(),
+        password: document.getElementById('ora-password').value
+      };
+      if (!payload.host || !payload.sid || !payload.username || !payload.password) {
+        showToast('Renseignez l’hôte, la base, l’utilisateur et le mot de passe Oracle.', true);
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exploration...';
+      result.classList.remove('hidden');
+      summary.textContent = 'Lecture du dictionnaire Oracle en cours...';
+      tables.innerHTML = '';
+      try {
+        const res = await fetch('/api/oracle-sync/schema', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          summary.innerHTML = '<span class="text-rose-700 font-semibold">' +
+            escapeOracleHtml(data.message || 'Échec de l’exploration') + '</span>' +
+            (data.details ? '<div class="mt-1 whitespace-pre-wrap">' + escapeOracleHtml(data.details) + '</div>' : '');
+          showToast('Exploration du schéma Oracle échouée.', true);
+          return;
+        }
+        summary.textContent = data.message + ' Utilisateur : ' + data.username + '.';
+        if (!data.objects || data.objects.length === 0) {
+          tables.textContent = 'Aucune table ou vue visible pour cet utilisateur. Il faudra vérifier le schéma propriétaire et les droits d’accès.';
+        } else {
+          tables.innerHTML = data.objects.map(obj => {
+            const cols = obj.columns.map(col =>
+              '<tr class="border-t border-indigo-100">' +
+              '<td class="px-2 py-1 font-mono">' + escapeOracleHtml(col.name) + '</td>' +
+              '<td class="px-2 py-1">' + escapeOracleHtml(col.dataType) +
+              (col.length ? ' (' + escapeOracleHtml(col.length) + ')' : '') + '</td>' +
+              '<td class="px-2 py-1">' + (col.nullable ? 'Oui' : 'Non') + '</td>' +
+              '<td class="px-2 py-1">' + escapeOracleHtml(col.comment) + '</td></tr>'
+            ).join('');
+            return '<details class="bg-white border border-indigo-100 rounded-lg" open>' +
+              '<summary class="cursor-pointer px-3 py-2 text-xs font-bold">' +
+              escapeOracleHtml(obj.name) + ' <span class="text-slate-500 font-normal">(' +
+              escapeOracleHtml(obj.type) + ', ' + obj.columns.length + ' colonnes)</span>' +
+              (obj.comment ? ' — ' + escapeOracleHtml(obj.comment) : '') + '</summary>' +
+              '<div class="overflow-auto"><table class="w-full text-[11px]"><thead><tr class="bg-slate-50 text-left">' +
+              '<th class="px-2 py-1">Colonne</th><th class="px-2 py-1">Type</th><th class="px-2 py-1">Nullable</th>' +
+              '<th class="px-2 py-1">Commentaire</th></tr></thead><tbody>' + cols +
+              '</tbody></table></div></details>';
+          }).join('');
+        }
+        document.getElementById('oracle-logs-box').innerHTML +=
+          '<div class="text-indigo-300">[' + new Date().toLocaleTimeString() +
+          '] Schéma Oracle exploré en lecture seule : ' + Number(data.objectCount || 0) + ' objets.</div>';
+        showToast('Exploration Oracle terminée.');
+      } catch (err) {
+        summary.textContent = 'Impossible de joindre l’API Gparc. Vérifiez que Flask est démarré.';
+        showToast('Erreur pendant l’exploration Oracle.', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-table-list"></i> Explorer les tables';
+      }
+    }
+
     async function runExecuteOracleSync() {
-      showToast('Importation désactivée : le connecteur doit être configuré pour lire les vraies tables Oracle.', true);
+      showToast('Importation non activée : explorez d’abord les tables Oracle pour établir le mapping réel vers Gparc.', true);
       const box = document.getElementById('oracle-logs-box');
-      box.innerHTML += `<div class="text-amber-400">[${new Date().toLocaleTimeString()}] Importation bloquée : aucune donnée fictive ne sera écrite dans SQLite.</div>`;
+      box.innerHTML += `<div class="text-amber-400">[${new Date().toLocaleTimeString()}] Importation bloquée : explorez d’abord le schéma Oracle ; aucune donnée n’a été modifiée.</div>`;
       box.scrollTop = box.scrollHeight;
     }
 
