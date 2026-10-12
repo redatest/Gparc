@@ -57,13 +57,29 @@ def test_oracle_sync():
         })
     except Exception as exc:
         oracle_code = ""
+        diagnostic = str(exc).strip()
         try:
-            if getattr(exc, "args", None):
-                oracle_code = getattr(exc.args[0], "code", "") or ""
+            error_obj = exc.args[0] if getattr(exc, "args", None) else None
+            oracle_code = (
+                getattr(error_obj, "full_code", "")
+                or getattr(error_obj, "code", "")
+                or ""
+            )
         except Exception:
             pass
-        message = f"Échec de la connexion Oracle{f' ({oracle_code})' if oracle_code else ''}. Vérifiez l'hôte, le port, le type SID/Service Name, les droits et les identifiants."
-        return jsonify({"success": False, "message": message, "oracleCode": oracle_code}), 400
+        # python-oracledb exceptions include diagnostic codes (ORA-/DPY-).
+        # Do not return the submitted password or the full connection arguments.
+        safe_diagnostic = diagnostic[:500] if diagnostic else "Aucun détail fourni par le pilote Oracle."
+        message = (
+            f"Échec de la connexion Oracle{f' ({oracle_code})' if oracle_code else ''}. "
+            "Consultez le détail technique pour identifier la cause."
+        )
+        return jsonify({
+            "success": False,
+            "message": message,
+            "oracleCode": oracle_code,
+            "details": safe_diagnostic
+        }), 400
     finally:
         if connection is not None:
             try:
