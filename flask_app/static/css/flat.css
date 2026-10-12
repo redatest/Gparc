@@ -7,11 +7,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Nuances de surface Flat */
-  --flat-bg: #f8fafc;
+  /* Nuances de surface Flat - Contrastées pour éliminer l'aspect trop pâle */
+  --flat-bg: #edf2f7;           /* Slate doux et franc : met en valeur les cartes blanches */
   --flat-surface: #ffffff;
-  --flat-surface-alt: #f1f5f9;
-  --flat-surface-hover: #f8fafc;
+  --flat-surface-alt: #e2e8f0;
+  --flat-surface-hover: #f1f5f9;
   
   /* Bordures nettes, plus sombres et plus apparentes */
   --flat-border: #94a3b8;        /* Slate-400 : net, franc, visible */
@@ -95,8 +95,18 @@ code, kbd, samp, pre {
    ========================================================================== */
 .flat-header {
   background-color: #ffffff !important;
+  border-top: 3px solid var(--flat-primary) !important;
   border-bottom: 2px solid var(--flat-border) !important;
   box-shadow: none !important;
+}
+
+.flat-header nav {
+  background-color: #f1f5f9 !important;
+  border-radius: var(--flat-radius) !important;
+  padding: 4px 6px !important;
+  border: 1px solid var(--flat-border-subtle) !important;
+  margin-top: 4px !important;
+  margin-bottom: 6px !important;
 }
 
 .flat-logo-box {
@@ -108,6 +118,7 @@ code, kbd, samp, pre {
   align-items: center;
   justify-content: center;
   color: #ffffff;
+  border: 1px solid #1d4ed8 !important;
 }
 
 .flat-brand-title {
@@ -121,30 +132,31 @@ code, kbd, samp, pre {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 8px;
-  border-radius: var(--flat-radius-sm);
-  background-color: var(--flat-success-light) !important;
-  color: var(--flat-success-text) !important;
+  padding: 2px 9px;
+  border-radius: var(--flat-radius-pill);
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
   font-size: 11px;
-  font-weight: 600;
-  border: 1px solid #bbf7d0;
+  font-weight: 700;
+  border: 1px solid #6ee7b7 !important;
 }
 
-/* Onglets de navigation Flat */
+/* Onglets de navigation Flat - Style segmenté net et vivant */
 .nav-tab {
-  border-radius: var(--flat-radius) !important;
+  border-radius: var(--flat-radius-sm) !important;
   font-weight: 600 !important;
   font-size: 0.8125rem !important;
   padding: 6px 14px !important;
-  color: #64748b !important;
+  color: #475569 !important;
   background-color: transparent !important;
   border: 1px solid transparent !important;
   transition: all 0.15s ease !important;
 }
 
 .nav-tab:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
+  border-color: #cbd5e1 !important;
 }
 
 .nav-tab.bg-blue-600,
@@ -153,6 +165,7 @@ code, kbd, samp, pre {
   background-color: var(--flat-primary) !important;
   color: #ffffff !important;
   border-color: var(--flat-primary) !important;
+  font-weight: 700 !important;
 }
 
 /* Badges de compteurs dans la barre de navigation */
@@ -174,7 +187,6 @@ code, kbd, samp, pre {
    CARTES STATISTIQUES KPI FLAT (Aplats nets, 1px border, zéro ombres)
    ========================================================================== */
 .flat-kpi-card {
-  background-color: #ffffff !important;
   border: 1px solid var(--flat-border) !important;
   border-radius: var(--flat-radius-lg) !important;
   padding: 16px !important;
@@ -185,24 +197,68 @@ code, kbd, samp, pre {
 }
 
 .flat-kpi-card:hover {
-  border-color: #475569 !important;
+  transform: translateY(-1px) !important;
 }
 
-/* Liserés d'accentuation couleur pour cartes KPI */
+/* Liserés et fonds légèrement teintés vifs pour cartes KPI */
 .flat-kpi-card-blue {
+  background-color: #f8faff !important;
   border-left: 4px solid var(--flat-primary) !important;
+}
+.flat-kpi-card-blue:hover {
+  background-color: #eff6ff !important;
+  border-color: var(--flat-primary) !important;
+}
+.flat-kpi-card-blue .w-11,
+.flat-kpi-card-blue .flat-kpi-icon {
+  background-color: var(--flat-primary) !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
 }
 
 .flat-kpi-card-emerald {
+  background-color: #f7fdfa !important;
   border-left: 4px solid var(--flat-success) !important;
+}
+.flat-kpi-card-emerald:hover {
+  background-color: #ecfdf5 !important;
+  border-color: var(--flat-success) !important;
+}
+.flat-kpi-card-emerald .w-11,
+.flat-kpi-card-emerald .flat-kpi-icon {
+  background-color: var(--flat-success) !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
 }
 
 .flat-kpi-card-rose {
+  background-color: #fff9f9 !important;
   border-left: 4px solid var(--flat-danger) !important;
+}
+.flat-kpi-card-rose:hover {
+  background-color: #fff1f2 !important;
+  border-color: var(--flat-danger) !important;
+}
+.flat-kpi-card-rose .w-11,
+.flat-kpi-card-rose .flat-kpi-icon {
+  background-color: var(--flat-danger) !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
 }
 
 .flat-kpi-card-slate {
-  border-left: 4px solid #64748b !important;
+  background-color: #fffdf5 !important;
+  border-left: 4px solid var(--flat-warning) !important;
+}
+.flat-kpi-card-slate:hover {
+  background-color: #fffbeb !important;
+  border-color: var(--flat-warning) !important;
+}
+.flat-kpi-card-slate .w-11,
+.flat-kpi-card-slate .flat-kpi-icon {
+  background-color: var(--flat-warning) !important;
+  color: #ffffff !important;
+  border-color: #d97706 !important;
 }
 
 .tabular-nums {
@@ -218,26 +274,6 @@ code, kbd, samp, pre {
   justify-content: center;
   font-size: 1.125rem;
   flex-shrink: 0;
-}
-
-.flat-kpi-icon-blue {
-  background-color: var(--flat-primary-light) !important;
-  color: var(--flat-primary) !important;
-}
-
-.flat-kpi-icon-green {
-  background-color: var(--flat-success-light) !important;
-  color: var(--flat-success) !important;
-}
-
-.flat-kpi-icon-red {
-  background-color: var(--flat-danger-light) !important;
-  color: var(--flat-danger) !important;
-}
-
-.flat-kpi-icon-slate {
-  background-color: #f1f5f9 !important;
-  color: #475569 !important;
 }
 
 .flat-kpi-val {
@@ -324,18 +360,18 @@ button:active, .btn:active {
 .panne-filter-btn {
   border-radius: var(--flat-radius) !important;
   font-weight: 600 !important;
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid var(--flat-border) !important;
   background-color: #ffffff !important;
-  color: #475569 !important;
+  color: #334155 !important;
   padding: 6px 14px !important;
   transition: all 0.15s ease !important;
 }
 
 .filter-btn:hover,
 .panne-filter-btn:hover {
-  background-color: #f8fafc !important;
+  background-color: #f1f5f9 !important;
   color: #0f172a !important;
-  border-color: #94a3b8 !important;
+  border-color: #475569 !important;
 }
 
 .filter-btn.bg-slate-900,
@@ -404,15 +440,15 @@ table {
 }
 
 thead {
-  background-color: #f8fafc !important;
+  background-color: #e2e8f0 !important;
   border-bottom: 2px solid var(--flat-border) !important;
 }
 
 thead th {
-  background-color: #f8fafc !important;
-  color: #334155 !important;
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
   font-size: 0.6875rem !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   padding: 10px 14px !important;
@@ -423,11 +459,11 @@ thead th {
 tbody tr {
   background-color: #ffffff !important;
   border-bottom: 1px solid var(--flat-border-subtle) !important;
-  transition: background-color 0.1s ease !important;
+  transition: background-color 0.12s ease !important;
 }
 
 tbody tr:hover {
-  background-color: #f8fafc !important;
+  background-color: #f0f7ff !important;
 }
 
 tbody td {
@@ -575,4 +611,12 @@ div[id^="modal-"] > div > div {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* ==========================================================================
+   LARGEUR CONTENEUR OPTIMISÉE POUR TABLEAUX LARGES (Évite les débordements)
+   ========================================================================== */
+.max-w-7xl,
+.max-w-7xl.max-w-7xl {
+  max-width: 88rem !important; /* 1408px au lieu de 80rem (1280px) pour loger confortablement le tableau du parc */
 }
