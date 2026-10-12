@@ -408,8 +408,8 @@ def import_source(data):
                 (id_mat, id_str, id_typ_mat, id_model_mat, marque_mat, num_inv, num_ser,
                  dat_acq, dat_mes, etat_mat, obs_mat, dat_sortie, motif_sortie,
                  ram, disk, cpu, se, net, ordi, ip, id_uti, archiv, dat_cre, dat_mod,
-                 statut_mat, etat_reforme, motif_reforme)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                 statut_mat, etat_reforme, motif_reforme, date_reforme, annee_reforme)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (r.get("ID_MAT"),
                  r.get("ID_STR") if r.get("ID_STR") in structure_ids else None,
                  r.get("ID_TYP_MAT") if r.get("ID_TYP_MAT") in type_ids else None,
@@ -421,7 +421,9 @@ def import_source(data):
                  ram_value, disk_value, cpu_text, se_text, net_text, r.get("ORDI"), r.get("IP"),
                  r.get("ID_UTI") if r.get("ID_UTI") in user_ids else None,
                  "O" if archived else "N", _date(r.get("DAT_CRE")), _date(r.get("DAT_MOD")),
-                 lifecycle, reform_state, r.get("MOTIF_SORTIE") if retired else None))
+                 lifecycle, reform_state, r.get("MOTIF_SORTIE") if retired else None,
+                 _date(r.get("DAT_SORTIE")) if retired else None,
+                 int(_date(r.get("DAT_SORTIE"))[:4]) if retired and _date(r.get("DAT_SORTIE")) else None))
 
         # Refresh current assignment on equipment from Oracle's AFFECT_MAT when it has the latest DAT_AFF.
         latest_assignment = {}
