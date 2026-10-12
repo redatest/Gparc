@@ -1,6 +1,10 @@
-# GPARC - Gestion du Parc Informatique & Suivi des Pannes
+# GPARC - Gestion du Parc Informatique & Suivi des Pannes & Réformes
 
-Application complète de gestion du parc informatique d'entreprise avec suivi en temps réel des équipements, attachement de photos, déclaration et gestion des pannes, et fiches d'intervention imprimables.
+Application complète de gestion du parc informatique d'entreprise avec suivi en temps réel des équipements, déclaration et gestion des pannes, gestion des procédure de la réforme, et fournir des fiches d'intervention imprimables.
+
+Cette plateforme est considérée comme une refonte d'une anicienne application conçue sous ORACLE/APEX, et redéployée sous Python/Flask framework.
+
+Elle est conçue sous une architecture (SPA) qui offre un frontend fortement dynamique et découplé, afin d'offrir une meilleur érgonomie à l'utilisateur.
 
 ---
 
@@ -26,7 +30,7 @@ python app.py
 
 ## ⚡ Deux Modes d'Interface Disponibles
 
-1. **⚡ Interface Simple & Complete** (Active par défaut) :
+1. **⚡ Interface Simple, Souple & Complete** (Active par défaut) :
    - Conçue pour une utilisation quotidienne sans complexité :
    - Recherche rapide d'équipement par N° d'inventaire, série, utilisateur ou bureau.
    - Ajout rapide de matériel en 4 champs clés.
