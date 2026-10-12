@@ -54,16 +54,16 @@
 
       tbody.innerHTML = filteredPannes.map(p => {
         const state = panneLabels[p.eta_pan] || p.eta_pan || 'En panne';
-        let statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">En panne</span>';
-        if (p.eta_pan === 'ER' || p.eta_pan === 'AT') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">En réparation</span>';
-        if (p.eta_pan === 'RP') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Réparé</span>';
-        if (p.eta_pan === 'IR' || p.eta_pan === 'NR') statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">Irréparable</span>';
+        let statusBadge = '<span class="flat-status-pill bg-rose-50 text-rose-700 border border-rose-200"><span class="status-dot bg-rose-600 animate-pulse"></span>En panne</span>';
+        if (p.eta_pan === 'ER' || p.eta_pan === 'AT') statusBadge = '<span class="flat-status-pill bg-amber-50 text-amber-800 border border-amber-200"><span class="status-dot bg-amber-500"></span>En réparation</span>';
+        if (p.eta_pan === 'RP') statusBadge = '<span class="flat-status-pill bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="status-dot bg-emerald-500"></span>Réparé</span>';
+        if (p.eta_pan === 'IR' || p.eta_pan === 'NR') statusBadge = '<span class="flat-status-pill bg-slate-100 text-slate-700 border border-slate-300"><span class="status-dot bg-slate-500"></span>Irréparable</span>';
 
         let reformBadge = '';
         if (p.etat_reforme === 'PROPOSEE') {
-          reformBadge = '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Équipement proposé à la réforme"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Proposé à la réforme</span>';
+          reformBadge = '<span class="flat-status-pill bg-amber-50 text-amber-700 border border-amber-200 text-[10px]" title="Équipement proposé à la réforme"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>Proposé réforme</span>';
         } else if (p.etat_reforme === 'REFORME') {
-          reformBadge = '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300" title="Équipement réformé"><i class="fa-solid fa-ban mr-1"></i>Réformé</span>';
+          reformBadge = '<span class="flat-status-pill bg-slate-100 text-slate-700 border border-slate-300 text-[10px]" title="Équipement réformé"><i class="fa-solid fa-ban text-slate-500 mr-1"></i>Réformé</span>';
         }
 
         const lieu = p.lieu_reparation || '-';
@@ -73,44 +73,44 @@
         ].filter(Boolean).join(' • ');
 
         return `
-          <tr class="hover:bg-slate-50 transition text-xs">
-            <td class="p-3 font-mono text-slate-500">${p.dat_pan || '-'}</td>
+          <tr class="hover:bg-slate-50/80 transition-colors duration-150 text-xs">
+            <td class="p-3 font-mono text-slate-500 tabular-nums">${p.dat_pan || '-'}</td>
             <td class="p-3">
-              <div class="font-bold text-slate-800">${p.marque_mat || ''} ${p.model_mat || ''}</div>
-              <div class="text-[11px] text-slate-400">${p.type_nom || ''}</div>
+              <div class="font-bold text-slate-900 leading-snug">${p.marque_mat || ''} ${p.model_mat || ''}</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">${p.type_nom || ''}</div>
             </td>
-            <td class="p-3 font-mono text-[11px] text-slate-600">
-              <div><span class="text-slate-400">Inv:</span> ${p.num_inv || '-'}</div>
-              <div><span class="text-slate-400">Série:</span> ${p.num_ser || '-'}</div>
+            <td class="p-3">
+              <div><span class="flat-inv-tag">${p.num_inv || 'SANS-INV'}</span></div>
+              <div class="font-mono text-slate-500 text-[11px] mt-1 tracking-tight">SN: ${p.num_ser || '-'}</div>
             </td>
             <td class="p-3 max-w-xs text-slate-700 leading-snug">${p.diag_pan || ''}</td>
             <td class="p-3 text-slate-700">
-              <div class="font-semibold">${p.nom_uti ? ((p.pnom_uti || '') + ' ' + p.nom_uti).trim() : 'Non assigné'}</div>
+              <div class="font-semibold text-slate-900">${p.nom_uti ? ((p.pnom_uti || '') + ' ' + p.nom_uti).trim() : '<span class="text-slate-400 italic">Non assigné</span>'}</div>
             </td>
             <td class="p-3 text-slate-600">
-              <div>${p.technicien || 'Tech DSI'}</div>
-              <div class="text-[11px] text-slate-400 mt-1">${lieu}</div>
-              <div class="text-[11px] text-slate-400 mt-1">${dates}</div>
+              <div class="font-medium text-slate-800">${p.technicien || 'Tech DSI'}</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">${lieu}</div>
+              ${dates ? `<div class="text-[11px] text-slate-500 mt-0.5 tabular-nums">${dates}</div>` : ''}
             </td>
-            <td class="p-3">
+            <td class="p-3 whitespace-nowrap">
               <div class="flex flex-col items-start gap-1">
                 ${statusBadge}
                 ${reformBadge}
               </div>
-              <div class="text-[11px] text-slate-500 mt-1">${p.obs_rep || ''}</div>
+              ${p.obs_rep ? `<div class="text-[11px] text-slate-500 mt-1 max-w-[160px] truncate" title="${p.obs_rep}">${p.obs_rep}</div>` : ''}
             </td>
-            <td class="p-3 text-right min-w-[155px]">
-              <div class="grid grid-cols-2 gap-1.5 w-full max-w-[150px] ml-auto">
-                <button onclick="openRepairModal(${p.id_pan})" class="col-span-2 w-full px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-[11px] font-semibold" title="Gérer le traitement de la panne">
-                  <i class="fa-solid fa-screwdriver-wrench"></i> Traitement
+            <td class="p-3 text-right min-w-[155px] whitespace-nowrap">
+              <div class="grid grid-cols-2 gap-1.5 w-full max-w-[155px] ml-auto">
+                <button onclick="openRepairModal(${p.id_pan})" class="col-span-2 w-full px-2 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded text-[11px] font-semibold flex items-center justify-center gap-1 transition" title="Gérer le traitement de la panne">
+                  <i class="fa-solid fa-screwdriver-wrench text-indigo-600"></i> Traitement
                 </button>
-                            ${p.eta_pan !== 'RP' && p.eta_pan !== 'IR' ? `
-                <button onclick="markRepaired(${p.id_pan})" class="w-full px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-semibold" title="Marquer comme réparé">
+                ${p.eta_pan !== 'RP' && p.eta_pan !== 'IR' ? `
+                <button onclick="markRepaired(${p.id_pan})" class="w-full px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-semibold flex items-center justify-center gap-1 transition" title="Marquer comme réparé">
                   <i class="fa-solid fa-check"></i> Réparé
                 </button>
               ` : ''}
-                <button onclick="viewReport(${p.id_pan})" class="w-full px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[11px] font-semibold" title="Imprimer fiche">
-                  <i class="fa-solid fa-print"></i> Fiche
+                <button onclick="viewReport(${p.id_pan})" class="w-full px-2 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded text-[11px] font-semibold flex items-center justify-center gap-1 transition" title="Imprimer fiche">
+                  <i class="fa-solid fa-print text-blue-600"></i> Fiche
                 </button>
               </div>
             </td>

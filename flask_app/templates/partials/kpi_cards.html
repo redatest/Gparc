@@ -1,31 +1,46 @@
-    <!-- Indicateurs KPI Rapides -->
+    <!-- Indicateurs KPI Rapides Flat (Cartes blanches nettes avec liseré d'accent et chiffres tabulaires) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-layer-group"></i></div>
+      <!-- KPI Total (Flat Bleu) -->
+      <div class="flat-kpi-card flat-kpi-card-blue bg-white rounded-lg p-4 flex items-center gap-3.5">
+        <div class="w-11 h-11 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-lg flex-shrink-0 border border-blue-100">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
         <div>
-          <div class="text-2xl font-bold text-slate-800" id="kpi-total">0</div>
-          <div class="text-xs text-slate-500 font-medium">Total Équipements</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight tabular-nums" id="kpi-total">0</div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Total Parc</div>
         </div>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-circle-check"></i></div>
+
+      <!-- KPI Bon État (Flat Émeraude) -->
+      <div class="flat-kpi-card flat-kpi-card-emerald bg-white rounded-lg p-4 flex items-center gap-3.5">
+        <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-lg flex-shrink-0 border border-emerald-100">
+          <i class="fa-solid fa-check"></i>
+        </div>
         <div>
-          <div class="text-2xl font-bold text-emerald-600" id="kpi-op">0</div>
-          <div class="text-xs text-slate-500 font-medium">État : Bon</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight tabular-nums" id="kpi-op">0</div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">En Service</div>
         </div>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+
+      <!-- KPI En Panne (Flat Rouge) -->
+      <div class="flat-kpi-card flat-kpi-card-rose bg-white rounded-lg p-4 flex items-center gap-3.5">
+        <div class="w-11 h-11 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center text-lg flex-shrink-0 border border-rose-100">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
         <div>
-          <div class="text-2xl font-bold text-rose-600" id="kpi-pa">0</div>
-          <div class="text-xs text-slate-500 font-medium">En Panne active</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 tracking-tight tabular-nums" id="kpi-pa">0</div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Pannes Actives</div>
         </div>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg"><i class="fa-solid fa-wrench"></i></div>
+
+      <!-- KPI Irréparable (Flat Ardoise / Réforme) -->
+      <div class="flat-kpi-card flat-kpi-card-slate bg-white rounded-lg p-4 flex items-center gap-3.5">
+        <div class="w-11 h-11 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-lg flex-shrink-0 border border-slate-200">
+          <i class="fa-solid fa-wrench"></i>
+        </div>
         <div>
-          <div class="text-2xl font-bold text-amber-600" id="kpi-re">0</div>
-          <div class="text-xs text-slate-500 font-medium">État : Irréparable</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight tabular-nums" id="kpi-re">0</div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Irréparables</div>
         </div>
       </div>
     </div>
