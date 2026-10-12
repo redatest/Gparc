@@ -188,16 +188,128 @@ def inspect_oracle_schema():
                 pass
 
 
+def _open_oracle_connection(data):
+    """Ouvre Oracle avec les mêmes paramètres que le test de connexion."""
+    host = str(data.get('host', '')).strip()
+    username = str(data.get('username', '')).strip()
+    password = data.get('password', '')
+    connect_type = str(data.get('connectType', 'service_name')).strip().lower()
+    database_name = str(data.get('sid', '')).strip()
+    if not host or not username or not password or not database_name:
+        raise ValueError("Hôte, base Oracle, utilisateur et mot de passe sont obligatoires.")
+    try:
+        port = int(data.get('port', 1521))
+        if not 1 <= port <= 65535:
+            raise ValueError
+    except (TypeError, ValueError):
+        raise ValueError("Le port Oracle doit être compris entre 1 et 65535.")
+    if connect_type not in ('service_name', 'sid'):
+        raise ValueError("Type de connexion Oracle invalide.")
+    import oracledb
+    client_dir = os.getenv("ORACLE_CLIENT_LIB_DIR", "").strip()
+    thick_mode = os.getenv("ORACLE_THICK_MODE", "").strip().lower() in ("1", "true", "yes", "on")
+    if oracledb.is_thin_mode():
+        if client_dir:
+            oracledb.init_oracle_client(lib_dir=client_dir)
+        elif thick_mode:
+            oracledb.init_oracle_client()
+    args = {"user": username, "password": password, "host": host, "port": port, "tcp_connect_timeout": 8}
+    args[connect_type] = database_name
+    return oracledb.connect(**args), host, port, username, database_name
+
+
+def _load_oracle_source(connection):
+    try:
+        from ..oracle_importer import _read_source, preview_source
+    except ImportError:
+        from oracle_importer import _read_source, preview_source
+    source = _read_source(connection)
+    return source, preview_source(source)
+
+
+@oracle_bp.route('/api/oracle-sync/preview', methods=['POST'])
+def preview_oracle_sync():
+    """Prévisualise les volumes et anomalies sans modifier SQLite."""
+    connection = None
+    try:
+        data = request.get_json(silent=True) or {}
+        connection, host, port, username, database_name = _open_oracle_connection(data)
+        source, preview = _load_oracle_source(connection)
+        return jsonify({
+            "success": True, "host": host, "port": port, "username": username,
+            "databaseName": database_name, "preview": preview,
+            "message": "Prévisualisation terminée. Aucune donnée locale n'a été modifiée."
+        })
+    except ImportError:
+        return jsonify({"success": False, "message": "Le pilote python-oracledb n'est pas installé."}), 500
+    except Exception as exc:
+        return jsonify({"success": False, "message": "Prévisualisation Oracle impossible.", "details": str(exc)[:500]}), 400
+    finally:
+        if connection is not None:
+            try:
+                connection.close()
+            except Exception:
+                pass
+
+
 @oracle_bp.route('/api/oracle-sync/execute', methods=['POST'])
 def execute_oracle_sync():
-    """Bloque l'ancien import simulé jusqu'à l'implémentation du mapping réel."""
-    return jsonify({
-        "success": False,
-        "message": (
-            "Importation désactivée : cette version utilisait des données d'exemple et non les données Oracle. "
-            "Identifiez les tables et colonnes de la base source avant de préparer une migration réelle."
-        )
-    }), 501
+    """Remplace les données de démonstration par Oracle, avec sauvegarde et transaction."""
+    connection = None
+    started = time.time()
+    data = request.get_json(silent=True) or {}
+    try:
+        connection, host, port, username, database_name = _open_oracle_connection(data)
+        source, preview = _load_oracle_source(connection)
+        if not source.get("MATERIEL") and not source.get("STRUCTURE"):
+            return jsonify({"success": False, "message": "Import annulé : aucune donnée de matériel ou de structure n'a été trouvée."}), 400
+        try:
+            from ..oracle_importer import import_source
+        except ImportError:
+            from oracle_importer import import_source
+        result = import_source(source)
+        duration_ms = int((time.time() - started) * 1000)
+        local = get_db()
+        try:
+            local.execute("""
+                INSERT INTO oracle_sync_history
+                (id, admin_username, host, port, sid, schema_name, strategy, total_rows, duration_ms, status, details_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                result["batchId"], None, host, port, database_name, username, "replace_demo",
+                preview["totalRows"], duration_ms, "SUCCESS",
+                json.dumps({"sourceCounts": result["counts"], "operationalCounts": result["operationalCounts"], "backupPath": result["backupPath"]}, ensure_ascii=False)
+            ))
+            local.commit()
+        finally:
+            local.close()
+        result["durationMs"] = duration_ms
+        return jsonify(result)
+    except ImportError:
+        return jsonify({"success": False, "message": "Le pilote python-oracledb n'est pas installé."}), 500
+    except Exception as exc:
+        try:
+            local = get_db()
+            local.execute("""
+                INSERT INTO oracle_sync_history
+                (id, host, port, sid, schema_name, strategy, duration_ms, status, details_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                str(uuid.uuid4()), data.get("host"), data.get("port", 1521), data.get("sid"),
+                data.get("username"), "replace_demo", int((time.time() - started) * 1000),
+                "ERROR", json.dumps({"error": str(exc)[:500]}, ensure_ascii=False)
+            ))
+            local.commit()
+            local.close()
+        except Exception:
+            pass
+        return jsonify({"success": False, "message": "Import Oracle échoué ; la transaction locale a été annulée.", "details": str(exc)[:500]}), 400
+    finally:
+        if connection is not None:
+            try:
+                connection.close()
+            except Exception:
+                pass
 
 
 @oracle_bp.route('/api/oracle-sync/history', methods=['GET'])
