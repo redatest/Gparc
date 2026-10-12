@@ -16,232 +16,72 @@ except ImportError:
 oracle_bp = Blueprint('oracle', __name__)
 
 
-def get_sample_oracle_data():
-    return {
-        "structures": [
-            {"cod_str": "DIR_GEN", "lib_str": "Direction Générale", "id_str_mere": None},
-            {"cod_str": "DSI_CORP", "lib_str": "Direction des Systèmes d'Information", "id_str_mere": None},
-            {"cod_str": "DSI_PROD", "lib_str": "DSI - Infrastructure & Production", "id_str_mere": 2},
-            {"cod_str": "DSI_DEV", "lib_str": "DSI - Ingénierie & Applications", "id_str_mere": 2},
-            {"cod_str": "DRH", "lib_str": "Direction des Ressources Humaines", "id_str_mere": None},
-            {"cod_str": "FIN_COMPTA", "lib_str": "Direction Financière & Comptabilité", "id_str_mere": None},
-            {"cod_str": "LOGISTIQUE", "lib_str": "Département Logistique & Moyens Généraux", "id_str_mere": None}
-        ],
-        "types": [
-            {"cod_typ_mat": "PC_PORTABLE", "lib_typ_mat": "Ordinateur Portable (Laptop)"},
-            {"cod_typ_mat": "PC_BUREAU", "lib_typ_mat": "Ordinateur de Bureau (Desktop / Tour)"},
-            {"cod_typ_mat": "SERVEUR", "lib_typ_mat": "Serveur Rack / Datacenter"},
-            {"cod_typ_mat": "ECRAN", "lib_typ_mat": "Moniteur / Écran d'affichage"},
-            {"cod_typ_mat": "IMPRIMANTE", "lib_typ_mat": "Imprimante Réseau / Multifonction"},
-            {"cod_typ_mat": "SWITCH", "lib_typ_mat": "Commutateur Réseau & Switch"}
-        ],
-        "materiels": [
-            {
-                "num_inv": "INV-ORA-2024-001",
-                "num_ser": "8HG92K1-ORA",
-                "structure_code": "DSI_PROD",
-                "type_code": "PC_PORTABLE",
-                "marque_mat": "Dell",
-                "model_mat": "Latitude 7450 Ultra i7",
-                "nom_uti": "Amine ZIANI",
-                "etat_mat": "OP",
-                "ram": 32,
-                "disk": 1000,
-                "cpu": "Intel Core Ultra 7 155H",
-                "se": "Windows 11 Enterprise",
-                "ip": "192.168.10.45",
-                "image_url": "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80"
-            },
-            {
-                "num_inv": "INV-ORA-2024-002",
-                "num_ser": "PF49B7W1-ORA",
-                "structure_code": "DSI_DEV",
-                "type_code": "PC_PORTABLE",
-                "marque_mat": "Lenovo",
-                "model_mat": "ThinkPad T14s Gen 5",
-                "nom_uti": "Samir BENANI",
-                "etat_mat": "OP",
-                "ram": 32,
-                "disk": 1000,
-                "cpu": "AMD Ryzen 7 PRO 8840U",
-                "se": "Windows 11 Enterprise",
-                "ip": "192.168.10.46",
-                "image_url": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80"
-            },
-            {
-                "num_inv": "INV-ORA-2023-018",
-                "num_ser": "CZC341908K-ORA",
-                "structure_code": "FIN_COMPTA",
-                "type_code": "PC_BUREAU",
-                "marque_mat": "HP",
-                "model_mat": "EliteDesk 800 G9 Mini",
-                "nom_uti": "Omar CHRAIBI",
-                "etat_mat": "OP",
-                "ram": 32,
-                "disk": 1000,
-                "cpu": "Intel Core i7-14700T",
-                "se": "Windows 11 Pro 64-bit",
-                "ip": "192.168.20.12",
-                "image_url": "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=800&auto=format&fit=crop&q=80"
-            },
-            {
-                "num_inv": "INV-ORA-2024-089",
-                "num_ser": "DEL-PE-R760-99A",
-                "structure_code": "DSI_PROD",
-                "type_code": "SERVEUR",
-                "marque_mat": "Dell",
-                "model_mat": "PowerEdge R760xs Dual Xeon",
-                "nom_uti": "Atelier Datacenter",
-                "etat_mat": "OP",
-                "ram": 128,
-                "disk": 7680,
-                "cpu": "2x Intel Xeon Gold 6430 32C",
-                "se": "VMware ESXi 8.0 / RHEL 9",
-                "ip": "192.168.1.5",
-                "image_url": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=80"
-            }
-        ]
-    }
-
-
 @oracle_bp.route('/api/oracle-sync/test', methods=['POST'])
 def test_oracle_sync():
-    data = request.json or {}
-    host = data.get('host', 'localhost').strip()
-    port = int(data.get('port', 1521))
-    sid = data.get('sid', 'ORCL').strip() or 'ORCL'
-    username = data.get('username', 'GPARC_USER').strip() or 'GPARC_USER'
-
-    start_time = time.time()
-    tcp_ok = False
+    """Teste une vraie session Oracle, avec authentification."""
+    data = request.get_json(silent=True) or {}
+    host = str(data.get('host', '')).strip()
+    username = str(data.get('username', '')).strip()
+    password = data.get('password', '')
+    connect_type = str(data.get('connectType', 'service_name')).strip().lower()
+    database_name = str(data.get('sid', '')).strip()
+    if not host or not username or not password or not database_name:
+        return jsonify({"success": False, "message": "Hôte, base Oracle, utilisateur et mot de passe sont obligatoires."}), 400
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(2.0)
-        s.connect((host, port))
-        s.close()
-        tcp_ok = True
-    except Exception:
-        tcp_ok = False
-
-    latency = max(12, int((time.time() - start_time) * 1000))
-    tables = [
-        {"table": "STRUCTURES", "label": "Départements & Directions (STRUCTURES)", "rowCount": 14, "status": "Prêt"},
-        {"table": "TYPE_MAT", "label": "Types de matériel (TYPE_MAT)", "rowCount": 10, "status": "Prêt"},
-        {"table": "MODEL_MAT", "label": "Modèles & Marques (MODEL_MAT)", "rowCount": 28, "status": "Prêt"},
-        {"table": "PARAMETRES_MATERIEL", "label": "Paramètres CPU, RAM, SE, Disque", "rowCount": 46, "status": "Prêt"},
-        {"table": "UTILISATEURS", "label": "Comptes Utilisateurs & LDAP (UTILISATEURS)", "rowCount": 185, "status": "Prêt"},
-        {"table": "MATERIEL", "label": "Parc Équipements Actif (MATERIEL)", "rowCount": 420, "status": "Prêt"},
-        {"table": "PANNE", "label": "Tickets & Pannes (PANNE)", "rowCount": 95, "status": "Prêt"}
-    ]
-
-    return jsonify({
-        "success": True,
-        "latencyMs": latency,
-        "oracleBanner": f"Oracle Database 19c Enterprise Edition (SID: {sid.upper()})",
-        "characterSet": "AL32UTF8 (Unicode NLS_CHARACTERSET)",
-        "discoveredTables": tables,
-        "message": f"Connectivité validée avec l'instance Oracle {sid} sur {host}:{port}" if tcp_ok else f"Simulation d'importation Oracle prête (Mode catalogue actif pour SID: {sid})"
-    })
+        port = int(data.get('port', 1521))
+        if not 1 <= port <= 65535:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "Le port Oracle doit être compris entre 1 et 65535."}), 400
+    if connect_type not in ('service_name', 'sid'):
+        return jsonify({"success": False, "message": "Type de connexion Oracle invalide."}), 400
+    try:
+        import oracledb
+    except ImportError:
+        return jsonify({"success": False, "message": "Le pilote python-oracledb n'est pas installé dans l'environnement Python qui exécute Gparc."}), 500
+    start_time = time.time()
+    connection = None
+    try:
+        args = {"user": username, "password": password, "host": host, "port": port, "tcp_connect_timeout": 5}
+        args[connect_type] = database_name
+        connection = oracledb.connect(**args)
+        cursor = connection.cursor()
+        cursor.execute("SELECT SYS_CONTEXT('USERENV', 'DB_NAME'), SYS_CONTEXT('USERENV', 'SERVICE_NAME'), USER FROM dual")
+        db_name, service_name, connected_user = cursor.fetchone()
+        cursor.close()
+        return jsonify({
+            "success": True, "latencyMs": int((time.time() - start_time) * 1000),
+            "databaseName": db_name or "", "serviceName": service_name or "",
+            "username": connected_user or username,
+            "message": f"Authentification Oracle réussie sur {host}:{port}."
+        })
+    except Exception as exc:
+        oracle_code = ""
+        try:
+            if getattr(exc, "args", None):
+                oracle_code = getattr(exc.args[0], "code", "") or ""
+        except Exception:
+            pass
+        message = f"Échec de la connexion Oracle{f' ({oracle_code})' if oracle_code else ''}. Vérifiez l'hôte, le port, le type SID/Service Name, les droits et les identifiants."
+        return jsonify({"success": False, "message": message, "oracleCode": oracle_code}), 400
+    finally:
+        if connection is not None:
+            try:
+                connection.close()
+            except Exception:
+                pass
 
 
 @oracle_bp.route('/api/oracle-sync/execute', methods=['POST'])
 def execute_oracle_sync():
-    data = request.json or {}
-    start_time = time.time()
-    sync_id = f"SYNC-FLASK-{int(time.time())}"
-    strategy = data.get('strategy', 'merge_update')
-    host = data.get('host', 'localhost')
-    port = int(data.get('port', 1521))
-    sid = data.get('sid', 'ORCL')
-    schema = data.get('schema', 'GPARC_USER')
-
-    oracle_data = get_sample_oracle_data()
-    conn = get_db()
-    cur = conn.cursor()
-
-    imported_str = 0
-    updated_str = 0
-    for s in oracle_data['structures']:
-        existing = cur.execute("SELECT id_str FROM structures WHERE UPPER(cod_str) = UPPER(?)", (s['cod_str'],)).fetchone()
-        if existing:
-            cur.execute("UPDATE structures SET lib_str = ? WHERE id_str = ?", (s['lib_str'], existing['id_str']))
-            updated_str += 1
-        else:
-            cur.execute("INSERT INTO structures (cod_str, lib_str) VALUES (?, ?)", (s['cod_str'], s['lib_str']))
-            imported_str += 1
-
-    imported_typ = 0
-    for t in oracle_data['types']:
-        existing = cur.execute("SELECT id_typ_mat FROM type_mat WHERE UPPER(cod_typ_mat) = UPPER(?)", (t['cod_typ_mat'],)).fetchone()
-        if not existing:
-            cur.execute("INSERT INTO type_mat (cod_typ_mat, lib_typ_mat) VALUES (?, ?)", (t['cod_typ_mat'], t['lib_typ_mat']))
-            imported_typ += 1
-
-    imported_mat = 0
-    updated_mat = 0
-    for m in oracle_data['materiels']:
-        existing = cur.execute("SELECT id_mat FROM materiel WHERE num_inv = ?", (m['num_inv'],)).fetchone()
-        if existing:
-            cur.execute("""
-                UPDATE materiel SET etat_mat = ?, ram = ?, disk = ?, cpu = ?, se = ?, ip = ? WHERE id_mat = ?
-            """, (m['etat_mat'], m['ram'], m['disk'], m['cpu'], m['se'], m['ip'], existing['id_mat']))
-            updated_mat += 1
-        else:
-            str_row = cur.execute("SELECT id_str FROM structures WHERE UPPER(cod_str) = UPPER(?)", (m['structure_code'],)).fetchone()
-            str_id = str_row['id_str'] if str_row else 1
-            typ_row = cur.execute("SELECT id_typ_mat FROM type_mat WHERE UPPER(cod_typ_mat) = UPPER(?)", (m['type_code'],)).fetchone()
-            typ_id = typ_row['id_typ_mat'] if typ_row else 1
-
-            cur.execute("""
-                INSERT INTO materiel (
-                    id_str, id_typ_mat, num_inv, num_ser, etat_mat, ram, disk, cpu, se, ip, image_url, obs_mat
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                str_id, typ_id, m['num_inv'], m['num_ser'], m['etat_mat'],
-                m['ram'], m['disk'], m['cpu'], m['se'], m['ip'], m['image_url'],
-                f"Importé depuis Oracle {sid} ({datetime.now().strftime('%d/%m/%Y')})"
-            ))
-            imported_mat += 1
-
-    conn.commit()
-    duration_ms = max(50, int((time.time() - start_time) * 1000))
-    total_rows = imported_str + updated_str + imported_typ + imported_mat + updated_mat
-
-    details = {
-        "structures": {"imported": imported_str, "updated": updated_str},
-        "types": {"imported": imported_typ},
-        "materiels": {"imported": imported_mat, "updated": updated_mat}
-    }
-    cur.execute("""
-        INSERT INTO oracle_sync_history (
-            id, admin_username, host, port, sid, schema_name, strategy, total_rows, duration_ms, status, details_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        sync_id, "admin", host, port, sid, schema, strategy, total_rows, duration_ms, "success", json.dumps(details)
-    ))
-    conn.commit()
-    conn.close()
-
-    logs = [
-        {"timestamp": datetime.now().strftime('%H:%M:%S'), "level": "info", "message": f"Connexion établie avec Oracle SID={sid} sur {host}:{port}"},
-        {"timestamp": datetime.now().strftime('%H:%M:%S'), "level": "success", "message": f"Structures: +{imported_str} créées, {updated_str} mises à jour"},
-        {"timestamp": datetime.now().strftime('%H:%M:%S'), "level": "success", "message": f"Types de matériel: +{imported_typ} synchronisés"},
-        {"timestamp": datetime.now().strftime('%H:%M:%S'), "level": "success", "message": f"Équipements du parc: +{imported_mat} ajoutés au parc, {updated_mat} synchronisés"},
-        {"timestamp": datetime.now().strftime('%H:%M:%S'), "level": "info", "message": f"Synchronisation terminée en {duration_ms} ms."}
-    ]
-
+    """Bloque l'ancien import simulé jusqu'à l'implémentation du mapping réel."""
     return jsonify({
-        "success": True,
-        "syncId": sync_id,
-        "durationMs": duration_ms,
-        "totalRowsProcessed": total_rows,
-        "tableStats": {
-            "STRUCTURES": {"importedCount": imported_str, "updatedCount": updated_str, "status": "success"},
-            "TYPE_MAT": {"importedCount": imported_typ, "updatedCount": 0, "status": "success"},
-            "MATERIEL": {"importedCount": imported_mat, "updatedCount": updated_mat, "status": "success"}
-        },
-        "logs": logs
-    })
+        "success": False,
+        "message": (
+            "Importation désactivée : cette version utilisait des données d'exemple et non les données Oracle. "
+            "Identifiez les tables et colonnes de la base source avant de préparer une migration réelle."
+        )
+    }), 501
 
 
 @oracle_bp.route('/api/oracle-sync/history', methods=['GET'])
