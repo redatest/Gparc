@@ -46,9 +46,9 @@ def seed_demo_data(cur):
     
         # Lieux de réparation
         lieux = [
-            ('Atelier Interne DSI (Niveau 1 & 2)', 'Bâtiment Principal, Salle IT-04', '021 55 44 33', 'Chef d\'Atelier Support DSI'),
-            ('SAV Constructeur Dell ProSupport', 'Zone d\'Affaires Bab Ezzouar, Alger', '021 98 76 54', 'Support Entreprise Dell'),
-            ('Prestataire Maintenance Matériel HP', 'Boulevard des Martyrs, Alger', '021 77 66 55', 'Ingénieur d\'Affaires HP')
+            ('Atelier Interne DSI', 'Direction Distribution, CTI', '021 55 44 33', 'Intervenant DSI'),
+            ('Diwane Informatique', 'Boulevard volentariat, Guelma', '021 98 76 54', 'Technicien Diwane'),
+            ('Ingénieur de maintenance Ahmed', 'Rue Anouna, Guelma', '021 77 66 55', 'Ingénieur maintenance')
         ]
         for l in lieux:
             categorie = 'LOCAL' if 'atelier' in (l[0] or '').lower() or 'interne' in (l[0] or '').lower() else 'EXTERIEUR'
