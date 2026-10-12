@@ -13,8 +13,10 @@ from decimal import Decimal
 
 try:
     from .database import DB_PATH
+    from .database_reference_sync import sync_reference_data
 except ImportError:
     from database import DB_PATH
+    from database_reference_sync import sync_reference_data
 
 
 SOURCE_TABLES = (
@@ -508,6 +510,9 @@ def import_source(data):
             if not exists:
                 cur.execute("INSERT INTO parametres_materiel (categorie, valeur, description, ordre, archiv) VALUES (?, ?, ?, 0, ?)",
                             (category, label, "Importé de CARA_MAT Oracle (" + family + ")", "O" if _archived(r.get("ARCHIV")) else "N"))
+
+        # Keep the parameter selectors aligned with the newly imported brands/models.
+        sync_reference_data(cur)
 
         conn.commit()
         return {
