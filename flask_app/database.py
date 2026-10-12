@@ -63,7 +63,13 @@ def init_db():
         cur.executescript(SCHEMA_SQL)
         run_migrations(cur)
         seed_default_parameters(cur)
-        seed_demo_data(cur)
+        # Once an Oracle replacement import has succeeded, never repopulate
+        # an empty source inventory with fictional demonstration equipment.
+        oracle_import_done = cur.execute(
+            "SELECT 1 FROM oracle_sync_history WHERE status = 'SUCCESS' LIMIT 1"
+        ).fetchone()
+        if not oracle_import_done:
+            seed_demo_data(cur)
         sync_reference_data(cur)
 
         conn.commit()
