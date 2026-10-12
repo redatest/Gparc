@@ -282,6 +282,8 @@ def execute_oracle_sync():
                 json.dumps({"sourceCounts": result["counts"], "operationalCounts": result["operationalCounts"], "backupPath": result["backupPath"]}, ensure_ascii=False)
             ))
             local.commit()
+        except Exception:
+            local.rollback()
         finally:
             local.close()
         result["durationMs"] = duration_ms
