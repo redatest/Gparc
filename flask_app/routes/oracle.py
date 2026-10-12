@@ -134,7 +134,7 @@ def inspect_oracle_schema():
         connection = oracledb.connect(**args)
         cursor = connection.cursor()
         cursor.execute("""
-            SELECT t.table_name, t.table_type, c.column_name, c.data_type,
+            SELECT t.table_name, 'TABLE' AS table_type, c.column_name, c.data_type,
                    c.data_length, c.nullable, tc.comments AS table_comment,
                    cc.comments AS column_comment
               FROM user_tables t
