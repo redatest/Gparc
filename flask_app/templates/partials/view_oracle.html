@@ -71,17 +71,14 @@
         <div class="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 bg-slate-900 text-white rounded-xl">
           <div>
             <div class="text-sm font-bold flex items-center gap-2">
-              <i class="fa-solid fa-cloud-arrow-down text-emerald-400"></i> Lancer la synchronisation complète
+              <i class="fa-solid fa-cloud-arrow-down text-emerald-400"></i> Remplacer les données de démonstration par Oracle
             </div>
-            <p class="text-xs text-slate-400 mt-0.5">Importe les structures, les types d'équipements et injecte les matériels dans la base locale SQLite.</p>
+            <p class="text-xs text-slate-400 mt-0.5">Remplace les données de démonstration. Une sauvegarde est créée ; les lignes Oracle brutes, y compris les champs supplémentaires, sont archivées.</p>
           </div>
           <div class="flex items-center gap-3">
-            <select id="ora-strategy" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-3 py-1.5 text-xs">
-              <option value="merge_update">Mettre à jour & ajouter les nouveaux (Merge)</option>
-              <option value="insert_only">Ajouter uniquement les nouveaux matériels</option>
-            </select>
+            <span class="text-[11px] text-amber-200 max-w-48">Remplacement des données opérationnelles de démonstration</span>
             <button onclick="runExecuteOracleSync()" id="btn-oracle-exec" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-2 transition shadow">
-              <i class="fa-solid fa-play"></i> Démarrer l'importation
+              <i class="fa-solid fa-play"></i> Prévisualiser et importer
             </button>
           </div>
         </div>
