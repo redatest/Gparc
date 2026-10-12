@@ -3,40 +3,30 @@
 
 def migrate_materiel(cur):
     """Ajoute les colonnes matérielles manquantes et harmonise leurs statuts."""
-    # Migrations légères pour les bases GPARC déjà existantes.
-    # CREATE TABLE IF NOT EXISTS ne modifie pas une table déjà présente :
-    # on complète donc explicitement les colonnes ajoutées dans les versions
-    # récentes de l'application.
     mat_columns = {row[1] for row in cur.execute("PRAGMA table_info(materiel)").fetchall()}
-    if 'marque_mat' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN marque_mat TEXT")
-    if 'dat_mod' not in mat_columns:
-        # Nullable volontairement : SQLite n'autorise pas toujours
-        # l'ajout d'un DEFAULT CURRENT_TIMESTAMP via ALTER TABLE.
-        cur.execute("ALTER TABLE materiel ADD COLUMN dat_mod DATETIME")
-        cur.execute("UPDATE materiel SET dat_mod = COALESCE(dat_cre, CURRENT_TIMESTAMP) WHERE dat_mod IS NULL")
-    if 'etat_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN etat_reforme TEXT DEFAULT 'AUCUNE'")
-        cur.execute("UPDATE materiel SET etat_reforme = 'AUCUNE' WHERE etat_reforme IS NULL")
-    if 'motif_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN motif_reforme TEXT")
-    if 'date_proposition_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN date_proposition_reforme DATE")
-    if 'date_validation_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN date_validation_reforme DATE")
-    if 'date_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN date_reforme DATE")
-    if 'annee_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN annee_reforme INTEGER")
-    if 'lot_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN lot_reforme TEXT")
-    if 'decision_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN decision_reforme TEXT")
-    if 'pv_reforme' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN pv_reforme TEXT")
-    if 'statut_mat' not in mat_columns:
-        cur.execute("ALTER TABLE materiel ADD COLUMN statut_mat TEXT DEFAULT 'ES'")
-    # Séparation stricte entre le statut de cycle de vie et l'état physique.
+    additions = {
+        'marque_mat': "TEXT",
+        'dat_mod': "DATETIME",
+        'etat_reforme': "TEXT DEFAULT 'AUCUNE'",
+        'motif_reforme': "TEXT",
+        'date_proposition_reforme': "DATE",
+        'date_validation_reforme': "DATE",
+        'date_reforme': "DATE",
+        'annee_reforme': "INTEGER",
+        'lot_reforme': "TEXT",
+        'decision_reforme': "TEXT",
+        'pv_reforme': "TEXT",
+        'statut_mat': "TEXT DEFAULT 'ES'",
+        # Legacy Oracle retirement fields are kept as first-class fields as well as in the raw archive.
+        'dat_sortie': "DATE",
+        'motif_sortie': "TEXT",
+    }
+    for name, declaration in additions.items():
+        if name not in mat_columns:
+            cur.execute("ALTER TABLE materiel ADD COLUMN " + name + " " + declaration)
+
+    cur.execute("UPDATE materiel SET dat_mod = COALESCE(dat_mod, dat_cre, CURRENT_TIMESTAMP) WHERE dat_mod IS NULL")
+    cur.execute("UPDATE materiel SET etat_reforme = 'AUCUNE' WHERE etat_reforme IS NULL")
     cur.execute("""
         UPDATE materiel
         SET statut_mat = CASE
