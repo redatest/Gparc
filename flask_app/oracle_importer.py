@@ -120,10 +120,25 @@ def _index(rows, key):
 def _match_equipment(row, by_inventory, by_serial):
     inv = row.get("NUM_INV")
     serial = row.get("NUM_SER")
-    if inv is not None and inv in by_inventory:
-        return by_inventory[inv]
-    if serial is not None and serial in by_serial:
-        return by_serial[serial]
+    inv_matches = by_inventory.get(inv, []) if inv is not None else []
+    serial_matches = by_serial.get(serial, []) if serial is not None else []
+    if not isinstance(inv_matches, list):
+        inv_matches = [inv_matches]
+    if not isinstance(serial_matches, list):
+        serial_matches = [serial_matches]
+    if inv_matches and serial_matches:
+        serial_ids = {item.get("ID_MAT") for item in serial_matches}
+        common = [item for item in inv_matches if item.get("ID_MAT") in serial_ids]
+        if common:
+            return common[0]
+    if len(inv_matches) == 1:
+        return inv_matches[0]
+    if len(serial_matches) == 1:
+        return serial_matches[0]
+    if inv_matches:
+        return inv_matches[0]
+    if serial_matches:
+        return serial_matches[0]
     return None
 
 
@@ -310,6 +325,7 @@ def import_source(data):
         # Build a unique inventory key for operational tables. Duplicates stay intact in the raw archive.
         by_inventory = {}
         by_serial = {}
+        equipment_items = []
         seen_inventory = set()
         seen_serial = set()
         generated_inventory = set()
@@ -332,8 +348,12 @@ def import_source(data):
             item = dict(r)
             item["_GPARC_NUM_INV"] = inv
             item["_GPARC_NUM_SER"] = serial
-            by_inventory.setdefault(r.get("NUM_INV"), item)
-            by_serial.setdefault(r.get("NUM_SER"), item)
+            equipment_items.append(item)
+            if r.get("NUM_INV") is not None:
+                by_inventory.setdefault(r.get("NUM_INV"), []).append(item)
+            if r.get("NUM_SER") is not None:
+                by_serial.setdefault(r.get("NUM_SER"), []).append(item)
+        items_by_id = {item.get("ID_MAT"): item for item in equipment_items}
 
         char_by_id = _index(chars, "ID_CARA_MAT")
         def char_value(value):
@@ -361,7 +381,7 @@ def import_source(data):
             return _int_or_none(value)
 
         for r in equipment:
-            item = next((x for x in by_inventory.values() if x.get("ID_MAT") == r.get("ID_MAT")), None)
+            item = items_by_id.get(r.get("ID_MAT"))
             if item is None:
                 item = dict(r)
                 item["_GPARC_NUM_INV"] = "ORACLE-MAT-" + _text(r.get("ID_MAT"), "0")
