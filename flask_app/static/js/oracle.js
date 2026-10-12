@@ -53,7 +53,7 @@
         resDiv.classList.remove('hidden');
         if (!res.ok || !data.success) {
           resDiv.className = 'mt-4 p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900';
-          resDiv.innerHTML = `<div class="flex items-center gap-2 font-bold"><i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i> ${data.message || 'Échec de l’authentification Oracle.'}</div>${data.oracleCode ? `<div class="text-xs mt-1">Code Oracle : ${data.oracleCode}</div>` : ''}`;
+          resDiv.innerHTML = `<div class="flex items-center gap-2 font-bold"><i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i> ${data.message || 'Échec de l’authentification Oracle.'}</div>${data.oracleCode ? `<div class="text-xs mt-1 font-mono">Code : ${data.oracleCode}</div>` : ''}${data.details ? `<div class="text-xs mt-2 whitespace-pre-wrap break-words">Détail technique : ${String(data.details).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]))}</div>` : ''}`;
           box.innerHTML += `<div class="text-rose-400">[${new Date().toLocaleTimeString()}] ÉCHEC : ${data.message || 'Connexion Oracle refusée.'}</div>`;
           showToast('Échec du test Oracle', true);
           return;
