@@ -99,6 +99,93 @@ def test_oracle_sync():
                 pass
 
 
+@oracle_bp.route('/api/oracle-sync/schema', methods=['POST'])
+def inspect_oracle_schema():
+    """Liste en lecture seule les tables/vues et colonnes visibles par l'utilisateur connecté."""
+    data = request.get_json(silent=True) or {}
+    host = str(data.get('host', '')).strip()
+    username = str(data.get('username', '')).strip()
+    password = data.get('password', '')
+    connect_type = str(data.get('connectType', 'service_name')).strip().lower()
+    database_name = str(data.get('sid', '')).strip()
+    if not host or not username or not password or not database_name:
+        return jsonify({"success": False, "message": "Renseignez l’hôte, la base, l’utilisateur et le mot de passe Oracle."}), 400
+    try:
+        port = int(data.get('port', 1521))
+        if not 1 <= port <= 65535:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "Le port Oracle doit être compris entre 1 et 65535."}), 400
+    if connect_type not in ('service_name', 'sid'):
+        return jsonify({"success": False, "message": "Type de connexion Oracle invalide."}), 400
+
+    connection = None
+    try:
+        import oracledb
+        client_dir = os.getenv("ORACLE_CLIENT_LIB_DIR", "").strip()
+        thick_mode = os.getenv("ORACLE_THICK_MODE", "").strip().lower() in ("1", "true", "yes", "on")
+        if client_dir:
+            oracledb.init_oracle_client(lib_dir=client_dir)
+        elif thick_mode:
+            oracledb.init_oracle_client()
+
+        args = {"user": username, "password": password, "host": host, "port": port, "tcp_connect_timeout": 8}
+        args[connect_type] = database_name
+        connection = oracledb.connect(**args)
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT t.table_name, t.table_type, c.column_name, c.data_type,
+                   c.data_length, c.nullable, tc.comments AS table_comment,
+                   cc.comments AS column_comment
+              FROM user_tables t
+              JOIN user_tab_columns c ON c.table_name = t.table_name
+              LEFT JOIN user_tab_comments tc ON tc.table_name = t.table_name
+              LEFT JOIN user_col_comments cc
+                ON cc.table_name = c.table_name AND cc.column_name = c.column_name
+             ORDER BY t.table_name, c.column_id
+        """)
+        rows = cursor.fetchall()
+        # Include views as well: they are often used to expose legacy application data.
+        cursor.execute("""
+            SELECT v.view_name, c.column_name, c.data_type, c.data_length, c.nullable,
+                   vc.comments AS view_comment, cc.comments AS column_comment
+              FROM user_views v
+              JOIN user_tab_columns c ON c.table_name = v.view_name
+              LEFT JOIN user_tab_comments vc ON vc.table_name = v.view_name
+              LEFT JOIN user_col_comments cc
+                ON cc.table_name = c.table_name AND cc.column_name = c.column_name
+             ORDER BY v.view_name, c.column_id
+        """)
+        view_rows = cursor.fetchall()
+        cursor.close()
+
+        objects = {}
+        for name, object_type, column, data_type, length, nullable, table_comment, column_comment in rows:
+            item = objects.setdefault(name, {"name": name, "type": "TABLE", "comment": table_comment or "", "columns": []})
+            item["columns"].append({"name": column, "dataType": data_type, "length": length, "nullable": nullable == "Y", "comment": column_comment or ""})
+        for name, column, data_type, length, nullable, view_comment, column_comment in view_rows:
+            item = objects.setdefault(name, {"name": name, "type": "VIEW", "comment": view_comment or "", "columns": []})
+            item["type"] = "VIEW"
+            item["columns"].append({"name": column, "dataType": data_type, "length": length, "nullable": nullable == "Y", "comment": column_comment or ""})
+
+        return jsonify({
+            "success": True,
+            "username": username.upper(),
+            "objectCount": len(objects),
+            "objects": list(objects.values()),
+            "message": f"Exploration terminée : {len(objects)} tables/vues visibles, sans modification de la base Oracle."
+        })
+    except Exception as exc:
+        diagnostic = str(exc).strip()[:500] or "Aucun détail fourni par le pilote Oracle."
+        return jsonify({"success": False, "message": "Impossible d’explorer le schéma Oracle.", "details": diagnostic}), 400
+    finally:
+        if connection is not None:
+            try:
+                connection.close()
+            except Exception:
+                pass
+
+
 @oracle_bp.route('/api/oracle-sync/execute', methods=['POST'])
 def execute_oracle_sync():
     """Bloque l'ancien import simulé jusqu'à l'implémentation du mapping réel."""
