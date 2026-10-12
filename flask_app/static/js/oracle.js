@@ -155,10 +155,67 @@
     }
 
     async function runExecuteOracleSync() {
-      showToast('Importation non activée : explorez d’abord les tables Oracle pour établir le mapping réel vers Gparc.', true);
+      const btn = document.getElementById('btn-oracle-exec');
       const box = document.getElementById('oracle-logs-box');
-      box.innerHTML += `<div class="text-amber-400">[${new Date().toLocaleTimeString()}] Importation bloquée : explorez d’abord le schéma Oracle ; aucune donnée n’a été modifiée.</div>`;
+      const payload = {
+        host: document.getElementById('ora-host').value.trim(),
+        port: parseInt(document.getElementById('ora-port').value, 10) || 1521,
+        sid: document.getElementById('ora-sid').value.trim(),
+        connectType: document.getElementById('ora-connect-type').value,
+        username: document.getElementById('ora-schema').value.trim(),
+        password: document.getElementById('ora-password').value
+      };
+      if (!payload.host || !payload.sid || !payload.username || !payload.password) {
+        showToast('Renseignez l’hôte, la base, l’utilisateur et le mot de passe Oracle.', true);
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Prévisualisation...';
+      box.innerHTML += '<div class="text-cyan-300">[' + new Date().toLocaleTimeString() + '] Lecture des volumes Oracle et vérification des références...</div>';
       box.scrollTop = box.scrollHeight;
+      try {
+        const previewRes = await fetch('/api/oracle-sync/preview', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        });
+        const previewData = await previewRes.json();
+        if (!previewRes.ok || !previewData.success) {
+          throw new Error(previewData.message || 'La prévisualisation Oracle a échoué.' + (previewData.details || ''));
+        }
+        const p = previewData.preview;
+        const countText = Object.entries(p.counts || {}).map(([table, count]) => table + ': ' + count).join('\n');
+        const warnings = (p.warnings || []).map(w => '- ' + w.label + ' : ' + w.count).join('\n');
+        const confirmation = 'PRÉVISUALISATION ORACLE\n\n' + countText +
+          '\n\nTotal : ' + p.totalRows + ' lignes sources.' +
+          '\n\n' + (warnings ? 'Anomalies détectées :\n' + warnings : 'Aucune anomalie détectée par les contrôles automatiques.') +
+          '\n\nLes données de démonstration seront remplacées. Une sauvegarde SQLite sera créée et toutes les lignes Oracle brutes seront archivées. Continuer ?';
+        if (!window.confirm(confirmation)) {
+          box.innerHTML += '<div class="text-amber-300">[' + new Date().toLocaleTimeString() + '] Import annulé par l’utilisateur après prévisualisation. Aucune donnée locale modifiée.</div>';
+          return;
+        }
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importation...';
+        box.innerHTML += '<div class="text-cyan-300">[' + new Date().toLocaleTimeString() + '] Import transactionnel démarré...</div>';
+        const res = await fetch('/api/oracle-sync/execute', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error((data.message || 'Échec de l’import Oracle.') + (data.details ? '\n' + data.details : ''));
+        }
+        const localCounts = Object.entries(data.operationalCounts || {}).map(([table, count]) => table + ': ' + count).join(' | ');
+        box.innerHTML += '<div class="text-emerald-300">[' + new Date().toLocaleTimeString() + '] IMPORT TERMINÉ. Sauvegarde : ' +
+          escapeOracleHtml(data.backupPath || 'aucune (base vide)') + '</div><div class="text-emerald-200">' +
+          escapeOracleHtml(localCounts) + '</div><div class="text-slate-400">Lot : ' + escapeOracleHtml(data.batchId) + '</div>';
+        showToast('Import Oracle terminé. Vérifiez le parc, les utilisateurs et l’historique des pannes.');
+        if (typeof loadOracleHistory === 'function') loadOracleHistory();
+        if (typeof loadMateriels === 'function') loadMateriels();
+      } catch (err) {
+        box.innerHTML += '<div class="text-rose-300 whitespace-pre-wrap">[' + new Date().toLocaleTimeString() + '] ERREUR : ' + escapeOracleHtml(err.message) + '</div>';
+        showToast('Import Oracle échoué. La base locale n’a pas été partiellement importée.', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Prévisualiser et importer';
+        box.scrollTop = box.scrollHeight;
+      }
     }
 
     async function openOracleSqlModal() {
