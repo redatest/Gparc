@@ -48,10 +48,11 @@ def test_oracle_sync():
         # changing these environment variables.
         client_dir = os.getenv("ORACLE_CLIENT_LIB_DIR", "").strip()
         thick_mode = os.getenv("ORACLE_THICK_MODE", "").strip().lower() in ("1", "true", "yes", "on")
-        if client_dir:
-            oracledb.init_oracle_client(lib_dir=client_dir)
-        elif thick_mode:
-            oracledb.init_oracle_client()
+        if oracledb.is_thin_mode():
+            if client_dir:
+                oracledb.init_oracle_client(lib_dir=client_dir)
+            elif thick_mode:
+                oracledb.init_oracle_client()
 
         args = {"user": username, "password": password, "host": host, "port": port, "tcp_connect_timeout": 5}
         args[connect_type] = database_name
@@ -124,10 +125,11 @@ def inspect_oracle_schema():
         import oracledb
         client_dir = os.getenv("ORACLE_CLIENT_LIB_DIR", "").strip()
         thick_mode = os.getenv("ORACLE_THICK_MODE", "").strip().lower() in ("1", "true", "yes", "on")
-        if client_dir:
-            oracledb.init_oracle_client(lib_dir=client_dir)
-        elif thick_mode:
-            oracledb.init_oracle_client()
+        if oracledb.is_thin_mode():
+            if client_dir:
+                oracledb.init_oracle_client(lib_dir=client_dir)
+            elif thick_mode:
+                oracledb.init_oracle_client()
 
         args = {"user": username, "password": password, "host": host, "port": port, "tcp_connect_timeout": 8}
         args[connect_type] = database_name
