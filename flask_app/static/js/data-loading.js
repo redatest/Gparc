@@ -28,7 +28,7 @@
         // Mise à jour des KPI
         document.getElementById('kpi-total').innerText = statsRes.totalEquipements || allMateriels.length;
         document.getElementById('kpi-op').innerText = statsRes.operationnels ?? allMateriels.filter(m => m.etat_mat === 'BON').length;
-        document.getElementById('kpi-pa').innerText = statsRes.enPanne ?? allMateriels.filter(m => m.etat_mat === 'PANNE').length;
+        document.getElementById('kpi-pa').innerText = allPannes.filter(p => ['EP', 'EC', 'ER', 'AT'].includes(p.eta_pan)).length;
         document.getElementById('kpi-re').innerText = statsRes.enReparation ?? allMateriels.filter(m => m.etat_mat === 'IRREPARABLE').length;
 
         // Compteurs rapides dans le menu "Pannes & Interventions"
