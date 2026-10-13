@@ -1,6 +1,23 @@
 // Rendu du parc informatique, badges d’état et pagination.
 // Les données et filtres sont partagés avec app.js.
 
+    // N'affiche que les véritables nom/prénom ; masque les valeurs de remplacement héritées de l'import.
+    function getEquipmentUserName(m) {
+      const clean = value => {
+        const text = String(value || '').trim();
+        return /^(non identifié|prénom inconnu)$/i.test(text) ? '' : text;
+      };
+      const nom = clean(m.nom_uti);
+      const prenom = clean(m.pnom_uti);
+      const hasFullName = Boolean(nom && prenom);
+      return {
+        nom,
+        prenom,
+        hasFullName,
+        label: [prenom, nom].filter(Boolean).join(' ')
+      };
+    }
+
     function equipmentStatusLabel(m) {
       const status = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
       return { ES: 'En service', PR: 'Proposé à la réforme', RF: 'Réformé' }[status] || 'En service';
@@ -87,7 +104,7 @@
                       </div>
                       <div class="flex justify-between">
                         <span class="text-slate-400">Affecté à :</span>
-                        <span class="font-semibold text-slate-800">${m.nom_uti ? (m.pnom_uti || '') + ' ' + m.nom_uti : 'Non assigné'}</span>
+                        <span class="font-semibold text-slate-800">${getEquipmentUserName(m).label || ''}${getEquipmentUserName(m).hasFullName ? ' <i class="fa-solid fa-user text-slate-400 text-[10px] ml-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-slate-400">Direction :</span>
@@ -157,7 +174,7 @@
                   <div class="font-mono text-slate-500 text-[11px] mt-1 tracking-tight">SN: ${m.num_ser || '-'}</div>
                 </td>
                 <td class="p-3">
-                  <div class="font-semibold text-slate-900">${m.nom_uti ? (m.pnom_uti || '') + ' ' + m.nom_uti : '<span class="text-slate-400 italic">Non assigné</span>'}</div>
+                  <div class="font-semibold text-slate-900">${getEquipmentUserName(m).label}${getEquipmentUserName(m).hasFullName ? ' <i class="fa-solid fa-user text-slate-400 text-[10px] ml-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}</div>
                   <div class="text-slate-500 text-[11px] mt-0.5">${m.structure_nom || 'Direction non spécifiée'}</div>
                 </td>
                 <td class="p-3">
