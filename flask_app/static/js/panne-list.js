@@ -1,6 +1,20 @@
 // Rendu et filtres de la liste des pannes
 // Dépend des données globales chargées par app.js et de formatReportDate().
 
+    function getPanneUserDisplay(p) {
+      const clean = value => {
+        const text = String(value || '').trim();
+        return /^(non identifié|prénom inconnu)$/i.test(text) ? '' : text;
+      };
+      const nom = clean(p.nom_uti);
+      const prenom = clean(p.pnom_uti);
+      const hasFullName = Boolean(nom && prenom);
+      return {
+        hasFullName,
+        label: hasFullName ? prenom + ' ' + nom : ''
+      };
+    }
+
     function getPanneFilterCode(eta) {
       if (eta === 'EC') return 'EP';
       if (eta === 'AT') return 'ER';
@@ -85,7 +99,7 @@
             </td>
             <td class="p-3 max-w-xs text-slate-700 leading-snug">${p.diag_pan || ''}</td>
             <td class="p-3 text-slate-700">
-              <div class="font-semibold text-slate-900">${p.nom_uti ? ((p.pnom_uti || '') + ' ' + p.nom_uti).trim() : '<span class="text-slate-400 italic">Non assigné</span>'}</div>
+              <div class="font-semibold text-slate-900">${getPanneUserDisplay(p).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' + getPanneUserDisplay(p).label : '<span class="text-slate-400 italic">Non assigné</span>'}</div>
             </td>
             <td class="p-3 text-slate-600">
               <div class="font-medium text-slate-800">${p.technicien || 'Tech DSI'}</div>
