@@ -28,7 +28,7 @@ python app.py
 
 ---
 
-## ⚡ Deux Modes d'Interface Disponibles
+## ⚡ Description
 
 1. **⚡ Interface Simple, Souple & Complete** (Active par défaut) :
    - Conçue pour une utilisation quotidienne sans complexité :
@@ -42,4 +42,7 @@ python app.py
    - Suivi des réformes (proposition, validation, motif, année/lot).
    - Espace Administration (référentiels, modèles, structures, synchronisation Oracle DBA).
 
+## ⚡ Apès déploiement
 
+il executer les requêtes SQL disponible sur le fichier extra_script.txt
+afin d'apporter plus de cohérence aux données importées

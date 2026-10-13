@@ -1,0 +1,51 @@
+//rendre les déclarations de panne qui sont en etat de "en reparation" //et qui ne sont pas reformé en état "réparé"
+
+BEGIN TRANSACTION;
+
+UPDATE panne
+SET eta_pan = 'RP',
+    dat_ret_rep = COALESCE(dat_ret_rep, DATE('now'))
+WHERE UPPER(TRIM(COALESCE(eta_pan, ''))) IN (
+    'ER',
+    'AT',
+    'EN REPARATION',
+    'EN RÉPARATION',
+    'EN_REPARATION',
+    'EN_RÉPARATION'
+)
+AND EXISTS (
+    SELECT 1
+    FROM materiel m
+    WHERE m.id_mat = panne.id_mat
+      AND UPPER(TRIM(COALESCE(m.etat_reforme, 'AUCUNE'))) <> 'REFORME'
+      AND UPPER(TRIM(COALESCE(m.statut_mat, 'ES'))) NOT IN ('RF', 'REFORME')
+);
+
+COMMIT;
+
+
+//rendre les déclarations de panne qui sont en etat de "en reparation" et qui sont reformé en état "irrérarable"
+
+BEGIN TRANSACTION;
+
+UPDATE panne
+SET eta_pan = 'IR'
+WHERE UPPER(TRIM(COALESCE(eta_pan, ''))) IN (
+    'ER',
+    'AT',
+    'EN REPARATION',
+    'EN RÉPARATION',
+    'EN_REPARATION',
+    'EN_RÉPARATION'
+)
+AND EXISTS (
+    SELECT 1
+    FROM materiel m
+    WHERE m.id_mat = panne.id_mat
+      AND (
+          UPPER(TRIM(COALESCE(m.etat_reforme, ''))) = 'REFORME'
+          OR UPPER(TRIM(COALESCE(m.statut_mat, ''))) IN ('RF', 'REFORME')
+      )
+);
+
+COMMIT;
