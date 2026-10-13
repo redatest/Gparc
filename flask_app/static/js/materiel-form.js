@@ -16,11 +16,26 @@
       document.getElementById('modal-materiel').classList.remove('hidden');
     }
 
+    function ensureMaterielSelectOption(select, value, label) {
+      if (!select || value === null || value === undefined || String(value) === '') return;
+      const normalizedValue = String(value);
+      if (Array.from(select.options).some(option => String(option.value) === normalizedValue)) return;
+      const option = document.createElement('option');
+      option.value = normalizedValue;
+      option.textContent = label || normalizedValue + ' (valeur actuelle)';
+      select.appendChild(option);
+    }
+
     async function openEditMaterielModal(matId) {
       try {
         const res = await fetch('/api/materiels/' + matId);
         if (!res.ok) throw new Error('Équipement introuvable');
         const mat = await res.json();
+        // La route détail renvoie les colonnes de materiel, tandis que le listing
+        // contient aussi le libellé du modèle joint au référentiel.
+        const listedMat = (allMateriels || []).find(item => String(item.id_mat) === String(matId)) || {};
+        const modelName = listedMat.model_mat || '';
+        const typeName = listedMat.type_nom || '';
         editingMaterielId = mat.id_mat;
 
         const title = document.getElementById('modal-materiel-title');
@@ -29,26 +44,44 @@
         if (submit) submit.innerText = 'Enregistrer les modifications';
 
         populateMaterielForm();
+
+        const brandSel = document.getElementById('mat-marque');
+        const typeSel = document.getElementById('mat-type');
+        const modelSel = document.getElementById('mat-model');
+        const cpuSel = document.getElementById('mat-cpu');
+        const seSel = document.getElementById('mat-se');
+        const ramSel = document.getElementById('mat-ram');
+        const diskSel = document.getElementById('mat-disk');
+
+        // Les données importées peuvent ne pas encore exister dans les listes
+        // de paramètres : conserver leur valeur actuelle au lieu de laisser le
+        // champ vide à l'ouverture du formulaire.
+        ensureMaterielSelectOption(brandSel, mat.marque_mat, mat.marque_mat);
+        ensureMaterielSelectOption(typeSel, mat.id_typ_mat, typeName || ('Type ' + mat.id_typ_mat));
         document.getElementById('mat-num-inv').value = mat.num_inv || '';
         document.getElementById('mat-num-ser').value = mat.num_ser || '';
-        document.getElementById('mat-marque').value = mat.marque_mat || '';
-        document.getElementById('mat-type').value = mat.id_typ_mat || '';
-        document.getElementById('mat-str').value = mat.id_str || '';
+        if (brandSel) brandSel.value = mat.marque_mat || '';
+        if (typeSel) typeSel.value = mat.id_typ_mat ?? '';
+        document.getElementById('mat-str').value = mat.id_str ?? '';
         filterMaterielModels();
         filterMaterielUsers();
-        document.getElementById('mat-model').value = mat.id_model_mat || '';
-        document.getElementById('mat-user').value = mat.id_uti || '';
-        document.getElementById('mat-cpu').value = mat.cpu || '';
-        document.getElementById('mat-se').value = mat.se || '';
-        document.getElementById('mat-ram').value = mat.ram ?? '';
-        const diskSel = document.getElementById('mat-disk');
-        const diskValue = mat.disk ?? '';
-        if (diskSel && diskValue !== '' && !Array.from(diskSel.options).some(o => String(o.value) === String(diskValue))) {
-          diskSel.insertAdjacentHTML('beforeend', '<option value="' + escapeHtml(String(diskValue)) + '">' + escapeHtml(String(diskValue)) + ' Go (valeur actuelle)</option>');
-        }
-        if (diskSel) diskSel.value = diskValue;
+
+        ensureMaterielSelectOption(modelSel, mat.id_model_mat, modelName || ('Modèle ' + mat.id_model_mat));
+        if (modelSel) modelSel.value = mat.id_model_mat ?? '';
+        document.getElementById('mat-user').value = mat.id_uti ?? '';
+
+        ensureMaterielSelectOption(cpuSel, mat.cpu, mat.cpu);
+        ensureMaterielSelectOption(seSel, mat.se, mat.se);
+        ensureMaterielSelectOption(ramSel, mat.ram, String(mat.ram) + ' Go (valeur actuelle)');
+        ensureMaterielSelectOption(diskSel, mat.disk, String(mat.disk) + ' Go (valeur actuelle)');
+        if (cpuSel) cpuSel.value = mat.cpu ?? '';
+        if (seSel) seSel.value = mat.se ?? '';
+        if (ramSel) ramSel.value = mat.ram ?? '';
+        if (diskSel) diskSel.value = mat.disk ?? '';
+
         document.getElementById('modal-materiel').classList.remove('hidden');
       } catch (err) {
+        console.error('Erreur lors du chargement de l’équipement à modifier :', err);
         showToast("Impossible de charger l'équipement", true);
       }
     }
