@@ -104,7 +104,7 @@
                       </div>
                       <div class="flex justify-between">
                         <span class="text-slate-400">Affecté à :</span>
-                        <span class="font-semibold text-slate-800">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-slate-400 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label || ''}</span>
+                        <span class="font-semibold text-slate-800">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label || ''}</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-slate-400">Direction :</span>
@@ -174,7 +174,7 @@
                   <div class="font-mono text-slate-500 text-[11px] mt-1 tracking-tight">SN: ${m.num_ser || '-'}</div>
                 </td>
                 <td class="p-3">
-                  <div class="font-semibold text-slate-900">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-slate-400 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label}</div>
+                  <div class="font-semibold text-slate-900">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label}</div>
                   <div class="text-slate-500 text-[11px] mt-0.5">${m.structure_nom || 'Direction non spécifiée'}</div>
                 </td>
                 <td class="p-3">
