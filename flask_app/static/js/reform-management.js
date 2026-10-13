@@ -1,3 +1,17 @@
+    function getReformeUserDisplay(m) {
+      const clean = value => {
+        const text = String(value || '').trim();
+        return /^(non identifié|prénom inconnu)$/i.test(text) ? '' : text;
+      };
+      const nom = clean(m.nom_uti);
+      const prenom = clean(m.pnom_uti);
+      const hasFullName = Boolean(nom && prenom);
+      return {
+        hasFullName,
+        label: hasFullName ? prenom + ' ' + nom : ''
+      };
+    }
+
     // RENDU DU SUIVI DES RÉFORMES
     function renderReformes() {
       const tbody = document.getElementById('reformes-table-body');
@@ -37,7 +51,7 @@
         return '<tr class="hover:bg-slate-50 transition text-xs">' +
           '<td class="p-3"><div class="font-bold text-slate-900">' + escapeHtml((m.marque_mat || '') + ' ' + (m.model_mat || 'Équipement')) + '</div><div class="text-[11px] text-slate-500">' + escapeHtml(m.type_nom || 'Matériel') + '</div></td>' +
           '<td class="p-3"><div class="font-mono font-bold text-blue-700">' + escapeHtml(m.num_inv || '-') + '</div><div class="font-mono text-slate-400 text-[11px]">SN: ' + escapeHtml(m.num_ser || '-') + '</div></td>' +
-          '<td class="p-3"><div class="font-semibold text-slate-800">' + escapeHtml(m.nom_uti ? ((m.pnom_uti || '') + ' ' + m.nom_uti).trim() : 'Non assigné') + '</div><div class="text-slate-500 text-[11px]">' + escapeHtml(m.structure_nom || 'Direction Non Spécifiée') + '</div></td>' +
+          '<td class="p-3"><div class="font-semibold text-slate-800">' + (getReformeUserDisplay(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' + escapeHtml(getReformeUserDisplay(m).label) : '<span class="text-slate-400 italic">Non assigné</span>') + '</div><div class="text-slate-500 text-[11px]">' + escapeHtml(m.structure_nom || 'Direction Non Spécifiée') + '</div></td>' +
           '<td class="p-3">' + stateBadge + '</td>' +
           '<td class="p-3"><div>' + escapeHtml(m.motif_reforme || '—') + '</div><div class="text-[10px] text-slate-400 mt-1">Date : ' + escapeHtml(m.date_reforme ? new Date(m.date_reforme + 'T00:00:00').toLocaleDateString('fr-FR') : '—') + '</div></td>' +
           '<td class="p-3 font-semibold text-slate-700">' + escapeHtml(m.annee_reforme || '—') + '</td>' +
