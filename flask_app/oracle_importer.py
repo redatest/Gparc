@@ -49,6 +49,22 @@ def _text(value, fallback=""):
     return str(value).strip() or fallback
 
 
+def _split_user_name(nom_value, prenom_value):
+    """Sépare les valeurs Oracle de type « NOM.Prénom » lors de l'import."""
+    nom = _text(nom_value)
+    prenom = _text(prenom_value)
+
+    # Dans l'ancien GPARC, certains utilisateurs sont enregistrés dans NOM_UTI
+    # sous la forme « nom.prénom ». Dans ce cas, la partie après le premier
+    # point devient le prénom, comme lors de la normalisation SQL manuelle.
+    if "." in nom:
+        nom, prenom = nom.split(".", 1)
+        nom = nom.strip()
+        prenom = prenom.strip()
+
+    return nom or "Nom inconnu", prenom or "Prénom inconnu"
+
+
 def _date(value, fallback=None):
     if value is None:
         return fallback
@@ -319,8 +335,7 @@ def import_source(data):
             cur.execute("""INSERT INTO utilisateurs
                 (id_uti, nom_uti, pnom_uti, mail_uti, id_str_mere, archiv, dat_cre)
                 VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (r.get("ID_UTI"), _text(r.get("NOM_UTI"), "Nom inconnu"),
-                 _text(r.get("PNOM_UTI"), "Prénom inconnu"), r.get("MAIL_UTI"),
+                (r.get("ID_UTI"), *_split_user_name(r.get("NOM_UTI"), r.get("PNOM_UTI")), r.get("MAIL_UTI"),
                  structure_id if structure_id in structure_ids else None,
                  "O" if _archived(r.get("ARCHIV")) else "N", _date(r.get("DAT_CRE"))))
 
