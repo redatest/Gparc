@@ -34,8 +34,10 @@
         // Compteurs rapides dans le menu "Pannes & Interventions"
         const panneNavCount = document.getElementById('panne-nav-count');
         const reparationNavCount = document.getElementById('reparation-nav-count');
-        if (panneNavCount) panneNavCount.textContent = String(statsRes.enPanne ?? allMateriels.filter(m => m.etat_mat === 'PANNE').length);
-        if (reparationNavCount) reparationNavCount.textContent = String(statsRes.enReparation ?? 0);
+        const activePanneCount = allPannes.filter(p => ['EP', 'EC', 'ER', 'AT'].includes(p.eta_pan)).length;
+        const activeRepairCount = allPannes.filter(p => ['ER', 'AT'].includes(p.eta_pan)).length;
+        if (panneNavCount) panneNavCount.textContent = String(activePanneCount);
+        if (reparationNavCount) reparationNavCount.textContent = String(activeRepairCount);
 
         // Rendu des vues
         renderMateriels();
