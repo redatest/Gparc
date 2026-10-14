@@ -148,6 +148,7 @@
       document.getElementById('reforme-annee').value = mat?.annee_reforme || '';
       populateReformeLotSelect(mat?.lot_reforme || '');
       document.getElementById('reforme-motif').value = mat?.motif_reforme || '';
+      document.getElementById('reforme-observation').value = mat?.obs_mat || '';
       syncReformeMotifShortcuts(mat?.motif_reforme || '');
       updateReformeDeclarationFields();
       document.getElementById('modal-reforme').classList.remove('hidden');
@@ -217,7 +218,8 @@
           date_reforme: state === 'REFORME' ? date : null,
           annee_reforme: state === 'AUCUNE' ? null : annee,
           lot_reforme: state === 'PROPOSEE' ? lot : state === 'REFORME' ? (materielActuel?.lot_reforme || null) : null,
-          motif_reforme: state === 'REFORME' ? motif : null
+          motif_reforme: state === 'REFORME' ? motif : null,
+          obs_mat: document.getElementById('reforme-observation').value.trim()
         }) });
         const result = await res.json().catch(() => ({}));
         if (!res.ok) { showToast(result.error || 'Erreur lors de la déclaration de réforme.', true); return; }
