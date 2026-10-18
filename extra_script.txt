@@ -49,3 +49,220 @@ AND EXISTS (
 );
 
 COMMIT;
+
+
+//   extraire les doublons qui ont le meme num_inv_oracle mais un num_ser_oracle different (avec type)
+WITH materiels_oracle AS (
+    SELECT
+        source_key AS id_mat_oracle,
+        import_batch,
+        json_extract(payload_json, '$.NUM_INV') AS num_inv_oracle,
+        json_extract(payload_json, '$.NUM_SER') AS num_ser_oracle,
+        json_extract(payload_json, '$.ID_TYP_MAT') AS id_type_oracle,
+        json_extract(payload_json, '$.ID_MODEL_MAT') AS id_modele_oracle
+    FROM oracle_source_archive
+    WHERE source_table = 'MATERIEL'
+),
+doublons AS (
+    SELECT
+        import_batch,
+        TRIM(num_inv_oracle) AS num_inv_oracle
+    FROM materiels_oracle
+    WHERE TRIM(COALESCE(num_inv_oracle, '')) <> ''
+    GROUP BY import_batch, TRIM(num_inv_oracle)
+    HAVING COUNT(*) >= 2
+),
+candidats AS (
+    SELECT m.*
+    FROM materiels_oracle m
+    JOIN doublons d
+      ON d.import_batch = m.import_batch
+     AND d.num_inv_oracle = TRIM(m.num_inv_oracle)
+    WHERE UPPER(TRIM(COALESCE(m.num_ser_oracle, ''))) IN (
+        'S-N', 'S_N', 'SANS N/S', ''
+    )
+)
+SELECT
+    c.id_mat_oracle,
+    c.num_inv_oracle,
+    c.num_ser_oracle,
+    json_extract(t.payload_json, '$.LIB_TYP_MAT') AS type_materiel,
+    json_extract(md.payload_json, '$.MARQUE_MAT') AS marque,
+    json_extract(md.payload_json, '$.MODEL_MAT') AS modele,
+    m.num_inv AS num_inv_gparc,
+    (SELECT COUNT(*) FROM panne p
+     WHERE p.id_mat = m.id_mat) AS nombre_pannes,
+    (SELECT COUNT(*) FROM affect_mat a
+     WHERE a.id_mat = m.id_mat) AS nombre_affectations
+FROM candidats c
+JOIN materiel m
+  ON CAST(m.id_mat AS TEXT) = c.id_mat_oracle
+LEFT JOIN oracle_source_archive t
+  ON t.source_table = 'TYPE_MAT'
+ AND t.import_batch = (
+     SELECT MAX(a2.import_batch)
+     FROM oracle_source_archive a2
+     WHERE a2.source_table = 'TYPE_MAT'
+ )
+ AND json_extract(t.payload_json, '$.ID_TYP_MAT') = c.id_type_oracle
+LEFT JOIN oracle_source_archive md
+  ON md.source_table = 'MODEL_MAT'
+ AND md.import_batch = (
+     SELECT MAX(a3.import_batch)
+     FROM oracle_source_archive a3
+     WHERE a3.source_table = 'MODEL_MAT'
+ )
+ AND json_extract(md.payload_json, '$.ID_MODEL_MAT') = c.id_modele_oracle
+ORDER BY c.num_inv_oracle, c.id_mat_oracle;
+
+
+// requete de suppression de ces doublon (des baffles dans notre cas ):
+
+WITH dernier_lot AS (
+    SELECT import_batch
+    FROM oracle_source_archive
+    GROUP BY import_batch
+    ORDER BY MAX(id_archive) DESC
+    LIMIT 1
+),
+materiels_oracle AS (
+    SELECT
+        source_key AS id_mat_oracle,
+        import_batch,
+        TRIM(json_extract(payload_json, '$.NUM_INV')) AS num_inv_oracle,
+        UPPER(TRIM(COALESCE(
+            json_extract(payload_json, '$.NUM_SER'), ''
+        ))) AS num_ser_oracle
+    FROM oracle_source_archive
+    WHERE source_table = 'MATERIEL'
+      AND import_batch = (SELECT import_batch FROM dernier_lot)
+),
+doublons AS (
+    SELECT num_inv_oracle
+    FROM materiels_oracle
+    WHERE COALESCE(num_inv_oracle, '') <> ''
+    GROUP BY num_inv_oracle
+    HAVING COUNT(*) >= 2
+)
+SELECT DISTINCT m.id_mat, m.num_inv, m.num_ser
+FROM materiel m
+JOIN materiels_oracle o
+  ON CAST(m.id_mat AS TEXT) = o.id_mat_oracle
+JOIN doublons d
+  ON d.num_inv_oracle = o.num_inv_oracle
+WHERE o.num_ser_oracle IN ('S-N', 'S_N', 'SANS N/S', '');
+
+
+// suppression reele
+BEGIN TRANSACTION;
+
+DELETE FROM panne
+WHERE id_mat IN (
+    WITH dernier_lot AS (
+        SELECT import_batch
+        FROM oracle_source_archive
+        GROUP BY import_batch
+        ORDER BY MAX(id_archive) DESC
+        LIMIT 1
+    ),
+    o AS (
+        SELECT
+            source_key AS id_mat_oracle,
+            TRIM(json_extract(payload_json, '$.NUM_INV')) AS num_inv_oracle,
+            UPPER(TRIM(COALESCE(
+                json_extract(payload_json, '$.NUM_SER'), ''
+            ))) AS num_ser_oracle
+        FROM oracle_source_archive
+        WHERE source_table = 'MATERIEL'
+          AND import_batch = (SELECT import_batch FROM dernier_lot)
+    ),
+    d AS (
+        SELECT num_inv_oracle
+        FROM o
+        WHERE COALESCE(num_inv_oracle, '') <> ''
+        GROUP BY num_inv_oracle
+        HAVING COUNT(*) >= 2
+    )
+    SELECT DISTINCT m.id_mat
+    FROM materiel m
+    JOIN o ON CAST(m.id_mat AS TEXT) = o.id_mat_oracle
+    JOIN d ON d.num_inv_oracle = o.num_inv_oracle
+    WHERE o.num_ser_oracle IN ('S-N', 'S_N', 'SANS N/S', '')
+);
+
+DELETE FROM affect_mat
+WHERE id_mat IN (
+    WITH dernier_lot AS (
+        SELECT import_batch
+        FROM oracle_source_archive
+        GROUP BY import_batch
+        ORDER BY MAX(id_archive) DESC
+        LIMIT 1
+    ),
+    o AS (
+        SELECT
+            source_key AS id_mat_oracle,
+            TRIM(json_extract(payload_json, '$.NUM_INV')) AS num_inv_oracle,
+            UPPER(TRIM(COALESCE(
+                json_extract(payload_json, '$.NUM_SER'), ''
+            ))) AS num_ser_oracle
+        FROM oracle_source_archive
+        WHERE source_table = 'MATERIEL'
+          AND import_batch = (SELECT import_batch FROM dernier_lot)
+    ),
+    d AS (
+        SELECT num_inv_oracle
+        FROM o
+        WHERE COALESCE(num_inv_oracle, '') <> ''
+        GROUP BY num_inv_oracle
+        HAVING COUNT(*) >= 2
+    )
+    SELECT DISTINCT m.id_mat
+    FROM materiel m
+    JOIN o ON CAST(m.id_mat AS TEXT) = o.id_mat_oracle
+    JOIN d ON d.num_inv_oracle = o.num_inv_oracle
+    WHERE o.num_ser_oracle IN ('S-N', 'S_N', 'SANS N/S', '')
+);
+
+DELETE FROM materiel
+WHERE id_mat IN (
+    WITH dernier_lot AS (
+        SELECT import_batch
+        FROM oracle_source_archive
+        GROUP BY import_batch
+        ORDER BY MAX(id_archive) DESC
+        LIMIT 1
+    ),
+    o AS (
+        SELECT
+            source_key AS id_mat_oracle,
+            TRIM(json_extract(payload_json, '$.NUM_INV')) AS num_inv_oracle,
+            UPPER(TRIM(COALESCE(
+                json_extract(payload_json, '$.NUM_SER'), ''
+            ))) AS num_ser_oracle
+        FROM oracle_source_archive
+        WHERE source_table = 'MATERIEL'
+          AND import_batch = (SELECT import_batch FROM dernier_lot)
+    ),
+    d AS (
+        SELECT num_inv_oracle
+        FROM o
+        WHERE COALESCE(num_inv_oracle, '') <> ''
+        GROUP BY num_inv_oracle
+        HAVING COUNT(*) >= 2
+    )
+    SELECT DISTINCT m.id_mat
+    FROM materiel m
+    JOIN o ON CAST(m.id_mat AS TEXT) = o.id_mat_oracle
+    JOIN d ON d.num_inv_oracle = o.num_inv_oracle
+    WHERE o.num_ser_oracle IN ('S-N', 'S_N', 'SANS N/S', '')
+);
+
+-- Vérifie le résultat avant de valider :
+SELECT changes() AS materiels_supprimes;
+
+-- Si le résultat est correct :
+-- COMMIT;
+
+-- En cas de problème :
+-- ROLLBACK;
