@@ -44,6 +44,11 @@
       const tbody = document.getElementById('pannes-table-body');
       if (!tbody) return;
 
+      const panneLabels = {
+        EP: 'En panne', ER: 'En réparation', RP: 'Réparé', IR: 'Irréparable',
+        EC: 'En panne', AT: 'En réparation', NR: 'Irréparable'
+      };
+      const panneStatusLabel = eta => panneLabels[eta] || eta || 'En panne';
       const query = (document.getElementById('pannes-search-input')?.value || '').toLowerCase().trim();
       const columnValue = id => (document.getElementById(id)?.value || '').toLowerCase().trim();
       const columnFilters = {
@@ -99,11 +104,7 @@
         return;
       }
 
-      const panneLabels = {
-        EP: 'En panne', ER: 'En réparation', RP: 'Réparé', IR: 'Irréparable',
-        EC: 'En panne', AT: 'En réparation', NR: 'Irréparable'
-      };
-      const panneStatusLabel = eta => panneLabels[eta] || eta || 'En panne';
+
 
       tbody.innerHTML = filteredPannes.map(p => {
         const state = panneLabels[p.eta_pan] || p.eta_pan || 'En panne';
