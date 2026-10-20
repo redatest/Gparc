@@ -47,7 +47,11 @@
       const query = (document.getElementById('pannes-search-input')?.value || '').toLowerCase().trim();
       const filteredPannes = allPannes.filter(p => {
         const code = getPanneFilterCode(p.eta_pan);
-        const matchFilter = currentPanneFilter === 'ALL' || code === currentPanneFilter;
+        // Le filtre « Irréparable » exclut les équipements déjà réformés,
+        // afin de ne conserver que ceux pour lesquels une décision reste à prendre.
+        const matchFilter = currentPanneFilter === 'ALL'
+          || (code === currentPanneFilter
+            && !(currentPanneFilter === 'IR' && p.etat_reforme === 'REFORME'));
         const text = [
           p.dat_pan, p.num_inv, p.num_ser, p.marque_mat, p.model_mat,
           p.type_nom, p.diag_pan, p.nom_uti, p.pnom_uti, p.technicien,
