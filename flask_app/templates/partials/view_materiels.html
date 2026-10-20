@@ -67,6 +67,20 @@
                 <th class="p-3">État</th>
                 <th class="p-3 text-center">Actions</th>
               </tr>
+              <tr class="bg-white border-b border-slate-200">
+                <th class="px-2 pb-3 pt-1"></th>
+                <th class="px-2 pb-3 pt-1"></th>
+                <th class="px-2 pb-3 pt-1">
+                  <input id="materiels-filter-utilisateur" type="text" oninput="applyFilters()" placeholder="Filtrer utilisateur..." aria-label="Filtrer par utilisateur" class="w-full min-w-[110px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </th>
+                <th class="px-2 pb-3 pt-1"></th>
+                <th class="px-2 pb-3 pt-1">
+                  <input id="materiels-filter-structure" type="text" oninput="applyFilters()" placeholder="Filtrer structure..." aria-label="Filtrer par structure" class="w-full min-w-[110px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </th>
+                <th class="px-2 pb-3 pt-1"></th>
+                <th class="px-2 pb-3 pt-1"></th>
+                <th class="px-2 pb-3 pt-1"></th>
+              </tr>
             </thead>
             <tbody id="materiels-table-body" class="divide-y divide-slate-100">
               <!-- Rempli dynamiquement -->
