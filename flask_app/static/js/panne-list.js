@@ -45,6 +45,18 @@
       if (!tbody) return;
 
       const query = (document.getElementById('pannes-search-input')?.value || '').toLowerCase().trim();
+      const columnValue = id => (document.getElementById(id)?.value || '').toLowerCase().trim();
+      const columnFilters = {
+        date: columnValue('pannes-filter-date'),
+        materiel: columnValue('pannes-filter-materiel'),
+        inventaire: columnValue('pannes-filter-inventaire'),
+        diagnostic: columnValue('pannes-filter-diagnostic'),
+        utilisateur: columnValue('pannes-filter-utilisateur'),
+        technicien: columnValue('pannes-filter-technicien'),
+        statut: document.getElementById('pannes-filter-statut')?.value || 'ALL',
+        actions: document.getElementById('pannes-filter-actions')?.value || 'ALL'
+      };
+      const contains = (value, filter) => !filter || String(value || '').toLowerCase().includes(filter);
       const filteredPannes = allPannes.filter(p => {
         const code = getPanneFilterCode(p.eta_pan);
         // Le filtre « Irréparable » exclut les équipements déjà réformés,
@@ -52,12 +64,34 @@
         const matchFilter = currentPanneFilter === 'ALL'
           || (code === currentPanneFilter
             && !(currentPanneFilter === 'IR' && p.etat_reforme === 'REFORME'));
+        const materiel = [p.marque_mat, p.model_mat, p.type_nom].filter(Boolean).join(' ');
+        const inventaire = [p.num_inv, p.num_ser].filter(Boolean).join(' ');
+        const utilisateur = [p.nom_uti, p.pnom_uti].filter(Boolean).join(' ');
+        const technicien = [p.technicien, p.lieu_reparation, p.obs_rep].filter(Boolean).join(' ');
+        const statusText = [p.eta_pan, panneStatusLabel(p.eta_pan), p.etat_reforme,
+          p.etat_reforme === 'PROPOSEE' ? 'proposé réforme' : '',
+          p.etat_reforme === 'REFORME' ? 'réformé' : ''].filter(Boolean).join(' ');
+        const matchColumnFilters =
+          contains(p.dat_pan, columnFilters.date) &&
+          contains(materiel, columnFilters.materiel) &&
+          contains(inventaire, columnFilters.inventaire) &&
+          contains(p.diag_pan, columnFilters.diagnostic) &&
+          contains(utilisateur, columnFilters.utilisateur) &&
+          contains(technicien, columnFilters.technicien) &&
+          (columnFilters.statut === 'ALL' ||
+            (columnFilters.statut === 'PROPOSEE' && p.etat_reforme === 'PROPOSEE') ||
+            (columnFilters.statut === 'REFORME' && p.etat_reforme === 'REFORME') ||
+            (['EP', 'ER', 'RP', 'IR'].includes(columnFilters.statut) && code === columnFilters.statut));
+        const hasRepairAction = p.eta_pan !== 'RP' && p.eta_pan !== 'IR';
+        const matchActions = columnFilters.actions === 'ALL' ||
+          (columnFilters.actions === 'REPARER' && hasRepairAction) ||
+          (columnFilters.actions === 'SANS_REPARER' && !hasRepairAction);
         const text = [
           p.dat_pan, p.num_inv, p.num_ser, p.marque_mat, p.model_mat,
           p.type_nom, p.diag_pan, p.nom_uti, p.pnom_uti, p.technicien,
           p.lieu_reparation, p.obs_rep, p.eta_pan, p.etat_reforme
         ].filter(Boolean).join(' ').toLowerCase();
-        return matchFilter && (!query || text.includes(query));
+        return matchFilter && matchColumnFilters && matchActions && (!query || text.includes(query));
       });
 
       if (filteredPannes.length === 0) {
@@ -69,6 +103,7 @@
         EP: 'En panne', ER: 'En réparation', RP: 'Réparé', IR: 'Irréparable',
         EC: 'En panne', AT: 'En réparation', NR: 'Irréparable'
       };
+      const panneStatusLabel = eta => panneLabels[eta] || eta || 'En panne';
 
       tbody.innerHTML = filteredPannes.map(p => {
         const state = panneLabels[p.eta_pan] || p.eta_pan || 'En panne';
