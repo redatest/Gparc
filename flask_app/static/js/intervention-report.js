@@ -23,7 +23,8 @@ function formatReportDate(value) {
         // La date DPS correspond à la date saisie lors de la déclaration de la panne.
         set('rpt-date-dps', formatReportDate(rpt.intervention?.datePanne));
         set('rpt-structure', rpt.utilisateur?.service || '');
-        set('rpt-date-arrivee', '');
+        // La date d’arrivée reprend la date de déclaration de la panne.
+        set('rpt-date-arrivee', formatReportDate(rpt.intervention?.datePanne));
 
         set('rpt-ser', rpt.equipement?.numSerie || '');
         set('rpt-type', rpt.equipement?.type || '');
