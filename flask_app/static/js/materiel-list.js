@@ -46,13 +46,19 @@
       const tableBody = document.getElementById('materiels-table-body');
       const countBadge = document.getElementById('materiels-count-badge');
       const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase().trim() : '';
+      const userQuery = (document.getElementById('materiels-filter-utilisateur')?.value || '').toLowerCase().trim();
+      const structureQuery = (document.getElementById('materiels-filter-structure')?.value || '').toLowerCase().trim();
 
       const filtered = allMateriels.filter(m => {
         const equipmentStatus = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
         const matchFilter = currentFilter === 'ALL' || equipmentStatus === currentFilter;
-        const text = `${m.num_inv || ''} ${m.num_ser || ''} ${m.model_mat || ''} ${m.marque_mat || ''} ${m.nom_uti || ''} ${m.structure_nom || ''} ${m.ip || ''} ${m.cpu || ''} ${m.se || ''} ${m.ordi || ''}`.toLowerCase();
+        const text = `${m.num_inv || ''} ${m.num_ser || ''} ${m.model_mat || ''} ${m.marque_mat || ''} ${m.nom_uti || ''} ${m.pnom_uti || ''} ${m.structure_nom || ''} ${m.ip || ''} ${m.cpu || ''} ${m.se || ''} ${m.ordi || ''}`.toLowerCase();
         const matchSearch = !query || text.includes(query);
-        return matchFilter && matchSearch;
+        const userText = [m.nom_uti, m.pnom_uti].filter(Boolean).join(' ').toLowerCase();
+        const structureText = String(m.structure_nom || '').toLowerCase();
+        const matchUser = !userQuery || userText.includes(userQuery);
+        const matchStructure = !structureQuery || structureText.includes(structureQuery);
+        return matchFilter && matchSearch && matchUser && matchStructure;
       });
 
       if (countBadge) {
