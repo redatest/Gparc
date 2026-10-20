@@ -24,14 +24,40 @@
           <table class="w-full text-left border-collapse text-sm">
             <thead class="bg-slate-50 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
               <tr>
-                <th class="p-3">Date</th>
-                <th class="p-3">Matériel</th>
-                <th class="p-3">N° Inventaire / Série</th>
-                <th class="p-3">Diagnostic & Panne</th>
-                <th class="p-3">Utilisateur assigné</th>
-                <th class="p-3">Technicien / Lieu</th>
-                <th class="p-3">Statut</th>
-                <th class="p-3 text-right">Actions</th>
+                <th class="p-3 min-w-[130px]">Date</th>
+                <th class="p-3 min-w-[150px]">Matériel</th>
+                <th class="p-3 min-w-[160px]">N° Inventaire / Série</th>
+                <th class="p-3 min-w-[170px]">Diagnostic & Panne</th>
+                <th class="p-3 min-w-[150px]">Utilisateur assigné</th>
+                <th class="p-3 min-w-[160px]">Technicien / Lieu</th>
+                <th class="p-3 min-w-[145px]">Statut</th>
+                <th class="p-3 text-right min-w-[160px]">Actions</th>
+              </tr>
+              <tr class="bg-white border-b border-slate-200">
+                <th class="px-2 pb-3 pt-1"><input id="pannes-filter-date" type="text" oninput="applyPanneFilters()" placeholder="Filtrer date..." aria-label="Filtrer par date" class="w-full min-w-[95px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500"></th>
+                <th class="px-2 pb-3 pt-1"><input id="pannes-filter-materiel" type="text" oninput="applyPanneFilters()" placeholder="Filtrer matériel..." aria-label="Filtrer par matériel" class="w-full min-w-[110px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500"></th>
+                <th class="px-2 pb-3 pt-1"><input id="pannes-filter-inventaire" type="text" oninput="applyPanneFilters()" placeholder="N° inv. ou série..." aria-label="Filtrer par numéro d'inventaire ou série" class="w-full min-w-[110px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500"></th>
+                <th class="px-2 pb-3 pt-1"><input id="pannes-filter-diagnostic" type="text" oninput="applyPanneFilters()" placeholder="Filtrer diagnostic..." aria-label="Filtrer par diagnostic et panne" class="w-full min-w-[120px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500"></th>
+                <th class="px-2 pb-3 pt-1"><input id="pannes-filter-utilisateur" type="text" oninput="applyPanneFilters()" placeholder="Filtrer utilisateur..." aria-label="Filtrer par utilisateur assigné" class="w-full min-w-[110px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500"></th>
+                <th class="px-2 pb-3 pt-1"><input id="pannes-filter-technicien" type="text" oninput="applyPanneFilters()" placeholder="Filtrer technicien/lieu..." aria-label="Filtrer par technicien ou lieu" class="w-full min-w-[115px] rounded border border-slate-300 px-2 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500"></th>
+                <th class="px-2 pb-3 pt-1">
+                  <select id="pannes-filter-statut" onchange="applyPanneFilters()" aria-label="Filtrer par statut" class="w-full min-w-[120px] rounded border border-slate-300 bg-white px-1.5 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="ALL">Tous les statuts</option>
+                    <option value="EP">En panne</option>
+                    <option value="ER">En réparation</option>
+                    <option value="RP">Réparé</option>
+                    <option value="IR">Irréparable</option>
+                    <option value="PROPOSEE">Proposé réforme</option>
+                    <option value="REFORME">Réformé</option>
+                  </select>
+                </th>
+                <th class="px-2 pb-3 pt-1">
+                  <select id="pannes-filter-actions" onchange="applyPanneFilters()" aria-label="Filtrer par actions disponibles" class="w-full min-w-[125px] rounded border border-slate-300 bg-white px-1.5 py-1.5 text-[11px] font-normal normal-case focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="ALL">Toutes les actions</option>
+                    <option value="REPARER">Avec « Réparé »</option>
+                    <option value="SANS_REPARER">Sans « Réparé »</option>
+                  </select>
+                </th>
               </tr>
             </thead>
             <tbody id="pannes-table-body" class="divide-y divide-slate-100">
