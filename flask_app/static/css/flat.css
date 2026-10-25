@@ -112,13 +112,19 @@ code, kbd, samp, pre {
 .flat-logo-box {
   width: 38px;
   height: 38px;
-  background-color: var(--flat-primary) !important;
-  border-radius: var(--flat-radius);
+  flex: 0 0 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  border: 1px solid #1d4ed8 !important;
+  overflow: hidden;
+  border-radius: var(--flat-radius);
+}
+
+.flat-logo-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .flat-brand-title {
