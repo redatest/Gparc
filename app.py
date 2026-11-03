@@ -25,4 +25,4 @@ if __name__ == "__main__":
     print("=" * 65)
 
     Timer(1.2, open_browser).start()
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)

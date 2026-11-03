@@ -1,66 +1,35 @@
-  <!-- En-tête Flat Design (Propre, aplats de couleurs, netteté chirurgicale) -->
   <header class="flat-header sticky top-0 z-40 bg-white border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <!-- Logo & Identité Flat -->
         <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('materiels')">
-          <div class="flat-logo-box">
-            <img src="{{ url_for('static', filename='logo gparc.jpg') }}?v=20261025" alt="Logo GPARC" class="flat-logo-image">
-          </div>
+          <div class="flat-logo-box"><img src="{{ url_for('static', filename='logo gparc.jpg') }}?v=20261025" alt="Logo GPARC" class="flat-logo-image"></div>
           <div>
             <div class="flex items-center gap-2.5">
               <span class="flat-brand-title">GPARC</span>
-              <span class="flat-status-badge">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                Serveur Apache En Ligne
-              </span>
+              <span class="flat-status-badge"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Serveur En Ligne</span>
             </div>
             <p class="text-[11px] font-semibold text-slate-800">Direction de Distribution de Guelma</p>
-            <p class="text-[11px] font-semibold text-slate-800">Système de Gestion du Parc Informatique &bull; Flat UI</p>
+            <p class="text-[11px] font-semibold text-slate-800">Système de Gestion du Parc Informatique</p>
           </div>
         </div>
-
-        <!-- Actions rapides d'en-tête (Boutons Flat) -->
         <div class="flex items-center gap-2.5">
-          <button onclick="openNewMaterielModal()" class="btn-flat-primary flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2">
-            <i class="fa-solid fa-plus"></i>
-            <span>Nouveau Matériel</span>
-          </button>
-          <button onclick="openNewPanneModal()" class="btn-flat-danger flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>Signaler Panne</span>
-          </button>
-          <button onclick="loadAllData()" title="Rafraîchir les données" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition">
-            <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
-          </button>
+          <span id="current-admin-label" class="text-xs font-semibold text-slate-600 hidden sm:inline"></span>
+          <button onclick="openNewMaterielModal()" class="btn-flat-primary flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2"><i class="fa-solid fa-plus"></i><span>Nouveau Matériel</span></button>
+          <button onclick="openNewPanneModal()" class="btn-flat-danger flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2"><i class="fa-solid fa-triangle-exclamation"></i><span>Signaler Panne</span></button>
+          <button onclick="loadAllData()" title="Rafraîchir les données" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition"><i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i></button>
+          <button id="logout-button" class="px-3 py-2 text-xs font-semibold border border-slate-300 rounded-md hover:bg-slate-100"><i class="fa-solid fa-right-from-bracket mr-1"></i>Déconnexion</button>
         </div>
       </div>
-
-      <!-- Onglets de navigation Flat -->
       <nav class="flex space-x-1 py-2 overflow-x-auto border-t border-slate-100">
-        <button onclick="switchView('materiels')" id="tab-materiels" class="nav-tab bg-blue-600 text-white flex items-center gap-1.5 whitespace-nowrap">
-          <i class="fa-solid fa-desktop"></i> Parc Informatique
-        </button>
-        <button onclick="switchView('pannes')" id="tab-pannes" class="nav-tab flex items-center gap-1.5 whitespace-nowrap">
-          <i class="fa-solid fa-wrench"></i> Pannes & Interventions
-        </button>
+        <button onclick="switchView('materiels')" id="tab-materiels" class="nav-tab bg-blue-600 text-white flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-desktop"></i> Parc Informatique</button>
+        <button onclick="switchView('pannes')" id="tab-pannes" class="nav-tab flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-wrench"></i> Pannes & Interventions</button>
         <span id="panne-nav-count" title="Équipements en panne" class="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 bg-rose-500 text-white text-[11px] font-bold leading-none rounded-full self-center">0</span>
         <span id="reparation-nav-count" title="Équipements en réparation" class="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 bg-amber-500 text-white text-[11px] font-bold leading-none rounded-full self-center">0</span>
-        <button onclick="switchView('reformes')" id="tab-reformes" class="nav-tab flex items-center gap-1.5 whitespace-nowrap">
-          <i class="fa-solid fa-recycle"></i> Réforme
-        </button>
-        <button onclick="switchView('parametres')" id="tab-parametres" class="nav-tab flex items-center gap-1.5 whitespace-nowrap">
-          <i class="fa-solid fa-sliders"></i> Paramètres
-        </button>
-        <button onclick="switchView('stats')" id="tab-stats" class="nav-tab flex items-center gap-1.5 whitespace-nowrap">
-          <i class="fa-solid fa-chart-pie"></i> Statistiques
-        </button>
-        <button onclick="switchView('oracle')" id="tab-oracle" class="nav-tab flex items-center gap-1.5 whitespace-nowrap">
-          <i class="fa-solid fa-database"></i> Import Oracle
-        </button>
-        <button onclick="resetData()" class="nav-tab ml-auto hover:text-rose-600 flex items-center gap-1 whitespace-nowrap">
-          <i class="fa-solid fa-rotate-left"></i> Réinitialiser Démo
-        </button>
+        <button onclick="switchView('reformes')" id="tab-reformes" class="nav-tab flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-recycle"></i> Réforme</button>
+        <button onclick="switchView('parametres')" id="tab-parametres" class="nav-tab flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-sliders"></i> Paramètres</button>
+        <button onclick="switchView('stats')" id="tab-stats" class="nav-tab flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-chart-pie"></i> Statistiques</button>
+        <button onclick="switchView('oracle')" id="tab-oracle" class="nav-tab super-admin-only flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-database"></i> Import Oracle</button>
+        <button onclick="switchView('admins')" id="tab-admins" class="nav-tab super-admin-only ml-auto flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-user-shield"></i> Administration</button>
       </nav>
     </div>
   </header>

@@ -6,16 +6,12 @@ from .types_materiel import types_materiel_bp
 from .structures import structures_bp
 from .oracle import oracle_bp
 from .system import system_bp
+from .auth import auth_bp
+from .admins import admins_bp
 from .web import web_bp
 
 __all__ = [
-    "materiels_bp",
-    "pannes_bp",
-    "parametres_bp",
-    "utilisateurs_bp",
-    "types_materiel_bp",
-    "structures_bp",
-    "oracle_bp",
-    "system_bp",
-    "web_bp",
+    "materiels_bp", "pannes_bp", "parametres_bp", "utilisateurs_bp",
+    "types_materiel_bp", "structures_bp", "oracle_bp", "system_bp",
+    "auth_bp", "admins_bp", "web_bp",
 ]

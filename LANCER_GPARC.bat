@@ -19,7 +19,7 @@ if %errorlevel% neq 0 (
 )
 
 echo [2/3] Verification des dependances Python...
-python -c "import flask, flask_cors" >nul 2>&1
+python -c "import flask" >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERREUR] Dependances manquantes. Executez : pip install -r requirements.txt
     pause
