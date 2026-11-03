@@ -1,4 +1,6 @@
 """Authentification locale et gestion des comptes GPARC."""
+import os
+
 from flask import Blueprint, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -26,6 +28,8 @@ def auth_status():
 
 @auth_bp.post("/api/auth/setup")
 def setup_first_super_admin():
+    if request.remote_addr not in ("127.0.0.1", "::1") and os.getenv("GPARC_ALLOW_REMOTE_SETUP") != "1":
+        return jsonify({"error": "La création initiale du super administrateur doit être effectuée depuis le poste serveur."}), 403
     data = request.get_json(silent=True) or {}
     username = str(data.get("username", "")).strip()
     full_name = str(data.get("full_name", "")).strip()
