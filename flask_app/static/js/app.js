@@ -14,7 +14,6 @@
     let currentReformeFilter = 'ALL';
     let currentPanneFilter = 'ALL';
 
-    // Exposer explicitement sur window pour tous les onclick HTML
     window.switchView = switchView;
     window.toggleView = toggleView;
     window.setFilter = setFilter;
@@ -39,7 +38,6 @@
     window.setRepairStateFields = setRepairStateFields;
     window.handleRepairConfirmation = handleRepairConfirmation;
     window.viewReport = viewReport;
-    window.resetData = resetData;
     window.showToast = showToast;
     window.filterParamCategory = filterParamCategory;
     window.openNewLotReformeModal = openNewLotReformeModal;
@@ -53,4 +51,3 @@
     window.runExecuteOracleSync = runExecuteOracleSync;
     window.openOracleSqlModal = openOracleSqlModal;
     window.copyOracleSqlScript = copyOracleSqlScript;
-
