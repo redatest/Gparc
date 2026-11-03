@@ -19,12 +19,15 @@ Le script vérifie Python, installe automatiquement les dépendances Flask si be
 ### Méthode 2 : Lancement en ligne de commande
 ```bash
 # 1. Installer les dépendances Python
-pip install flask flask-cors
+pip install -r requirements.txt
 
 # 2. Lancer l'application
 python app.py
 ```
 👉 Accédez à l'application sur : **http://127.0.0.1:5000**
+
+### Première connexion
+Au premier lancement, créez le compte Super administrateur depuis l'écran de configuration. Ce compte pourra créer les comptes Administrateur depuis le pavé **Administration**. Les administrateurs simples accèdent à toutes les fonctions de gestion, à l'exception de l'import Oracle et de l'administration des comptes.
 
 ---
 
