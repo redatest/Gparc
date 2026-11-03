@@ -1,18 +1,23 @@
-# GPARC - Mode Bureau Standalone (Identique à green-dz)
+# GPARC - Gestion du Parc Informatique
 
-Cette configuration permet d'exécuter GPARC directement sous Python Flask sur votre poste de travail.
+Application locale Flask avec base SQLite.
 
-## Démarrage rapide (Windows)
-Double-cliquez sur `LANCER_GPARC.bat` situé à la racine du projet.
+## Démarrage (Windows)
+Double-cliquez sur `LANCER_GPARC.bat` à la racine du projet.
 
-## Démarrage en ligne de commande :
+## Démarrage manuel
 ```bash
-# 1. Installation des dépendances Flask
 pip install -r requirements.txt
-
-# 2. Lancement du serveur
 python app.py
 ```
 
-Le serveur sera immédiatement accessible sur **http://127.0.0.1:5000** et ouvrira automatiquement la page d'accueil dans votre navigateur.
-La base de données SQLite `data/gparc.db` est automatiquement initialisée avec le schéma complet et les équipements de démonstration.
+Ouvrez ensuite **http://127.0.0.1:5000**.
+
+## Première connexion
+Au premier démarrage, GPARC affiche un formulaire de configuration permettant de créer le compte **Super administrateur**. Aucun identifiant ou mot de passe initial n'est préconfiguré.
+
+Le super administrateur crée ensuite les comptes des administrateurs simples depuis le pavé **Administration**. Les administrateurs simples ont accès aux fonctions de gestion du parc, mais pas à l'import Oracle ni à l'administration des comptes.
+
+Les mots de passe sont stockés sous forme de hash. Les sessions sont conservées dans un cookie sécurisé HttpOnly pendant sept jours et peuvent être terminées avec le bouton **Déconnexion**. La clé de session est générée localement dans le dossier de données (fichier caché `.gparc_secret_key`) ; ne pas supprimer ce fichier si les sessions doivent rester valides après redémarrage.
+
+Pour un déploiement HTTPS, définir `GPARC_COOKIE_SECURE=1` et conserver le fichier de clé hors du dépôt. La variable `GPARC_SECRET_KEY` peut également fournir explicitement une clé stable.
