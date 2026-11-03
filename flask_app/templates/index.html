@@ -1,58 +1,46 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GPARC - Gestion du Parc Informatique</title>
-  <!-- Google Fonts: Plus Jakarta Sans (Flat Clean Typography) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/intervention-print.css') }}">
-  <!-- Flat Design System Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/flat.css') }}">
 </head>
-<body class="bg-[#edf2f7] text-[#0f172a] min-h-screen flex flex-col font-sans">
-
+<body class="bg-[#edf2f7] text-[#0f172a] min-h-screen flex flex-col font-sans" data-role="{{ session.get('role', '') }}" data-username="{{ session.get('username', '') }}">
   {% include 'partials/header.html' %}
-
   {% include 'partials/toast.html' %}
-
-  <!-- Contenu Principal -->
   <main class="max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex-1">
-
     {% include 'partials/views.html' %}
-
   </main>
-
   {% include 'partials/modals.html' %}
-
-
   {% include 'partials/footer.html' %}
-
-  <!-- Code JavaScript applicatif -->
   <script src="{{ url_for('static', filename='js/oracle.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/intervention-report.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/cpu-se-parameters.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/material-types.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/structure-management.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/user-management.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/parameter-management.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/reform-management.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/panne-list.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/repair-management.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/materiel-list.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/materiel-form.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/panne-form.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/stats-dashboard.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/navigation-filters.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/ui-helpers.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/affectation-history.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/data-loading.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/data-actions.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/intervention-report.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cpu-se-parameters.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/material-types.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/structure-management.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/user-management.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/parameter-management.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/reform-management.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/panne-list.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/repair-management.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/materiel-list.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/materiel-form.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/panne-form.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/stats-dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/navigation-filters.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ui-helpers.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/affectation-history.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/data-loading.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/data-actions.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/admin-management.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
