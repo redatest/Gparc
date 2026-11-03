@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - GPARC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/flat.css') }}">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <main class="w-full max-w-md bg-white border border-slate-300 rounded-xl p-7">
+    <div class="text-center mb-6">
+      <img src="{{ url_for('static', filename='logo gparc.jpg') }}" alt="GPARC" class="w-16 h-16 object-contain mx-auto mb-3">
+      <h1 class="text-2xl font-extrabold text-slate-900">GPARC</h1>
+      <p class="text-sm text-slate-500 mt-1">Gestion du Parc Informatique</p>
+    </div>
+    <div id="auth-error" class="hidden mb-4 p-3 rounded bg-rose-50 text-rose-700 text-sm"></div>
+    <form id="login-form" class="space-y-4">
+      <div><label class="block text-sm font-semibold mb-1">Identifiant</label><input id="login-username" autocomplete="username" required class="w-full" type="text"></div>
+      <div><label class="block text-sm font-semibold mb-1">Mot de passe</label><input id="login-password" autocomplete="current-password" required class="w-full" type="password"></div>
+      <button class="w-full btn-flat-primary py-2.5" type="submit">Se connecter</button>
+    </form>
+    <form id="setup-form" class="hidden space-y-3">
+      <div class="p-3 rounded bg-blue-50 text-blue-800 text-sm">Première utilisation : créez le compte super administrateur. Ce compte sera le seul à pouvoir créer les autres administrateurs.</div>
+      <div><label class="block text-sm font-semibold mb-1">Nom complet</label><input id="setup-name" required class="w-full" type="text"></div>
+      <div><label class="block text-sm font-semibold mb-1">Identifiant</label><input id="setup-username" autocomplete="username" minlength="3" required class="w-full" type="text"></div>
+      <div><label class="block text-sm font-semibold mb-1">Mot de passe (10 caractères minimum)</label><input id="setup-password" autocomplete="new-password" minlength="10" required class="w-full" type="password"></div>
+      <button class="w-full btn-flat-primary py-2.5" type="submit">Créer le super administrateur</button>
+    </form>
+    <p class="text-xs text-slate-400 text-center mt-6">Accès réservé aux administrateurs autorisés.</p>
+  </main>
+<script>
+const errorBox = document.getElementById('auth-error');
+function showAuthError(message) { errorBox.textContent = message; errorBox.classList.remove('hidden'); }
+async function postAuth(url, payload) {
+  const response = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Opération impossible.');
+  window.location.reload();
+}
+(async () => {
+  try {
+    const response = await fetch('/api/auth/status');
+    const data = await response.json();
+    document.getElementById(data.setup_required ? 'setup-form' : 'login-form').classList.remove('hidden');
+  } catch (error) { showAuthError('Impossible de joindre le serveur GPARC.'); }
+})();
+document.getElementById('login-form').addEventListener('submit', async event => {
+  event.preventDefault(); errorBox.classList.add('hidden');
+  try { await postAuth('/api/auth/login', {username:document.getElementById('login-username').value, password:document.getElementById('login-password').value}); }
+  catch (error) { showAuthError(error.message); }
+});
+document.getElementById('setup-form').addEventListener('submit', async event => {
+  event.preventDefault(); errorBox.classList.add('hidden');
+  try { await postAuth('/api/auth/setup', {full_name:document.getElementById('setup-name').value, username:document.getElementById('setup-username').value, password:document.getElementById('setup-password').value}); }
+  catch (error) { showAuthError(error.message); }
+});
+</script>
+</body>
+</html>
