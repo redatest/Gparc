@@ -23,6 +23,7 @@ except ImportError:
 
 app = Flask(__name__)
 
+
 def _load_secret_key():
     configured = os.getenv("GPARC_SECRET_KEY")
     if configured:
@@ -45,6 +46,7 @@ def _load_secret_key():
         pass
     return value
 
+
 app.secret_key = _load_secret_key()
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
@@ -65,16 +67,12 @@ for blueprint in (
 def require_authenticated_admin():
     if not request.path.startswith("/api/"):
         return None
-    public_auth_routes = {
-        "/api/auth/status", "/api/auth/setup", "/api/auth/login",
-    }
+    public_auth_routes = {"/api/auth/status", "/api/auth/setup", "/api/auth/login"}
     if request.path in public_auth_routes:
         return None
-
     admin_id = session.get("admin_id")
     if not admin_id:
         return jsonify({"error": "Authentification requise.", "auth_required": True}), 401
-
     conn = get_db()
     admin = conn.execute(
         "SELECT id_admin, username, role, is_active FROM admins WHERE id_admin = ?",
@@ -84,22 +82,17 @@ def require_authenticated_admin():
     if not admin or not admin["is_active"]:
         session.clear()
         return jsonify({"error": "Session invalide ou compte désactivé.", "auth_required": True}), 401
-
     g.current_admin = dict(admin)
     request.environ["gparc_admin_id"] = admin["id_admin"]
     session["role"] = admin["role"]
     session["username"] = admin["username"]
-
     if request.path.startswith("/api/oracle-sync/") and admin["role"] != "super_admin":
         return jsonify({"error": "Cette fonctionnalité est réservée au super administrateur."}), 403
     if request.path.startswith("/api/admins") and admin["role"] != "super_admin":
         return jsonify({"error": "La gestion des administrateurs est réservée au super administrateur."}), 403
-    if request.path == "/api/reset-data" and admin["role"] != "super_admin":
-        return jsonify({"error": "Action réservée au super administrateur."}), 403
     return None
 
 
-# Initialiser le schéma SQLite et ses migrations au démarrage.
 init_db()
 
 
