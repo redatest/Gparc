@@ -22,7 +22,7 @@ async function loadAdmins() {
       <td class="text-right whitespace-nowrap">
         ${admin.role === 'admin' ? `
           <button class="px-2 py-1 border rounded mr-1" onclick="toggleAdmin(${admin.id}, ${admin.is_active ? 'false' : 'true'})">${admin.is_active ? 'Désactiver' : 'Réactiver'}</button>
-          <button class="px-2 py-1 border rounded" onclick="resetAdminPassword(${admin.id}, '${adminEscape(admin.username)}')">Mot de passe</button>
+          <button class="px-2 py-1 border rounded" onclick="resetAdminPassword(${admin.id})">Mot de passe</button>
         ` : '<span class="text-slate-400">Compte principal</span>'}
       </td>
     </tr>`).join('') || '<tr><td colspan="5" class="p-5 text-center text-slate-400">Aucun compte.</td></tr>';
@@ -34,8 +34,8 @@ async function toggleAdmin(id, active) {
   if (!response.ok) { adminFeedback(data.error || 'Modification impossible.', true); return; }
   await loadAdmins(); adminFeedback('Compte mis à jour.');
 }
-async function resetAdminPassword(id, username) {
-  const password = prompt('Nouveau mot de passe pour ' + username + ' (10 caractères minimum) :');
+async function resetAdminPassword(id) {
+  const password = prompt('Nouveau mot de passe (10 caractères minimum) :');
   if (password === null) return;
   const response = await fetch('/api/admins/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password})});
   const data = await response.json();
