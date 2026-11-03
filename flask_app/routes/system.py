@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify
 
 try:
-    from ..database import get_db, init_db
+    from ..database import get_db
 except ImportError:
-    from database import get_db, init_db
+    from database import get_db
 
 system_bp = Blueprint('system', __name__)
 
@@ -58,27 +58,3 @@ def get_references():
         "utilisateurs": utilisateurs, "lieuxReparation": lieux,
         "parametres": parametres
     })
-
-
-@system_bp.route('/api/reset-data', methods=['POST'])
-def reset_data_endpoint():
-    conn = get_db()
-    cur = conn.cursor()
-    try:
-        cur.execute("DROP TABLE IF EXISTS historique_reforme")
-        cur.execute("DROP TABLE IF EXISTS panne")
-        cur.execute("DROP TABLE IF EXISTS affect_mat")
-        cur.execute("DROP TABLE IF EXISTS materiel")
-        cur.execute("DROP TABLE IF EXISTS structures")
-        cur.execute("DROP TABLE IF EXISTS type_mat")
-        cur.execute("DROP TABLE IF EXISTS model_mat")
-        cur.execute("DROP TABLE IF EXISTS lieu_rep")
-        cur.execute("DROP TABLE IF EXISTS utilisateurs")
-        cur.execute("DROP TABLE IF EXISTS parametres_materiel")
-        cur.execute("DROP TABLE IF EXISTS parametre_type_mat")
-        cur.execute("DROP TABLE IF EXISTS oracle_sync_history")
-        conn.commit()
-    finally:
-        conn.close()
-    init_db()
-    return jsonify({"message": "Base réinitialisée avec succès"})
