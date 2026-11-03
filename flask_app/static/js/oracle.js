@@ -187,7 +187,7 @@
         const confirmation = 'PRÉVISUALISATION ORACLE\n\n' + countText +
           '\n\nTotal : ' + p.totalRows + ' lignes sources.' +
           '\n\n' + (warnings ? 'Anomalies détectées :\n' + warnings : 'Aucune anomalie détectée par les contrôles automatiques.') +
-          '\n\nLes données de démonstration seront remplacées. Une sauvegarde SQLite sera créée et toutes les lignes Oracle brutes seront archivées. Continuer ?';
+          '\n\nLes données locales actuelles seront remplacées. Une sauvegarde SQLite sera créée et toutes les lignes Oracle brutes seront archivées. Continuer ?';
         if (!window.confirm(confirmation)) {
           box.innerHTML += '<div class="text-amber-300">[' + new Date().toLocaleTimeString() + '] Import annulé par l’utilisateur après prévisualisation. Aucune donnée locale modifiée.</div>';
           return;
