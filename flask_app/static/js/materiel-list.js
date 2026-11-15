@@ -14,7 +14,7 @@
         nom,
         prenom,
         hasFullName,
-        label: [prenom, nom].filter(Boolean).join(' ')
+        label: [nom, prenom].filter(Boolean).join('.')
       };
     }
 
@@ -180,7 +180,8 @@
                   <div class="font-mono text-slate-500 text-[11px] mt-1 tracking-tight">SN: ${m.num_ser || '-'}</div>
                 </td>
                 <td class="p-3">
-                  <div class="font-semibold text-slate-900">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label}</div>
+                  <div class="font-semibold text-slate-900">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label || 'Aucun utilisateur'}</div>
+                  <div class="text-slate-600 text-[11px] mt-0.5">${m.ordi ? '<i class="fa-solid fa-desktop mr-1 text-slate-400"></i>' + escapeHtml(m.ordi) : 'Nom du PC non renseigné'}</div>
                   <div class="text-slate-500 text-[11px] mt-0.5">${m.structure_nom || 'Direction non spécifiée'}</div>
                 </td>
                 <td class="p-3">
