@@ -213,13 +213,13 @@
                   <span class="flat-inv-tag">${m.num_inv || 'SANS-INV'}</span>
                   <div class="font-mono text-slate-500 text-[11px] mt-1 tracking-tight">SN: ${m.num_ser || '-'}</div>
                 </td>
-                <td class="p-3">
-                  <div class="flex items-start gap-1 min-w-0">
-                    <div class="font-semibold text-slate-900 min-w-0 break-all">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label || 'Aucun utilisateur'}</div>
+                <td class="p-3 align-top" style="max-width: 190px; overflow-wrap: anywhere;">
+                  <div class="flex items-start gap-1 w-full min-w-0">
+                    <div class="font-semibold text-slate-900 flex-1 min-w-0" style="overflow-wrap: anywhere; word-break: break-word;">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label || 'Aucun utilisateur'}</div>
                     ${getEquipmentUserName(m).hasFullName ? `<button type="button" onclick="copyEquipmentUserName(this)" data-copy-value="${encodeURIComponent(getEquipmentUserName(m).label)}" class="shrink-0 inline-flex items-center justify-center w-6 h-6 -mt-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Copier le nom utilisateur" aria-label="Copier ${getEquipmentUserName(m).label}"><i class="fa-regular fa-copy" aria-hidden="true"></i></button>` : ''}
                   </div>
-                  <div class="text-slate-600 text-[11px] mt-0.5 break-words">${m.ordi ? '<i class="fa-solid fa-desktop mr-1 text-slate-400"></i>' + escapeHtml(m.ordi) : 'Nom du PC non renseigné'}</div>
-                  <div class="text-slate-500 text-[11px] mt-0.5">${m.structure_nom || 'Direction non spécifiée'}</div>
+                  <div class="text-slate-600 text-[11px] mt-0.5" style="overflow-wrap: anywhere;">${m.ordi ? '<i class="fa-solid fa-desktop mr-1 text-slate-400"></i>' + escapeHtml(m.ordi) : 'Nom du PC non renseigné'}</div>
+                  <div class="text-slate-500 text-[11px] mt-0.5" style="overflow-wrap: anywhere;">${m.structure_nom || 'Direction non spécifiée'}</div>
                 </td>
                 <td class="p-3">
                   <div class="text-slate-800 font-medium">${m.cpu || 'CPU Standard'}</div>
