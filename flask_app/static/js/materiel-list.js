@@ -41,6 +41,40 @@
       return '<span class="flat-status-pill bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="status-dot bg-emerald-500"></span>Bon état</span>';
     }
 
+    // Copie le nom utilisateur au format exact « nom.prenom ».
+    async function copyEquipmentUserName(button) {
+      const value = decodeURIComponent(button.dataset.copyValue || '');
+      if (!value) return;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(value);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = value;
+          textarea.setAttribute('readonly', '');
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          const copied = document.execCommand('copy');
+          textarea.remove();
+          if (!copied) throw new Error('Échec de la copie');
+        }
+
+        const previousTitle = button.title;
+        button.title = 'Nom copié : ' + value;
+        button.innerHTML = '<i class="fa-solid fa-check text-emerald-600" aria-hidden="true"></i>';
+        window.setTimeout(() => {
+          button.title = previousTitle;
+          button.innerHTML = '<i class="fa-regular fa-copy" aria-hidden="true"></i>';
+        }, 1200);
+      } catch (error) {
+        console.error('Impossible de copier le nom utilisateur :', error);
+        button.title = 'Copie impossible';
+      }
+    }
+
     function renderMateriels() {
       const grid = document.getElementById('materiels-grid');
       const tableBody = document.getElementById('materiels-table-body');
@@ -180,8 +214,11 @@
                   <div class="font-mono text-slate-500 text-[11px] mt-1 tracking-tight">SN: ${m.num_ser || '-'}</div>
                 </td>
                 <td class="p-3">
-                  <div class="font-semibold text-slate-900">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label || 'Aucun utilisateur'}</div>
-                  <div class="text-slate-600 text-[11px] mt-0.5">${m.ordi ? '<i class="fa-solid fa-desktop mr-1 text-slate-400"></i>' + escapeHtml(m.ordi) : 'Nom du PC non renseigné'}</div>
+                  <div class="flex items-start gap-1 min-w-0">
+                    <div class="font-semibold text-slate-900 min-w-0 break-all">${getEquipmentUserName(m).hasFullName ? '<i class="fa-solid fa-user text-blue-600 text-[10px] mr-1" title="Utilisateur identifié" aria-label="Utilisateur identifié"></i>' : ''}${getEquipmentUserName(m).label || 'Aucun utilisateur'}</div>
+                    ${getEquipmentUserName(m).hasFullName ? `<button type="button" onclick="copyEquipmentUserName(this)" data-copy-value="${encodeURIComponent(getEquipmentUserName(m).label)}" class="shrink-0 inline-flex items-center justify-center w-6 h-6 -mt-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Copier le nom utilisateur" aria-label="Copier ${getEquipmentUserName(m).label}"><i class="fa-regular fa-copy" aria-hidden="true"></i></button>` : ''}
+                  </div>
+                  <div class="text-slate-600 text-[11px] mt-0.5 break-words">${m.ordi ? '<i class="fa-solid fa-desktop mr-1 text-slate-400"></i>' + escapeHtml(m.ordi) : 'Nom du PC non renseigné'}</div>
                   <div class="text-slate-500 text-[11px] mt-0.5">${m.structure_nom || 'Direction non spécifiée'}</div>
                 </td>
                 <td class="p-3">
