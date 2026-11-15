@@ -69,6 +69,7 @@
         ensureMaterielSelectOption(modelSel, mat.id_model_mat, modelName || ('Modèle ' + mat.id_model_mat));
         if (modelSel) modelSel.value = mat.id_model_mat ?? '';
         document.getElementById('mat-user').value = mat.id_uti ?? '';
+        document.getElementById('mat-ordi').value = mat.ordi || '';
 
         ensureMaterielSelectOption(cpuSel, mat.cpu, mat.cpu);
         ensureMaterielSelectOption(seSel, mat.se, mat.se);
@@ -87,7 +88,7 @@
     }
 
     function resetMaterielForm() {
-      ['mat-num-inv','mat-num-ser','mat-marque','mat-type','mat-model','mat-str','mat-user','mat-cpu','mat-se','mat-ram' ,'mat-disk'].forEach(id => {
+      ['mat-num-inv','mat-num-ser','mat-marque','mat-type','mat-model','mat-str','mat-user','mat-ordi','mat-cpu','mat-se','mat-ram' ,'mat-disk'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -194,6 +195,7 @@
         id_typ_mat: parseInt(document.getElementById('mat-type').value) || null,
         id_str: parseInt(document.getElementById('mat-str').value) || null,
         id_uti: parseInt(document.getElementById('mat-user').value) || null,
+        ordi: document.getElementById('mat-ordi').value.trim(),
         cpu: document.getElementById('mat-cpu').value.trim(),
         se: document.getElementById('mat-se').value.trim(),
         ram: parseInt(document.getElementById('mat-ram').value) || null,
