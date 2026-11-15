@@ -196,7 +196,7 @@
         id_typ_mat: parseInt(document.getElementById('mat-type').value) || null,
         id_str: parseInt(document.getElementById('mat-str').value) || null,
         id_uti: parseInt(document.getElementById('mat-user').value) || null,
-        ordi: document.getElementById('mat-ordi')?.value.trim() || '',
+        ordi: document.getElementById('mat-ordi')?.value.trim(),
         cpu: document.getElementById('mat-cpu').value.trim(),
         se: document.getElementById('mat-se').value.trim(),
         ram: parseInt(document.getElementById('mat-ram').value) || null,
