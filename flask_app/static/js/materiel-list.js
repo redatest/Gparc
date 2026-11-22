@@ -75,25 +75,76 @@
       }
     }
 
+    // Source unique des filtres : utilisée par l'affichage et l'export Excel.
+    function getFilteredMateriels() {
+      const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+      const userQuery = (document.getElementById('materiels-filter-utilisateur')?.value || '').toLowerCase().trim();
+      const structureQuery = (document.getElementById('materiels-filter-structure')?.value || '').toLowerCase().trim();
+
+      return allMateriels.filter(m => {
+        const equipmentStatus = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
+        const matchFilter = currentFilter === 'ALL' || equipmentStatus === currentFilter;
+        const text = `${m.num_inv || ''} ${m.num_ser || ''} ${m.model_mat || ''} ${m.marque_mat || ''} ${m.nom_uti || ''} ${m.pnom_uti || ''} ${m.structure_nom || ''} ${m.ip || ''} ${m.cpu || ''} ${m.se || ''} ${m.ordi || ''}`.toLowerCase();
+        const userText = [m.nom_uti, m.pnom_uti].filter(Boolean).join(' ').toLowerCase();
+        return matchFilter && (!query || text.includes(query))
+          && (!userQuery || userText.includes(userQuery))
+          && (!structureQuery || String(m.structure_nom || '').toLowerCase().includes(structureQuery));
+      });
+    }
+
+    // Exporte tous les résultats filtrés, indépendamment de la pagination affichée.
+    function exportMaterielsExcel() {
+      const rows = getFilteredMateriels();
+      if (!rows.length) {
+        showToast('Aucun équipement à exporter pour ces critères.', true);
+        return;
+      }
+      if (typeof XLSX === 'undefined') {
+        showToast('Le module Excel n’est pas disponible. Vérifiez la connexion au CDN.', true);
+        return;
+      }
+
+      const statusLabels = { ES: 'En service', PR: 'Proposé à la réforme', RF: 'Réformé' };
+      const etatLabels = { BON: 'Bon', PANNE: 'En panne', IRREPARABLE: 'Irréparable' };
+      const data = rows.map(m => ({
+        'N° inventaire': m.num_inv || '',
+        'N° série': m.num_ser || '',
+        'Type': m.type_nom || '',
+        'Marque': m.marque_mat || '',
+        'Modèle': m.model_mat || '',
+        'Nom utilisateur': m.nom_uti || '',
+        'Prénom utilisateur': m.pnom_uti || '',
+        'Nom utilisateur complet': [m.nom_uti, m.pnom_uti].filter(Boolean).join('.'),
+        'Structure': m.structure_nom || '',
+        'Nom du PC': m.ordi || '',
+        'Adresse IP': m.ip || '',
+        'Processeur': m.cpu || '',
+        'Système d’exploitation': m.se || '',
+        'RAM (Go)': m.ram ?? '',
+        'Disque (Go)': m.disk ?? '',
+        'Statut': statusLabels[m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES')] || '',
+        'État': etatLabels[m.etat_mat] || '',
+        'Observation': m.obs_mat || ''
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      worksheet['!cols'] = [
+        {wch:16},{wch:20},{wch:20},{wch:18},{wch:24},{wch:22},{wch:22},{wch:32},
+        {wch:28},{wch:22},{wch:18},{wch:30},{wch:24},{wch:12},{wch:14},{wch:24},{wch:18},{wch:40}
+      ];
+      worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Parc informatique');
+      const date = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `GPARC_recherche_${date}.xlsx`);
+      showToast(`${rows.length} équipement(s) exporté(s) vers Excel.`);
+    }
+
     function renderMateriels() {
       const grid = document.getElementById('materiels-grid');
       const tableBody = document.getElementById('materiels-table-body');
       const countBadge = document.getElementById('materiels-count-badge');
-      const query = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase().trim() : '';
-      const userQuery = (document.getElementById('materiels-filter-utilisateur')?.value || '').toLowerCase().trim();
-      const structureQuery = (document.getElementById('materiels-filter-structure')?.value || '').toLowerCase().trim();
-
-      const filtered = allMateriels.filter(m => {
-        const equipmentStatus = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
-        const matchFilter = currentFilter === 'ALL' || equipmentStatus === currentFilter;
-        const text = `${m.num_inv || ''} ${m.num_ser || ''} ${m.model_mat || ''} ${m.marque_mat || ''} ${m.nom_uti || ''} ${m.pnom_uti || ''} ${m.structure_nom || ''} ${m.ip || ''} ${m.cpu || ''} ${m.se || ''} ${m.ordi || ''}`.toLowerCase();
-        const matchSearch = !query || text.includes(query);
-        const userText = [m.nom_uti, m.pnom_uti].filter(Boolean).join(' ').toLowerCase();
-        const structureText = String(m.structure_nom || '').toLowerCase();
-        const matchUser = !userQuery || userText.includes(userQuery);
-        const matchStructure = !structureQuery || structureText.includes(structureQuery);
-        return matchFilter && matchSearch && matchUser && matchStructure;
-      });
+      const filtered = getFilteredMateriels();
 
       if (countBadge) {
         countBadge.innerText = `${filtered.length} équipement${filtered.length > 1 ? 's' : ''}`;
@@ -284,13 +335,7 @@
     }
 
     function changeMaterielsPage(direction) {
-      const query = document.getElementById('search-input')?.value.toLowerCase().trim() || '';
-      const filteredCount = allMateriels.filter(m => {
-        const equipmentStatus = m.statut_mat || (m.etat_reforme === 'PROPOSEE' ? 'PR' : m.etat_reforme === 'REFORME' ? 'RF' : 'ES');
-        const matchFilter = currentFilter === 'ALL' || equipmentStatus === currentFilter;
-        const text = (m.num_inv || '') + ' ' + (m.num_ser || '') + ' ' + (m.model_mat || '') + ' ' + (m.marque_mat || '') + ' ' + (m.nom_uti || '') + ' ' + (m.structure_nom || '') + ' ' + (m.ip || '') + ' ' + (m.cpu || '') + ' ' + (m.se || '') + ' ' + (m.ordi || '');
-        return matchFilter && (!query || text.toLowerCase().includes(query));
-      }).length;
+      const filteredCount = getFilteredMateriels().length;
       const totalPages = Math.max(1, Math.ceil(filteredCount / materielsPageSize));
       materielsCurrentPage = Math.min(Math.max(1, materielsCurrentPage + direction), totalPages);
       renderMateriels();
