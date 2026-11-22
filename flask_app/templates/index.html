@@ -4,11 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GPARC - Gestion du Parc Informatique</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="{{ url_for('static', filename='js/vendor/tailwindcss-3.4.10.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-6.4.0.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/intervention-print.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/flat.css') }}">
 </head>
@@ -20,7 +17,7 @@
   </main>
   {% include 'partials/modals.html' %}
   {% include 'partials/footer.html' %}
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="{{ url_for('static', filename='js/vendor/xlsx-0.18.5.full.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/oracle.js') }}"></script>
   <script src="{{ url_for('static', filename='js/intervention-report.js') }}"></script>
   <script src="{{ url_for('static', filename='js/cpu-se-parameters.js') }}"></script>
