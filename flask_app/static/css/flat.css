@@ -4,8 +4,6 @@
    Lisibilité maximale, Typographie nette, Bordures chirurgicales (1px).
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
   /* Nuances de surface Flat - Contrastées pour éliminer l'aspect trop pâle */
   --flat-bg: #edf2f7;           /* Slate doux et franc : met en valeur les cartes blanches */
