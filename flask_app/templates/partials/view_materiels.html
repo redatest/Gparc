@@ -28,6 +28,9 @@
             <p class="text-xs text-slate-500 mt-0.5">Inventaire complet, spécifications techniques, affectations et statut en temps réel.</p>
           </div>
           <div class="flex items-center gap-2">
+            <button onclick="exportMaterielsExcel()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition" title="Exporter tous les résultats filtrés vers Excel">
+              <i class="fa-solid fa-file-excel"></i> Exporter Excel
+            </button>
             <button onclick="openNewMaterielModal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
               <i class="fa-solid fa-plus"></i> Nouvel Équipement
             </button>
